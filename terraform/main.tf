@@ -183,26 +183,12 @@ resource "google_project_iam_member" "firestore_user" {
   depends_on = [google_service_account.cloud_run_sa]
 }
 
-# Grant Firestore access to default compute service account also
-resource "google_project_iam_member" "firestore_user2" {
-  project = var.project_id
-  role    = "roles/datastore.user"
-  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
-}
-
 # Grant Secret Manager access to service account
 resource "google_project_iam_member" "secret_accessor" {
   project    = var.project_id
   role       = "roles/secretmanager.secretAccessor"
   member     = "serviceAccount:${google_service_account.cloud_run_sa.email}"
   depends_on = [google_service_account.cloud_run_sa, google_project_service.secretmanager]
-}
-
-# Grant Secret Manager access to default compute service account also
-resource "google_project_iam_member" "secret_accessor2" {
-  project = var.project_id
-  role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
 }
 
 # Outputs
