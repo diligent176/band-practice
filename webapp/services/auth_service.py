@@ -35,7 +35,7 @@ class AuthService:
                 # On Cloud Run, use Application Default Credentials
                 firebase_admin.initialize_app()
 
-        allowed_users_str = os.getenv('ALLOWED_USERS', 'jcbellis@gmail.com')
+        allowed_users_str = os.getenv('ALLOWED_USERS')
         self.allowed_users = [email.strip() for email in allowed_users_str.split(',')]
 
     def verify_token(self, id_token):

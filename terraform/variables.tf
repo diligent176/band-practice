@@ -54,5 +54,4 @@ variable "firebase_api_key" {
 variable "allowed_user_emails" {
   description = "List of email addresses allowed to access the app"
   type        = list(string)
-  default     = ["jcbellis@gmail.com"]
 }
