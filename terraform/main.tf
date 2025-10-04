@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "YOUR_TERRAFORM_STATE_BUCKET" # Change this
+    bucket = "band-practice-pro-terraform-state"
     prefix = "terraform/state"
   }
 }
@@ -37,6 +37,16 @@ resource "google_project_service" "build" {
 
 resource "google_project_service" "artifactregistry" {
   service            = "artifactregistry.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "iap" {
+  service            = "iap.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "compute" {
+  service            = "compute.googleapis.com"
   disable_on_destroy = false
 }
 
@@ -100,6 +110,11 @@ resource "google_cloud_run_service" "band_practice" {
           value = var.flask_secret_key
         }
 
+        env {
+          name  = "GCP_PROJECT_NUMBER"
+          value = var.project_number
+        }
+
         resources {
           limits = {
             cpu    = "1000m"
@@ -115,7 +130,14 @@ resource "google_cloud_run_service" "band_practice" {
       annotations = {
         "autoscaling.knative.dev/maxScale" = "10"
         "autoscaling.knative.dev/minScale" = "0"
+        # "run.googleapis.com/ingress"       = "all"
       }
+    }
+  }
+
+  metadata {
+    annotations = {
+      "run.googleapis.com/ingress" = "all"
     }
   }
 
@@ -130,12 +152,22 @@ resource "google_cloud_run_service" "band_practice" {
   ]
 }
 
-# IAM - Allow unauthenticated access (change if you want authentication)
-resource "google_cloud_run_service_iam_member" "public_access" {
+# Configure Identity-Aware Proxy for the Cloud Run service
+resource "google_iap_web_backend_service_iam_member" "iap_access" {
+  project             = var.project_id
+  web_backend_service = google_cloud_run_service.band_practice.name
+  role                = "roles/iap.httpsResourceAccessor"
+  member              = "allAuthenticatedUsers" # Adjust this to specific users/groups as needed
+}
+
+# IAM - Restrict access to authenticated users only
+# Remove the public access and add specific user/group access as needed
+resource "google_cloud_run_service_iam_member" "authenticated_access" {
   service  = google_cloud_run_service.band_practice.name
   location = google_cloud_run_service.band_practice.location
   role     = "roles/run.invoker"
-  member   = "allUsers"
+  member   = "user:jcbellis@gmail.com"
+  # member   = "allAuthenticatedUsers" # means ANY Authenticated Google users can access
 }
 
 # Service Account for Cloud Run

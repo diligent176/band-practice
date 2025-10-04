@@ -145,6 +145,14 @@ The script will:
 
 For reproducible deployments and team environments:
 
+#### Create the state bucket first (manually)
+
+gcloud storage buckets create gs://band-practice-pro-terraform-state --location=us-west1
+
+#### Enable versioning
+
+gcloud storage buckets update gs://band-practice-pro-terraform-state --versioning
+
 #### Step 1: Configure Terraform
 
 ```bash

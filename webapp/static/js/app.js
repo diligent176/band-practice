@@ -27,6 +27,7 @@ const playlistCancelBtn = document.getElementById('playlist-cancel-btn');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    loadUserInfo();
     loadSongs();
     setupEventListeners();
 });
@@ -44,6 +45,21 @@ function setupEventListeners() {
 }
 
 // API Functions
+async function loadUserInfo() {
+    try {
+        const response = await fetch('/api/user');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user) {
+                document.getElementById('user-email').textContent = data.user.email;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user info:', error);
+        document.getElementById('user-email').textContent = 'User';
+    }
+}
+
 async function loadSongs() {
     try {
         showLoading('Loading songs...');

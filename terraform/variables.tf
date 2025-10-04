@@ -44,3 +44,8 @@ variable "flask_secret_key" {
   sensitive   = true
   default     = ""
 }
+
+variable "project_number" {
+  description = "GCP Project Number (numeric, required for IAP authentication)"
+  type        = string
+}

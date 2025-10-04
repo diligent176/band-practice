@@ -1,6 +1,7 @@
 # Copy this file to terraform.tfvars and fill in your values
 
 project_id              = "your-gcp-project-id"
+project_number          = "123456789012"  # Your GCP project number (numeric)
 region                  = "us-west1"
 firestore_location      = "nam5"  # North America multi-region
 spotify_client_id       = "your-spotify-client-id"
@@ -8,3 +9,6 @@ spotify_client_secret   = "your-spotify-client-secret"
 genius_access_token     = "your-genius-access-token"
 spotify_playlist_url    = "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID"
 flask_secret_key        = "generate-a-random-secret-key-here"
+
+# NOTE: After enabling authentication, only authenticated Google users can access the app
+# To add specific users, modify the IAM settings in main.tf

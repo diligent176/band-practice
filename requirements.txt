@@ -6,6 +6,8 @@ python-dotenv==1.0.0
 
 # Google Cloud
 google-cloud-firestore==2.14.0
+google-auth==2.25.2
+google-auth-oauthlib==1.2.0
 
 # Spotify & Genius
 lyricsgenius==3.0.1
