@@ -1,0 +1,14 @@
+# Don't include these in Docker image
+.git
+.gitignore
+.env
+*.md
+*.pyc
+__pycache__
+venv/
+.vscode/
+terraform/
+bkp/
+*.html
+*.js
+*.bat

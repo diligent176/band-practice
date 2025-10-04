@@ -1,0 +1,10 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+project_id              = "your-gcp-project-id"
+region                  = "us-west1"
+firestore_location      = "nam5"  # North America multi-region
+spotify_client_id       = "your-spotify-client-id"
+spotify_client_secret   = "your-spotify-client-secret"
+genius_access_token     = "your-genius-access-token"
+spotify_playlist_url    = "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID"
+flask_secret_key        = "generate-a-random-secret-key-here"

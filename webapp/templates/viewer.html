@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎸 Band Practice</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>🎸 Band Practice</h1>
+            <div class="header-actions">
+                <button id="change-playlist-btn" class="btn btn-secondary">
+                    <span class="icon">📋</span> Change Playlist
+                </button>
+                <button id="sync-playlist-btn" class="btn btn-primary">
+                    <span class="icon">🔄</span> Sync Playlist
+                </button>
+                <button id="refresh-song-btn" class="btn btn-secondary" disabled>
+                    <span class="icon">♻️</span> Refresh Lyrics
+                </button>
+            </div>
+        </div>
+        <div class="controls">
+            <div class="song-selector">
+                <label for="song-select">Select Song:</label>
+                <select id="song-select" class="song-select">
+                    <option value="">Loading songs...</option>
+                </select>
+            </div>
+            <div class="status-bar">
+                <span id="status-message" class="status-message"></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="panels">
+            <!-- Lyrics Panel -->
+            <div class="panel lyrics-panel">
+                <div class="panel-header">
+                    <h2>Lyrics</h2>
+                    <div class="song-metadata" id="song-metadata"></div>
+                </div>
+                <div class="panel-content" id="lyrics-content">
+                    <div class="empty-state">
+                        <p>Select a song to view lyrics</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Panel -->
+            <div class="panel notes-panel">
+                <div class="panel-header">
+                    <h2>Practice Notes</h2>
+                    <div class="notes-actions">
+                        <button id="edit-notes-btn" class="btn btn-small btn-secondary" disabled>
+                            <span class="icon">✏️</span> Edit
+                        </button>
+                        <button id="save-notes-btn" class="btn btn-small btn-primary" style="display: none;">
+                            <span class="icon">💾</span> Save
+                        </button>
+                        <button id="cancel-edit-btn" class="btn btn-small btn-secondary" style="display: none;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <!-- View Mode -->
+                    <div id="notes-view" class="notes-view">
+                        <div class="empty-state">
+                            <p>Select a song to view notes</p>
+                        </div>
+                    </div>
+                    <!-- Edit Mode -->
+                    <div id="notes-edit" class="notes-edit" style="display: none;">
+                        <div class="edit-help">
+                            <strong>Note Syntax:</strong>
+                            <code>Line 12: Your note here</code> or
+                            <code>Lines 45-48: Your note here</code>
+                        </div>
+                        <textarea id="notes-textarea" class="notes-textarea" placeholder="Add your practice notes here...
+
+Example:
+Line 12: Heavy kick on 1 and 3
+Lines 45-48: Double time, watch for break"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Playlist Dialog -->
+    <div id="playlist-dialog" class="dialog-overlay" style="display: none;">
+        <div class="dialog">
+            <h3>Change Spotify Playlist</h3>
+            <input type="text" id="playlist-url-input" class="input"
+                   placeholder="https://open.spotify.com/playlist/YOUR_PLAYLIST_ID">
+            <div class="dialog-actions">
+                <button id="playlist-cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="playlist-save-btn" class="btn btn-primary">Sync New Playlist</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p id="loading-message">Loading...</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
