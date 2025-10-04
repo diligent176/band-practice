@@ -5,15 +5,15 @@ on:
     branches:
       - main
     paths:
-      - 'webapp/**'
-      - 'Dockerfile'
-      - 'requirements.txt'
+      - "webapp/**"
+      - "Dockerfile"
+      - "requirements.txt"
   workflow_dispatch:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: ${{ secrets.GCP_REGION }}
-  SERVICE_NAME: band-practice
+  SERVICE_NAME: band-practice-pro
   GAR_LOCATION: us-west1
   REPOSITORY: band-practice-pro
 

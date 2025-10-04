@@ -148,7 +148,7 @@ def health():
 
 @app.route('/health2')
 def health_check():
-    return {"status": "healthy", "message": "App is running!"}, 200
+    return {"status": "healthy", "message": "Band Practice PRO is up and running!"}, 200
 
 
 if __name__ == '__main__':
