@@ -143,7 +143,7 @@ def get_user_info():
 @app.route('/health')
 def health():
     """Health check endpoint for Cloud Run"""
-    return jsonify({'status': 'We healthy as heck - yeah! Band Practice PRO!'}), 200
+    return jsonify({'status': 'We healthy as heck - yeah! Get Band Practice PRO!'}), 200
 
 
 @app.route('/health2')
