@@ -133,7 +133,7 @@ resource "google_cloud_run_service" "band_practice" {
         }
       }
 
-      service_account_name = google_service_account.cloud_run_sa.email
+      service_account_name = "${var.project_id}-compute@developer.gserviceaccount.com"
     }
 
     metadata {
@@ -175,18 +175,18 @@ resource "google_service_account" "cloud_run_sa" {
   display_name = "Band Practice App Service Account"
 }
 
-# Grant Firestore access to service account
+# Grant Firestore access to default compute service account
 resource "google_project_iam_member" "firestore_user" {
   project = var.project_id
   role    = "roles/datastore.user"
-  member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
+  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
 }
 
-# Grant Secret Manager access to service account
+# Grant Secret Manager access to default compute service account
 resource "google_project_iam_member" "secret_accessor" {
   project = var.project_id
   role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
+  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
 }
 
 # Outputs
