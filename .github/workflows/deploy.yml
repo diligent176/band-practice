@@ -62,8 +62,7 @@ jobs:
             --region=${{ env.REGION }} \
             --allow-unauthenticated \
             --set-env-vars="SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }},GENIUS_ACCESS_TOKEN=${{ secrets.GENIUS_ACCESS_TOKEN }},SPOTIFY_PLAYLIST_URL=${{ secrets.SPOTIFY_PLAYLIST_URL }},FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }},FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" \
-            --set-secrets="SPOTIFY_CLIENT_SECRET=SPOTIFY_CLIENT_SECRET:latest" \
-            --update-secrets="ALLOWED_USER_EMAILS=ALLOWED_USER_EMAILS:latest"
+            --set-secrets="SPOTIFY_CLIENT_SECRET=SPOTIFY_CLIENT_SECRET:latest,ALLOWED_USER_EMAILS=ALLOWED_USER_EMAILS:latest"
 
       - name: Show deployment URL
         run: |
