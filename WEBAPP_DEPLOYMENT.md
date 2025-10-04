@@ -62,8 +62,15 @@ gcloud projects create band-practice-pro --name="Band Practice"
 # Set as active project
 gcloud config set project band-practice-pro
 
-# Enable billing (required)
-# Go to: https://console.cloud.google.com/billing
+# update your Application Default Credentials quota project
+gcloud auth application-default set-quota-project band-practice-pro
+
+# Enable billing (required) https://console.cloud.google.com/billing
+# OR List available billing accounts
+gcloud billing accounts list
+
+# Link billing account to your project (replace BILLING_ACCOUNT_ID)
+gcloud billing projects link band-practice-pro --billing-account=BILLING_ACCOUNT_ID
 
 # Enable required APIs
 gcloud services enable run.googleapis.com
