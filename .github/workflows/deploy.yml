@@ -14,8 +14,8 @@ env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: ${{ secrets.GCP_REGION }}
   SERVICE_NAME: band-practice
-  GAR_LOCATION: ${{ secrets.GCP_REGION }}
-  REPOSITORY: band-practice
+  GAR_LOCATION: us-west1
+  REPOSITORY: band-practice-pro
 
 jobs:
   deploy:
