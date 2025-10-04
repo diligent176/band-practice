@@ -133,7 +133,7 @@ resource "google_cloud_run_service" "band_practice" {
         }
       }
 
-      service_account_name = "${var.project_id}-compute@developer.gserviceaccount.com"
+      service_account_name = google_service_account.cloud_run_sa.email
     }
 
     metadata {
