@@ -179,14 +179,14 @@ resource "google_service_account" "cloud_run_sa" {
 resource "google_project_iam_member" "firestore_user" {
   project = var.project_id
   role    = "roles/datastore.user"
-  member  = google_service_account.cloud_run_sa.email
+  member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
 }
 
 # Grant Secret Manager access to service account
 resource "google_project_iam_member" "secret_accessor" {
   project = var.project_id
   role    = "roles/secretmanager.secretAccessor"
-  member  = google_service_account.cloud_run_sa.email
+  member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
 }
 
 # Outputs
