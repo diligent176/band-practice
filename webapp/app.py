@@ -133,6 +133,7 @@ def refresh_song(song_id):
 @require_auth
 def get_user_info():
     """Get current user information"""
+    logger.info(f"User info requested: {g.user}")
     return jsonify({
         'user': g.user,
         'success': True

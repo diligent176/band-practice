@@ -1,0 +1,99 @@
+name: Terraform Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+  pull_request:
+    paths:
+      - "terraform/**"
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: Terraform Plan & Apply
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Create terraform.tfvars from secrets
+        run: |
+          cat > terraform.tfvars <<EOF
+          project_id              = "${{ secrets.GCP_PROJECT_ID }}"
+          region                  = "${{ secrets.GCP_REGION }}"
+          firestore_location      = "${{ secrets.FIRESTORE_LOCATION }}"
+          spotify_client_id       = "${{ secrets.SPOTIFY_CLIENT_ID }}"
+          spotify_client_secret   = "${{ secrets.SPOTIFY_CLIENT_SECRET }}"
+          genius_access_token     = "${{ secrets.GENIUS_ACCESS_TOKEN }}"
+          spotify_playlist_url    = "${{ secrets.SPOTIFY_PLAYLIST_URL }}"
+          flask_secret_key        = "${{ secrets.FLASK_SECRET_KEY }}"
+          firebase_api_key        = "${{ secrets.FIREBASE_API_KEY }}"
+          allowed_user_emails     = ${{ secrets.ALLOWED_USER_EMAILS }}
+          EOF
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Comment PR with Plan
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: ${{ steps.plan.outputs.stdout }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Plan 📋
+
+            \`\`\`terraform
+            ${process.env.PLAN}
+            \`\`\`
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      # - name: Terraform Apply
+      #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   run: terraform apply -auto-approve tfplan

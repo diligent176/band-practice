@@ -1,3 +1,7 @@
+github-actions-key.json
+.claude/*
+zztemp**
+
 # terraform
 *.tfstate
 *.tfstate.*backup

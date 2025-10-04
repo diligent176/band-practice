@@ -44,11 +44,15 @@ class AuthService:
             decoded_token = auth.verify_id_token(id_token)
             email = decoded_token.get('email')
 
+            logger.info(f"Token verified for email: {email}")
+            logger.info(f"Allowed users: {self.allowed_users}")
+
             # Check if user is in allowed list
             if email not in self.allowed_users:
-                logger.warning(f"Unauthorized user attempted access: {email}")
+                logger.warning(f"Unauthorized user attempted access: {email}. Allowed: {self.allowed_users}")
                 return None
 
+            logger.info(f"User {email} authorized successfully")
             return {
                 'email': email,
                 'uid': decoded_token.get('uid'),
