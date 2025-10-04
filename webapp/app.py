@@ -1,5 +1,5 @@
 """
-Band Practice Lyrics Viewer - Flask Web Application
+Band Practice PRO - Flask Web Application
 """
 
 from flask import Flask, render_template, request, jsonify, g
@@ -143,7 +143,8 @@ def get_user_info():
 @app.route('/health')
 def health():
     """Health check endpoint for Cloud Run"""
-    return jsonify({'status': 'healthy'}), 200
+    return jsonify({'status': 'healthy as heck yeah'}), 200
+
 
 @app.route('/health2')
 def health_check():
