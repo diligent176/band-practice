@@ -45,6 +45,37 @@ resource "google_project_service" "secretmanager" {
   disable_on_destroy = false
 }
 
+# Secret Manager Secrets
+resource "google_secret_manager_secret" "spotify_client_secret" {
+  secret_id = "SPOTIFY_CLIENT_SECRET"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "spotify_client_secret" {
+  secret      = google_secret_manager_secret.spotify_client_secret.id
+  secret_data = var.spotify_client_secret
+}
+
+resource "google_secret_manager_secret" "allowed_user_emails" {
+  secret_id = "ALLOWED_USER_EMAILS"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "allowed_user_emails" {
+  secret      = google_secret_manager_secret.allowed_user_emails.id
+  secret_data = join(",", var.allowed_user_emails)
+}
+
 # Firestore Database
 resource "google_firestore_database" "database" {
   project     = var.project_id
