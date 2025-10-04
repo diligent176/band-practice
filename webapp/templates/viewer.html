@@ -7,115 +7,235 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <h1>🎸 Band Practice</h1>
-            <div class="user-info">
-                <span id="user-email" class="user-email">Loading...</span>
-            </div>
-            <div class="header-actions">
-                <button id="change-playlist-btn" class="btn btn-secondary">
-                    <span class="icon">📋</span> Change Playlist
-                </button>
-                <button id="sync-playlist-btn" class="btn btn-primary">
-                    <span class="icon">🔄</span> Sync Playlist
-                </button>
-                <button id="refresh-song-btn" class="btn btn-secondary" disabled>
-                    <span class="icon">♻️</span> Refresh Lyrics
-                </button>
+    <!-- Firebase Auth Gate -->
+    <div id="auth-gate" style="display: none;">
+        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; max-width: 400px;">
+                <h1 style="margin-bottom: 20px;">🎸 Band Practice Pro</h1>
+                <p style="color: #666; margin-bottom: 30px;">Sign in with your Google account to continue</p>
+                <div id="firebaseui-auth-container"></div>
+                <div id="auth-error" style="color: #c33; margin-top: 20px; display: none;"></div>
             </div>
         </div>
-        <div class="controls">
-            <div class="song-selector">
-                <label for="song-select">Select Song:</label>
-                <select id="song-select" class="song-select">
-                    <option value="">Loading songs...</option>
-                </select>
-            </div>
-            <div class="status-bar">
-                <span id="status-message" class="status-message"></span>
-            </div>
-        </div>
-    </header>
+    </div>
 
-    <main class="container">
-        <div class="panels">
-            <!-- Lyrics Panel -->
-            <div class="panel lyrics-panel">
-                <div class="panel-header">
-                    <h2>Lyrics</h2>
-                    <div class="song-metadata" id="song-metadata"></div>
+    <!-- Main App (hidden until authenticated) -->
+    <div id="main-app" style="display: none;">
+        <header>
+            <div class="header-content">
+                <h1>🎸 Band Practice</h1>
+                <div class="user-info">
+                    <span id="user-email" class="user-email">Loading...</span>
+                    <button id="signout-btn" class="btn btn-small btn-secondary" style="margin-left: 10px;">Sign Out</button>
                 </div>
-                <div class="panel-content" id="lyrics-content">
-                    <div class="empty-state">
-                        <p>Select a song to view lyrics</p>
-                    </div>
+                <div class="header-actions">
+                    <button id="change-playlist-btn" class="btn btn-secondary">
+                        <span class="icon">📋</span> Change Playlist
+                    </button>
+                    <button id="sync-playlist-btn" class="btn btn-primary">
+                        <span class="icon">🔄</span> Sync Playlist
+                    </button>
+                    <button id="refresh-song-btn" class="btn btn-secondary" disabled>
+                        <span class="icon">♻️</span> Refresh Lyrics
+                    </button>
                 </div>
             </div>
-
-            <!-- Notes Panel -->
-            <div class="panel notes-panel">
-                <div class="panel-header">
-                    <h2>Practice Notes</h2>
-                    <div class="notes-actions">
-                        <button id="edit-notes-btn" class="btn btn-small btn-secondary" disabled>
-                            <span class="icon">✏️</span> Edit
-                        </button>
-                        <button id="save-notes-btn" class="btn btn-small btn-primary" style="display: none;">
-                            <span class="icon">💾</span> Save
-                        </button>
-                        <button id="cancel-edit-btn" class="btn btn-small btn-secondary" style="display: none;">
-                            Cancel
-                        </button>
-                    </div>
+            <div class="controls">
+                <div class="song-selector">
+                    <label for="song-select">Select Song:</label>
+                    <select id="song-select" class="song-select">
+                        <option value="">Loading songs...</option>
+                    </select>
                 </div>
-                <div class="panel-content">
-                    <!-- View Mode -->
-                    <div id="notes-view" class="notes-view">
+                <div class="status-bar">
+                    <span id="status-message" class="status-message"></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            <div class="panels">
+                <!-- Lyrics Panel -->
+                <div class="panel lyrics-panel">
+                    <div class="panel-header">
+                        <h2>Lyrics</h2>
+                        <div class="song-metadata" id="song-metadata"></div>
+                    </div>
+                    <div class="panel-content" id="lyrics-content">
                         <div class="empty-state">
-                            <p>Select a song to view notes</p>
+                            <p>Select a song to view lyrics</p>
                         </div>
                     </div>
-                    <!-- Edit Mode -->
-                    <div id="notes-edit" class="notes-edit" style="display: none;">
-                        <div class="edit-help">
-                            <strong>Note Syntax:</strong>
-                            <code>Line 12: Your note here</code> or
-                            <code>Lines 45-48: Your note here</code>
+                </div>
+
+                <!-- Notes Panel -->
+                <div class="panel notes-panel">
+                    <div class="panel-header">
+                        <h2>Practice Notes</h2>
+                        <div class="notes-actions">
+                            <button id="edit-notes-btn" class="btn btn-small btn-secondary" disabled>
+                                <span class="icon">✏️</span> Edit
+                            </button>
+                            <button id="save-notes-btn" class="btn btn-small btn-primary" style="display: none;">
+                                <span class="icon">💾</span> Save
+                            </button>
+                            <button id="cancel-edit-btn" class="btn btn-small btn-secondary" style="display: none;">
+                                Cancel
+                            </button>
                         </div>
-                        <textarea id="notes-textarea" class="notes-textarea" placeholder="Add your practice notes here...
+                    </div>
+                    <div class="panel-content">
+                        <!-- View Mode -->
+                        <div id="notes-view" class="notes-view">
+                            <div class="empty-state">
+                                <p>Select a song to view notes</p>
+                            </div>
+                        </div>
+                        <!-- Edit Mode -->
+                        <div id="notes-edit" class="notes-edit" style="display: none;">
+                            <div class="edit-help">
+                                <strong>Note Syntax:</strong>
+                                <code>Line 12: Your note here</code> or
+                                <code>Lines 45-48: Your note here</code>
+                            </div>
+                            <textarea id="notes-textarea" class="notes-textarea" placeholder="Add your practice notes here...
 
 Example:
 Line 12: Heavy kick on 1 and 3
 Lines 45-48: Double time, watch for break"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
 
-    <!-- Playlist Dialog -->
-    <div id="playlist-dialog" class="dialog-overlay" style="display: none;">
-        <div class="dialog">
-            <h3>Change Spotify Playlist</h3>
-            <input type="text" id="playlist-url-input" class="input"
-                   placeholder="https://open.spotify.com/playlist/YOUR_PLAYLIST_ID">
-            <div class="dialog-actions">
-                <button id="playlist-cancel-btn" class="btn btn-secondary">Cancel</button>
-                <button id="playlist-save-btn" class="btn btn-primary">Sync New Playlist</button>
+        <!-- Playlist Dialog -->
+        <div id="playlist-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog">
+                <h3>Change Spotify Playlist</h3>
+                <input type="text" id="playlist-url-input" class="input"
+                       placeholder="https://open.spotify.com/playlist/YOUR_PLAYLIST_ID">
+                <div class="dialog-actions">
+                    <button id="playlist-cancel-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="playlist-save-btn" class="btn btn-primary">Sync New Playlist</button>
+                </div>
             </div>
         </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <p id="loading-message">Loading...</p>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="spinner"></div>
-        <p id="loading-message">Loading...</p>
-    </div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
 
-    <!-- Toast Notifications -->
-    <div id="toast-container" class="toast-container"></div>
+    <script>
+        // Firebase configuration - replace with your project's config
+        const firebaseConfig = {
+            apiKey: "{{ config.FIREBASE_API_KEY }}",
+            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN }}",
+            projectId: "{{ config.FIREBASE_PROJECT_ID }}"
+        };
 
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // FirebaseUI configuration
+        const uiConfig = {
+            signInOptions: [
+                {
+                    provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                    customParameters: {
+                        prompt: 'select_account'
+                    }
+                }
+            ],
+            signInSuccessUrl: '/',
+            callbacks: {
+                signInSuccessWithAuthResult: () => false
+            }
+        };
+
+        const ui = new firebaseui.auth.AuthUI(auth);
+        let currentUser = null;
+        let idToken = null;
+
+        // Auth state observer
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // User is signed in
+                try {
+                    idToken = await user.getIdToken();
+                    currentUser = user;
+
+                    // Check if user is allowed by making a test API call
+                    const response = await fetch('/api/user', {
+                        headers: {
+                            'Authorization': `Bearer ${idToken}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        // User is authorized
+                        document.getElementById('auth-gate').style.display = 'none';
+                        document.getElementById('main-app').style.display = 'block';
+                        document.getElementById('user-email').textContent = user.email;
+                        loadApp();
+                    } else {
+                        // User not authorized
+                        document.getElementById('auth-error').textContent =
+                            'You are not authorized to access this application. Contact the admin.';
+                        document.getElementById('auth-error').style.display = 'block';
+                        await auth.signOut();
+                    }
+                } catch (error) {
+                    console.error('Error during authentication:', error);
+                    document.getElementById('auth-error').textContent = 'Authentication error. Please try again.';
+                    document.getElementById('auth-error').style.display = 'block';
+                }
+            } else {
+                // User is signed out
+                document.getElementById('main-app').style.display = 'none';
+                document.getElementById('auth-gate').style.display = 'block';
+                ui.start('#firebaseui-auth-container', uiConfig);
+            }
+        });
+
+        // Sign out handler
+        document.getElementById('signout-btn')?.addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        // Helper function to make authenticated API calls
+        async function apiCall(url, options = {}) {
+            if (!idToken) {
+                idToken = await currentUser.getIdToken(true);
+            }
+
+            const headers = {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            return fetch(url, { ...options, headers });
+        }
+
+        // Load the main app
+        function loadApp() {
+            // Load your existing app.js functionality here or include it separately
+        }
+    </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

@@ -101,6 +101,11 @@ resource "google_cloud_run_service" "band_practice" {
         }
 
         env {
+          name  = "FIREBASE_API_KEY"
+          value = var.firebase_api_key
+        }
+
+        env {
           name  = "ALLOWED_USERS"
           value = join(",", var.allowed_user_emails)
         }
@@ -142,13 +147,12 @@ resource "google_cloud_run_service" "band_practice" {
   ]
 }
 
-# IAM - Allow any authenticated Google user to invoke Cloud Run
-# App-level auth controls who can actually use it
+# IAM - Allow public access, app handles auth
 resource "google_cloud_run_service_iam_member" "authenticated_access" {
   service  = google_cloud_run_service.band_practice.name
   location = google_cloud_run_service.band_practice.location
   role     = "roles/run.invoker"
-  member   = "allAuthenticatedUsers" # Any Google account can invoke web login, but app will authenticate users
+  member   = "allUsers"
 }
 
 # Service Account for Cloud Run

@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['FIREBASE_API_KEY'] = os.getenv('FIREBASE_API_KEY')
+app.config['FIREBASE_AUTH_DOMAIN'] = os.getenv('FIREBASE_AUTH_DOMAIN')
+app.config['FIREBASE_PROJECT_ID'] = os.getenv('FIREBASE_PROJECT_ID', os.getenv('GCP_PROJECT_ID'))
 
 # Initialize services
 firestore = FirestoreService()
@@ -25,11 +28,10 @@ lyrics_service = LyricsService(firestore)
 
 
 @app.route('/')
-@require_auth
 def index():
-    """Main viewer page"""
-    logger.info(f"User {g.user.get('email')} accessed the main page")
-    return render_template('viewer.html', user=g.user)
+    """Main viewer page with Firebase auth"""
+    # Return the HTML that includes Firebase Auth UI
+    return render_template('viewer.html')
 
 
 @app.route('/api/songs', methods=['GET'])

@@ -45,6 +45,12 @@ variable "flask_secret_key" {
   default     = ""
 }
 
+variable "firebase_api_key" {
+  description = "Firebase Web API Key"
+  type        = string
+  sensitive   = true
+}
+
 variable "allowed_user_emails" {
   description = "List of email addresses allowed to access the app"
   type        = list(string)

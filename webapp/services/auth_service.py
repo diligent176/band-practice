@@ -1,38 +1,47 @@
 """
-Authentication Service for Google Cloud Run
-Handles IAP token verification and user authentication
+Authentication Service - Firebase Authentication
 """
 
-import json
 import os
 from functools import wraps
-from flask import request, jsonify, g
-from google.auth.transport import requests
-from google.oauth2 import id_token
+from flask import request, jsonify, g, redirect, url_for
+import firebase_admin
+from firebase_admin import auth, credentials
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class AuthService:
-    """Service for handling Google Cloud Run authentication"""
+    """Service for handling Firebase authentication"""
 
     def __init__(self):
-        self.project_id = os.getenv('GCP_PROJECT_ID')
+        # Initialize Firebase Admin SDK
+        # When running on Cloud Run, Application Default Credentials are used
+        try:
+            firebase_admin.get_app()
+        except ValueError:
+            # No app exists, initialize it
+            if os.getenv('FLASK_ENV') == 'development':
+                # For local development, use a service account key if available
+                cred_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+                if cred_path and os.path.exists(cred_path):
+                    cred = credentials.Certificate(cred_path)
+                    firebase_admin.initialize_app(cred)
+                else:
+                    # Initialize without credentials for dev mode
+                    firebase_admin.initialize_app()
+            else:
+                # On Cloud Run, use Application Default Credentials
+                firebase_admin.initialize_app()
+
         allowed_users_str = os.getenv('ALLOWED_USERS', 'jcbellis@gmail.com')
         self.allowed_users = [email.strip() for email in allowed_users_str.split(',')]
-        
-    def verify_identity_token(self, token):
-        """
-        Verify Google ID token from Cloud Run authentication
-        """
-        try:
-            # Verify the token (Cloud Run adds this when allAuthenticatedUsers is set)
-            decoded_token = id_token.verify_oauth2_token(
-                token,
-                requests.Request()
-            )
 
+    def verify_token(self, id_token):
+        """Verify Firebase ID token and check if user is allowed"""
+        try:
+            decoded_token = auth.verify_id_token(id_token)
             email = decoded_token.get('email')
 
             # Check if user is in allowed list
@@ -42,43 +51,14 @@ class AuthService:
 
             return {
                 'email': email,
-                'user_id': decoded_token.get('sub'),
+                'uid': decoded_token.get('uid'),
                 'name': decoded_token.get('name'),
-                'verified': True
+                'verified': decoded_token.get('email_verified', False)
             }
-
-        except ValueError as e:
+        except Exception as e:
             logger.error(f"Token verification failed: {e}")
             return None
-        except Exception as e:
-            logger.error(f"Unexpected error during token verification: {e}")
-            return None
-    
-    def get_user_from_headers(self):
-        """
-        Extract user information from Cloud Run authentication headers
-        When allAuthenticatedUsers is set, Cloud Run provides the ID token
-        """
-        try:
-            # Cloud Run includes the Authorization header with Bearer token
-            auth_header = request.headers.get('Authorization', '')
 
-            if auth_header.startswith('Bearer '):
-                token = auth_header.split(' ')[1]
-                return self.verify_identity_token(token)
-
-            # Also check X-Serverless-Authorization header
-            serverless_auth = request.headers.get('X-Serverless-Authorization', '')
-            if serverless_auth.startswith('Bearer '):
-                token = serverless_auth.split(' ')[1]
-                return self.verify_identity_token(token)
-
-            return None
-
-        except Exception as e:
-            logger.error(f"Error extracting user info: {e}")
-            return None
-    
     def is_development_mode(self):
         """Check if running in development mode (local testing)"""
         return os.getenv('FLASK_ENV') == 'development' or os.getenv('DEVELOPMENT') == 'true'
@@ -91,6 +71,7 @@ auth_service = AuthService()
 def require_auth(f):
     """
     Decorator to require authentication for a route
+    Expects Firebase ID token in Authorization header
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -99,22 +80,27 @@ def require_auth(f):
             logger.info("Running in dev mode - using mock user")
             g.user = {
                 'email': 'dev@localhost.com',
-                'user_id': 'dev-user',
-                'name': 'Development User',
                 'verified': True
             }
             return f(*args, **kwargs)
 
-        # Get user info from Cloud Run auth headers
-        user_info = auth_service.get_user_from_headers()
-
-        if not user_info or not user_info.get('verified'):
+        # Get token from Authorization header
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
             return jsonify({
                 'error': 'Authentication required',
-                'message': 'You must be logged in with an authorized Google account to access this resource'
+                'message': 'Missing or invalid authorization header'
             }), 401
 
-        # Store user info in Flask's g object for use in the route
+        token = auth_header.split('Bearer ')[1]
+        user_info = auth_service.verify_token(token)
+
+        if not user_info:
+            return jsonify({
+                'error': 'Authentication failed',
+                'message': 'Invalid token or unauthorized user'
+            }), 401
+
         g.user = user_info
         return f(*args, **kwargs)
 
@@ -127,17 +113,19 @@ def optional_auth(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Try to get user info but don't fail if not available
         if auth_service.is_development_mode():
             g.user = {
                 'email': 'dev@localhost.com',
-                'user_id': 'dev-user',
-                'name': 'Development User',
                 'verified': True
             }
         else:
-            g.user = auth_service.get_user_from_headers()
-        
+            auth_header = request.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split('Bearer ')[1]
+                g.user = auth_service.verify_token(token)
+            else:
+                g.user = None
+
         return f(*args, **kwargs)
-    
+
     return decorated_function
