@@ -140,7 +140,6 @@ resource "google_cloud_run_service" "band_practice" {
       annotations = {
         "autoscaling.knative.dev/maxScale" = "10"
         "autoscaling.knative.dev/minScale" = "0"
-        # "run.googleapis.com/ingress"       = "all"
       }
     }
   }
