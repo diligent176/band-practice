@@ -175,18 +175,18 @@ resource "google_service_account" "cloud_run_sa" {
   display_name = "Band Practice App Service Account"
 }
 
-# Grant Firestore access to default compute service account
+# Grant Firestore access to service account
 resource "google_project_iam_member" "firestore_user" {
   project = var.project_id
   role    = "roles/datastore.user"
-  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
+  member  = google_service_account.cloud_run_sa.email
 }
 
-# Grant Secret Manager access to default compute service account
+# Grant Secret Manager access to service account
 resource "google_project_iam_member" "secret_accessor" {
   project = var.project_id
   role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
+  member  = google_service_account.cloud_run_sa.email
 }
 
 # Outputs
