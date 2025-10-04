@@ -106,6 +106,16 @@ resource "google_cloud_run_service" "band_practice" {
         }
 
         env {
+          name  = "FIREBASE_AUTH_DOMAIN"
+          value = "${var.project_id}.firebaseapp.com"
+        }
+
+        env {
+          name  = "FIREBASE_PROJECT_ID"
+          value = var.project_id
+        }
+
+        env {
           name  = "ALLOWED_USERS"
           value = join(",", var.allowed_user_emails)
         }

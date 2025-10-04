@@ -34,14 +34,18 @@ open https://console.firebase.google.com
 ### 4. Add Firebase config to terraform.tfvars
 
 ```hcl
-firebase_api_key = "AIzaSy..."  # Your Firebase API Key
-allowed_user_emails = ["USER@gmail.com"]  # Who can access
+firebase_api_key = "AIzaSy..."  # Your Firebase API Key from step 3
+allowed_user_emails = ["YOUREMAIL@gmail.com"]  # Who can access
+
+# Note: Auth domain and Project ID are auto-configured from your GCP project
 ```
 
-### 5. Add authorized domain
+### 5. Add authorized domains
 
 1. In Firebase Console, go to **Authentication** > **Settings** > **Authorized domains**
 2. Add your Cloud Run URL domain (e.g., `band-practice-pro-425083870011.us-west1.run.app`)
+   - Get this from: `terraform output cloud_run_url` (remove the `https://` prefix)
+3. Also add `localhost` for local testing if needed
 
 ### 6. Deploy
 
