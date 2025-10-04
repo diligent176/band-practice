@@ -42,7 +42,7 @@ variable "flask_secret_key" {
   description = "Flask Secret Key for sessions"
   type        = string
   sensitive   = true
-  default     = "changeme69000001001"
+  default     = "changeme69000001011"
 }
 
 variable "firebase_api_key" {
