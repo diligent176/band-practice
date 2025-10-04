@@ -73,7 +73,7 @@ resource "google_secret_manager_secret" "allowed_user_emails" {
 
 resource "google_secret_manager_secret_version" "allowed_user_emails" {
   secret      = google_secret_manager_secret.allowed_user_emails.id
-  secret_data = join(",", var.allowed_user_emails)
+  secret_data = jsonencode(var.allowed_user_emails)
 }
 
 # Firestore Database
