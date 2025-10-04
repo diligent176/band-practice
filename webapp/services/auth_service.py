@@ -15,35 +15,38 @@ logger = logging.getLogger(__name__)
 
 
 class AuthService:
-    """Service for handling Google IAP authentication"""
-    
+    """Service for handling Google Cloud Run authentication"""
+
     def __init__(self):
         self.project_id = os.getenv('GCP_PROJECT_ID')
-        self.project_number = os.getenv('GCP_PROJECT_NUMBER')  # You'll need to add this
+        allowed_users_str = os.getenv('ALLOWED_USERS', 'jcbellis@gmail.com')
+        self.allowed_users = [email.strip() for email in allowed_users_str.split(',')]
         
-    def verify_iap_token(self, iap_jwt):
+    def verify_identity_token(self, token):
         """
-        Verify the IAP JWT token and extract user information
+        Verify Google ID token from Cloud Run authentication
         """
         try:
-            # Construct the expected audience for IAP
-            # Format: /projects/{PROJECT_NUMBER}/global/backendServices/{BACKEND_SERVICE_ID}
-            expected_audience = f"/projects/{self.project_number}/global/backendServices/{self.project_id}"
-            
-            # Verify the token
+            # Verify the token (Cloud Run adds this when allAuthenticatedUsers is set)
             decoded_token = id_token.verify_oauth2_token(
-                iap_jwt,
-                requests.Request(),
-                audience=expected_audience
+                token,
+                requests.Request()
             )
-            
+
+            email = decoded_token.get('email')
+
+            # Check if user is in allowed list
+            if email not in self.allowed_users:
+                logger.warning(f"Unauthorized user attempted access: {email}")
+                return None
+
             return {
-                'email': decoded_token.get('email'),
+                'email': email,
                 'user_id': decoded_token.get('sub'),
                 'name': decoded_token.get('name'),
                 'verified': True
             }
-            
+
         except ValueError as e:
             logger.error(f"Token verification failed: {e}")
             return None
@@ -53,32 +56,25 @@ class AuthService:
     
     def get_user_from_headers(self):
         """
-        Extract user information from IAP headers
-        When running behind IAP, Google provides user info in headers
+        Extract user information from Cloud Run authentication headers
+        When allAuthenticatedUsers is set, Cloud Run provides the ID token
         """
         try:
-            # IAP provides user email in this header
-            user_email = request.headers.get('X-Goog-Authenticated-User-Email')
-            user_id = request.headers.get('X-Goog-Authenticated-User-ID')
-            
-            if user_email:
-                # Remove the "accounts.google.com:" prefix if present
-                if user_email.startswith('accounts.google.com:'):
-                    user_email = user_email.replace('accounts.google.com:', '')
-                
-                return {
-                    'email': user_email,
-                    'user_id': user_id,
-                    'verified': True
-                }
-            
-            # Fallback to JWT token verification
-            iap_jwt = request.headers.get('X-Goog-IAP-JWT-Assertion')
-            if iap_jwt:
-                return self.verify_iap_token(iap_jwt)
-                
+            # Cloud Run includes the Authorization header with Bearer token
+            auth_header = request.headers.get('Authorization', '')
+
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+                return self.verify_identity_token(token)
+
+            # Also check X-Serverless-Authorization header
+            serverless_auth = request.headers.get('X-Serverless-Authorization', '')
+            if serverless_auth.startswith('Bearer '):
+                token = serverless_auth.split(' ')[1]
+                return self.verify_identity_token(token)
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error extracting user info: {e}")
             return None
@@ -100,6 +96,7 @@ def require_auth(f):
     def decorated_function(*args, **kwargs):
         # Skip authentication in development mode
         if auth_service.is_development_mode():
+            logger.info("Running in dev mode - using mock user")
             g.user = {
                 'email': 'dev@localhost.com',
                 'user_id': 'dev-user',
@@ -107,20 +104,20 @@ def require_auth(f):
                 'verified': True
             }
             return f(*args, **kwargs)
-        
-        # Get user info from IAP headers
+
+        # Get user info from Cloud Run auth headers
         user_info = auth_service.get_user_from_headers()
-        
+
         if not user_info or not user_info.get('verified'):
             return jsonify({
                 'error': 'Authentication required',
-                'message': 'You must be logged in to access this resource'
+                'message': 'You must be logged in with an authorized Google account to access this resource'
             }), 401
-        
+
         # Store user info in Flask's g object for use in the route
         g.user = user_info
         return f(*args, **kwargs)
-    
+
     return decorated_function
 
 

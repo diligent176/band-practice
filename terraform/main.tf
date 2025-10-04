@@ -40,16 +40,6 @@ resource "google_project_service" "artifactregistry" {
   disable_on_destroy = false
 }
 
-resource "google_project_service" "iap" {
-  service            = "iap.googleapis.com"
-  disable_on_destroy = false
-}
-
-resource "google_project_service" "compute" {
-  service            = "compute.googleapis.com"
-  disable_on_destroy = false
-}
-
 # Firestore Database
 resource "google_firestore_database" "database" {
   project     = var.project_id
@@ -111,8 +101,8 @@ resource "google_cloud_run_service" "band_practice" {
         }
 
         env {
-          name  = "GCP_PROJECT_NUMBER"
-          value = var.project_number
+          name  = "ALLOWED_USERS"
+          value = join(",", var.allowed_user_emails)
         }
 
         resources {
@@ -152,22 +142,13 @@ resource "google_cloud_run_service" "band_practice" {
   ]
 }
 
-# Configure Identity-Aware Proxy for the Cloud Run service
-resource "google_iap_web_backend_service_iam_member" "iap_access" {
-  project             = var.project_id
-  web_backend_service = google_cloud_run_service.band_practice.name
-  role                = "roles/iap.httpsResourceAccessor"
-  member              = "allAuthenticatedUsers" # Adjust this to specific users/groups as needed
-}
-
-# IAM - Restrict access to authenticated users only
-# Remove the public access and add specific user/group access as needed
+# IAM - Allow any authenticated Google user to invoke Cloud Run
+# App-level auth controls who can actually use it
 resource "google_cloud_run_service_iam_member" "authenticated_access" {
   service  = google_cloud_run_service.band_practice.name
   location = google_cloud_run_service.band_practice.location
   role     = "roles/run.invoker"
-  member   = "user:jcbellis@gmail.com"
-  # member   = "allAuthenticatedUsers" # means ANY Authenticated Google users can access
+  member   = "allAuthenticatedUsers" # Any Google account can invoke web login, but app will authenticate users
 }
 
 # Service Account for Cloud Run
@@ -183,7 +164,7 @@ resource "google_project_iam_member" "firestore_user" {
   member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
 }
 
-# Output the Cloud Run URL
+# Outputs
 output "cloud_run_url" {
   value       = google_cloud_run_service.band_practice.status[0].url
   description = "URL of the deployed Cloud Run service"

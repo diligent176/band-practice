@@ -142,6 +142,10 @@ def health():
     """Health check endpoint for Cloud Run"""
     return jsonify({'status': 'healthy'}), 200
 
+@app.route('/health2')
+def health_check():
+    return {"status": "healthy", "message": "App is running!"}, 200
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))

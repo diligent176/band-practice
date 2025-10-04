@@ -450,3 +450,5 @@ You now have a **production-ready web application** that:
 - ✅ Easy to maintain and update
 
 **Rock on! 🎸🥁**
+
+gcloud run deploy band-practice-pro --image us-west1-docker.pkg.dev/band-practice-pro/band-practice-pro/app:latest --region us-west1 --platform managed

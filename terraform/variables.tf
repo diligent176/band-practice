@@ -45,7 +45,8 @@ variable "flask_secret_key" {
   default     = ""
 }
 
-variable "project_number" {
-  description = "GCP Project Number (numeric, required for IAP authentication)"
-  type        = string
+variable "allowed_user_emails" {
+  description = "List of email addresses allowed to access the app"
+  type        = list(string)
+  default     = ["jcbellis@gmail.com"]
 }

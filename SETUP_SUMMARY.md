@@ -1,5 +1,7 @@
 # 🎸 Band Practice App - Setup Summary
 
+https://band-practice-pro-425083870011.us-west1.run.app
+
 ## What You Have
 
 A complete, production-ready web application for managing song lyrics and practice notes.
