@@ -152,19 +152,18 @@ Lines 45-48: Double time, watch for break"></textarea>
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
+        // Set persistence to LOCAL (survives page reloads)
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
         // FirebaseUI configuration
         const uiConfig = {
             signInOptions: [
-                {
-                    provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-                    customParameters: {
-                        prompt: 'select_account'
-                    }
-                }
+                firebase.auth.GoogleAuthProvider.PROVIDER_ID
             ],
             callbacks: {
-                signInSuccessWithAuthResult: () => {
-                    // Return false to prevent redirect
+                signInSuccessWithAuthResult: (authResult) => {
+                    console.log('✅ SignIn success callback fired', authResult.user.email);
+                    // Don't redirect - let onAuthStateChanged handle it
                     return false;
                 }
             }
