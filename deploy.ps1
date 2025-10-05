@@ -60,7 +60,7 @@ if ($LASTEXITCODE -ne 0) {
 # Build using Cloud Build
 Write-Host ""
 Write-Host "🐳 Building image with Cloud Build..." -ForegroundColor Yellow
-$imageTag = "$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/band-practice-pro/app:latest"
+$imageTag = "$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/band-practice-pro/band-practice-pro:latest"
 $result = gcloud builds submit --tag $imageTag
 if ($LASTEXITCODE -ne 0) {
   Write-Host "❌ Failed to build image" -ForegroundColor Red

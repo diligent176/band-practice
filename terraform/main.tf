@@ -72,7 +72,7 @@ resource "google_secret_manager_secret" "allowed_user_emails" {
 }
 
 resource "google_secret_manager_secret_version" "allowed_user_emails" {
-  secret = google_secret_manager_secret.allowed_user_emails.id
+  secret      = google_secret_manager_secret.allowed_user_emails.id
   secret_data = join(",", var.allowed_user_emails)
 }
 
@@ -104,7 +104,7 @@ resource "google_cloud_run_service" "band_practice" {
   template {
     spec {
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/band-practice-pro/app:latest"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/band-practice-pro/band-practice-pro:latest"
 
         env {
           name  = "GCP_PROJECT_ID"

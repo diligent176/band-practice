@@ -451,4 +451,4 @@ You now have a **production-ready web application** that:
 
 **Rock on! 🎸🥁**
 
-gcloud run deploy band-practice-pro --image us-west1-docker.pkg.dev/band-practice-pro/band-practice-pro/app:latest --region us-west1 --platform managed
+gcloud run deploy band-practice-pro --image us-west1-docker.pkg.dev/band-practice-pro/band-practice-pro/band-practice-pro:latest --region us-west1 --platform managed
