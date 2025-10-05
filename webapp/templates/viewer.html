@@ -202,7 +202,10 @@ Lines 45-48: Double time, watch for break"></textarea>
                         document.getElementById('auth-gate').style.display = 'none';
                         document.getElementById('main-app').style.display = 'block';
                         document.getElementById('user-email').textContent = user.email;
-                        loadApp();
+                        // Initialize the main app with authenticated API calls
+                        if (window.initializeApp) {
+                            window.initializeApp(apiCall);
+                        }
                     } else {
                         // User not authorized
                         const errorText = await response.text();

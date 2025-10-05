@@ -4,6 +4,10 @@ let currentSong = null;
 let allSongs = [];
 let isEditMode = false;
 
+// Reference to the apiCall function from viewer.html
+// This will be available globally after auth is set up
+let apiCall = null;
+
 // DOM Elements
 const songSelect = document.getElementById('song-select');
 const lyricsContent = document.getElementById('lyrics-content');
@@ -25,12 +29,14 @@ const playlistUrlInput = document.getElementById('playlist-url-input');
 const playlistSaveBtn = document.getElementById('playlist-save-btn');
 const playlistCancelBtn = document.getElementById('playlist-cancel-btn');
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize - called from viewer.html after auth is complete
+window.initializeApp = function(apiCallFunction) {
+    console.log('🎸 Initializing app with authenticated API calls');
+    apiCall = apiCallFunction;
     loadUserInfo();
     loadSongs();
     setupEventListeners();
-});
+};
 
 function setupEventListeners() {
     songSelect.addEventListener('change', handleSongChange);
@@ -47,7 +53,7 @@ function setupEventListeners() {
 // API Functions
 async function loadUserInfo() {
     try {
-        const response = await fetch('/api/user');
+        const response = await apiCall('/api/user');
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.user) {
@@ -63,7 +69,7 @@ async function loadUserInfo() {
 async function loadSongs() {
     try {
         showLoading('Loading songs...');
-        const response = await fetch('/api/songs');
+        const response = await apiCall('/api/songs');
         const data = await response.json();
 
         if (data.success) {
@@ -83,7 +89,7 @@ async function loadSongs() {
 async function loadSong(songId) {
     try {
         showLoading('Loading song...');
-        const response = await fetch(`/api/songs/${songId}`);
+        const response = await apiCall(`/api/songs/${songId}`);
         const data = await response.json();
 
         if (data.success) {
@@ -109,9 +115,8 @@ async function saveNotes() {
         showLoading('Saving notes...');
         const notes = notesTextarea.value;
 
-        const response = await fetch(`/api/songs/${currentSong.id}/notes`, {
+        const response = await apiCall(`/api/songs/${currentSong.id}/notes`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ notes })
         });
 
@@ -141,9 +146,8 @@ async function syncPlaylist() {
     try {
         showLoading('Syncing playlist from Spotify...');
 
-        const response = await fetch('/api/playlist/sync', {
+        const response = await apiCall('/api/playlist/sync', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
         });
 
@@ -173,7 +177,7 @@ async function refreshCurrentSong() {
     try {
         showLoading('Refreshing lyrics...');
 
-        const response = await fetch(`/api/songs/${currentSong.id}/refresh`, {
+        const response = await apiCall(`/api/songs/${currentSong.id}/refresh`, {
             method: 'POST'
         });
 
@@ -453,9 +457,8 @@ async function syncNewPlaylist() {
     try {
         showLoading('Syncing new playlist from Spotify...');
 
-        const response = await fetch('/api/playlist/sync', {
+        const response = await apiCall('/api/playlist/sync', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ playlist_url: playlistUrl })
         });
 
