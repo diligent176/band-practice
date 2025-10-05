@@ -162,9 +162,11 @@ Lines 45-48: Double time, watch for break"></textarea>
                     }
                 }
             ],
-            signInSuccessUrl: '/',
             callbacks: {
-                signInSuccessWithAuthResult: () => false
+                signInSuccessWithAuthResult: () => {
+                    // Return false to prevent redirect
+                    return false;
+                }
             }
         };
 
