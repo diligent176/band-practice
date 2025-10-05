@@ -61,8 +61,8 @@ jobs:
             --platform=managed \
             --region=${{ env.REGION }} \
             --allow-unauthenticated \
-            --update-env-vars="SPOTIFY_PLAYLIST_URL=${{ secrets.SPOTIFY_PLAYLIST_URL }},FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }},GCP_PROJECT_ID=${{ env.PROJECT_ID }},FIREBASE_AUTH_DOMAIN=${{ env.PROJECT_ID }}.firebaseapp.com" \
-            --update-secrets="ALLOWED_USERS=ALLOWED_USER_EMAILS:latest,SPOTIFY_CLIENT_ID=SPOTIFY_CLIENT_ID:latest,SPOTIFY_CLIENT_SECRET=SPOTIFY_CLIENT_SECRET:latest,GENIUS_ACCESS_TOKEN=GENIUS_ACCESS_TOKEN:latest,SECRET_KEY=SECRET_KEY:latest,FIREBASE_API_KEY=FIREBASE_API_KEY:latest"
+            --update-env-vars="GCP_PROJECT_ID=${{ env.PROJECT_ID }},SPOTIFY_PLAYLIST_URL=${{ secrets.SPOTIFY_PLAYLIST_URL }},FIREBASE_AUTH_DOMAIN=${{ env.PROJECT_ID }}.firebaseapp.com,FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }}" \
+            --update-secrets="SPOTIFY_CLIENT_ID=SPOTIFY_CLIENT_ID:latest,SPOTIFY_CLIENT_SECRET=SPOTIFY_CLIENT_SECRET:latest,GENIUS_ACCESS_TOKEN=GENIUS_ACCESS_TOKEN:latest,SECRET_KEY=SECRET_KEY:latest,FIREBASE_API_KEY=FIREBASE_API_KEY:latest,ALLOWED_USERS=ALLOWED_USERS:latest"
 
       - name: Show deployment URL
         run: |
