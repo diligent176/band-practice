@@ -20,32 +20,42 @@ class AuthService:
         # When running on Cloud Run, Application Default Credentials are used
         try:
             firebase_admin.get_app()
+            logger.info("Firebase app already initialized")
         except ValueError:
             # No app exists, initialize it
+            logger.info("Initializing Firebase app...")
             if os.getenv('FLASK_ENV') == 'development':
                 # For local development, use a service account key if available
                 cred_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
                 if cred_path and os.path.exists(cred_path):
                     cred = credentials.Certificate(cred_path)
                     firebase_admin.initialize_app(cred)
+                    logger.info("Firebase initialized with service account")
                 else:
                     # Initialize without credentials for dev mode
                     firebase_admin.initialize_app()
+                    logger.info("Firebase initialized without credentials (dev mode)")
             else:
                 # On Cloud Run, use Application Default Credentials
                 firebase_admin.initialize_app()
+                logger.info("Firebase initialized with ADC")
 
         allowed_users_str = os.getenv('ALLOWED_USERS')
         self.allowed_users = [email.strip() for email in allowed_users_str.split(',')]
+        logger.info(f"AuthService initialized. Allowed users: {self.allowed_users}")
 
     def verify_token(self, id_token):
         """Verify Firebase ID token and check if user is allowed"""
         try:
+            logger.info(f"=== VERIFYING TOKEN ===")
+            logger.info(f"Token (first 50 chars): {id_token[:50] if id_token else 'None'}...")
+
             decoded_token = auth.verify_id_token(id_token)
             email = decoded_token.get('email')
 
             logger.info(f"Token verified for email: {email}")
             logger.info(f"Allowed users: {self.allowed_users}")
+            logger.info(f"Email in allowed users? {email in self.allowed_users}")
 
             # Check if user is in allowed list
             if email not in self.allowed_users:
@@ -60,7 +70,7 @@ class AuthService:
                 'verified': decoded_token.get('email_verified', False)
             }
         except Exception as e:
-            logger.error(f"Token verification failed: {e}")
+            logger.error(f"Token verification failed: {e}", exc_info=True)
             return None
 
     def is_development_mode(self):

@@ -187,12 +187,17 @@ Lines 45-48: Double time, watch for break"></textarea>
 
                     if (response.ok) {
                         // User is authorized
+                        console.log('✅ User authorized:', user.email);
                         document.getElementById('auth-gate').style.display = 'none';
                         document.getElementById('main-app').style.display = 'block';
                         document.getElementById('user-email').textContent = user.email;
                         loadApp();
                     } else {
                         // User not authorized
+                        const errorText = await response.text();
+                        console.error('❌ Authorization failed:', response.status, errorText);
+                        console.error('User email:', user.email);
+                        console.error('ID token (first 50 chars):', idToken.substring(0, 50));
                         document.getElementById('auth-error').textContent =
                             'You are not authorized to access this application. Contact the admin.';
                         document.getElementById('auth-error').style.display = 'block';
