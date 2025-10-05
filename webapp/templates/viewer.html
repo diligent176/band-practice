@@ -172,18 +172,25 @@ Lines 45-48: Double time, watch for break"></textarea>
 
         // Auth state observer
         auth.onAuthStateChanged(async (user) => {
+            console.log('🔐 Auth state changed. User:', user ? user.email : 'null');
+
             if (user) {
                 // User is signed in
                 try {
+                    console.log('📝 Getting ID token...');
                     idToken = await user.getIdToken();
+                    console.log('✅ Got ID token (first 50 chars):', idToken.substring(0, 50));
                     currentUser = user;
 
                     // Check if user is allowed by making a test API call
+                    console.log('🌐 Calling /api/user with Authorization header...');
                     const response = await fetch('/api/user', {
                         headers: {
                             'Authorization': `Bearer ${idToken}`
                         }
                     });
+
+                    console.log('📥 Response status:', response.status);
 
                     if (response.ok) {
                         // User is authorized
@@ -204,12 +211,14 @@ Lines 45-48: Double time, watch for break"></textarea>
                         await auth.signOut();
                     }
                 } catch (error) {
-                    console.error('Error during authentication:', error);
+                    console.error('💥 Error during authentication:', error);
+                    console.error('Error stack:', error.stack);
                     document.getElementById('auth-error').textContent = 'Authentication error. Please try again.';
                     document.getElementById('auth-error').style.display = 'block';
                 }
             } else {
                 // User is signed out
+                console.log('👋 User signed out, showing auth gate');
                 document.getElementById('main-app').style.display = 'none';
                 document.getElementById('auth-gate').style.display = 'block';
                 ui.start('#firebaseui-auth-container', uiConfig);
