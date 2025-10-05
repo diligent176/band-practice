@@ -40,8 +40,12 @@ class AuthService:
                 firebase_admin.initialize_app()
                 logger.info("Firebase initialized with ADC")
 
-        allowed_users_str = os.getenv('ALLOWED_USERS')
-        self.allowed_users = [email.strip() for email in allowed_users_str.split(',')]
+        allowed_users_str = os.getenv('ALLOWED_USERS', '')
+        if allowed_users_str:
+            self.allowed_users = [email.strip() for email in allowed_users_str.split(',')]
+        else:
+            self.allowed_users = []
+            logger.warning("ALLOWED_USERS environment variable not set - no users will be authorized!")
         logger.info(f"AuthService initialized. Allowed users: {self.allowed_users}")
 
     def verify_token(self, id_token):
