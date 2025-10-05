@@ -146,6 +146,8 @@ Lines 45-48: Double time, watch for break"></textarea>
             projectId: "{{ config.FIREBASE_PROJECT_ID }}"
         };
 
+        console.log('🔥 Firebase config:', firebaseConfig);
+
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
