@@ -105,9 +105,11 @@ def require_auth(f):
         # Get token from Authorization header
         auth_header = request.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):
+            logger.warning(f"Missing or invalid auth header. Headers: {dict(request.headers)}")
             return jsonify({
                 'error': 'Authentication required',
-                'message': 'Missing or invalid authorization header'
+                'message': 'Missing or invalid authorization header',
+                'headers': dict(request.headers)
             }), 401
 
         token = auth_header.split('Bearer ')[1]
