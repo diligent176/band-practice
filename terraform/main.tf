@@ -169,7 +169,7 @@ resource "google_cloud_run_service" "band_practice" {
 
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale" = "10"
+        "autoscaling.knative.dev/maxScale" = "4"
         "autoscaling.knative.dev/minScale" = "0"
       }
     }
