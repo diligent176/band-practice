@@ -2,15 +2,17 @@
 Band Practice PRO - Flask Web Application
 """
 
+import logging
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from flask import Flask, render_template, request, jsonify, g
 from services.firestore_service import FirestoreService
 from services.lyrics_service import LyricsService
 from services.auth_service import require_auth, optional_auth
-import os
-from dotenv import load_dotenv
-import logging
-
-load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
