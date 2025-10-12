@@ -15,6 +15,12 @@ variable "firestore_location" {
   default     = "nam5"
 }
 
+variable "scraper_api_key" {
+  description = "Scraper API Key for web scraping"
+  type        = string
+  sensitive   = true
+}
+
 variable "spotify_client_id" {
   description = "Spotify API Client ID"
   type        = string

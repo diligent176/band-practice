@@ -1,6 +1,17 @@
 """
-Service for fetching and syncing lyrics from Spotify/Genius
-Updated to use official Genius API instead of lyricsgenius library
+BACKUP SOLUTION - If browser headers don't work, use this version with ScraperAPI
+
+To use this:
+1. Sign up at https://www.scraperapi.com/ (1000 free requests/month)
+2. Get your API key
+3. Add SCRAPER_API_KEY to your environment variables in Cloud Run
+4. Replace lyrics_service.py with this file
+
+ScraperAPI automatically:
+- Rotates IPs from a pool of millions
+- Handles headers and cookies
+- Bypasses CAPTCHAs
+- Manages retries
 """
 
 import requests
@@ -8,7 +19,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 
 
 class LyricsService:
@@ -30,6 +41,10 @@ class LyricsService:
         self.genius_headers = {
             'Authorization': f'Bearer {self.genius_token}'
         }
+
+        # ScraperAPI configuration (optional - only for scraping)
+        self.scraper_api_key = os.getenv('SCRAPER_API_KEY')
+        self.use_scraper_api = bool(self.scraper_api_key)
 
     def extract_playlist_id(self, playlist_url):
         """Extract playlist ID from Spotify URL"""
@@ -125,44 +140,51 @@ class LyricsService:
 
         return response.json()
 
-    def _get_song_lyrics_url(self, song_id):
-        """Get song details from Genius API"""
-        song_url = f'{self.genius_base_url}/songs/{song_id}'
+    def _scrape_with_scraperapi(self, url):
+        """Use ScraperAPI to fetch a URL"""
+        payload = {
+            'api_key': self.scraper_api_key,
+            'url': url,
+            'render': 'false'  # Set to 'true' if JavaScript rendering needed
+        }
 
-        response = requests.get(song_url, headers=self.genius_headers)
+        response = requests.get('http://api.scraperapi.com', params=payload, timeout=30)
         response.raise_for_status()
-
-        return response.json()
+        return response.text
 
     def _scrape_lyrics_from_page(self, url):
         """
         Scrape lyrics from Genius page using BeautifulSoup
-        This is a fallback method since Genius API doesn't provide lyrics directly
+        Uses ScraperAPI if available, otherwise direct request with headers
         """
         try:
             from bs4 import BeautifulSoup
             import re
 
-            # Headers to mimic a real browser and avoid bot detection
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'DNT': '1',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Cache-Control': 'max-age=0',
-            }
+            # Try ScraperAPI first if available
+            if self.use_scraper_api:
+                print(f"Using ScraperAPI to fetch {url}")
+                html_content = self._scrape_with_scraperapi(url)
+            else:
+                # Fallback to direct request with browser headers
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'DNT': '1',
+                    'Connection': 'keep-alive',
+                    'Upgrade-Insecure-Requests': '1',
+                    'Sec-Fetch-Dest': 'document',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-Site': 'none',
+                    'Cache-Control': 'max-age=0',
+                }
+                response = requests.get(url, headers=headers, timeout=10)
+                response.raise_for_status()
+                html_content = response.text
 
-            # Request the page
-            response = requests.get(url, headers=headers, timeout=10)
-            response.raise_for_status()
-
-            soup = BeautifulSoup(response.text, 'html.parser')
+            soup = BeautifulSoup(html_content, 'html.parser')
 
             # Find lyrics container - Genius uses data-lyrics-container attribute
             lyrics_divs = soup.find_all('div', {'data-lyrics-container': 'true'})

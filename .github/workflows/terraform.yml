@@ -44,16 +44,17 @@ jobs:
       - name: Create terraform.tfvars from secrets
         run: |
           cat > terraform.tfvars <<EOF
+          allowed_user_emails     = ${{ secrets.ALLOWED_USER_EMAILS }}
+          firebase_api_key        = "${{ secrets.FIREBASE_API_KEY }}"
+          firestore_location      = "${{ secrets.FIRESTORE_LOCATION }}"
+          flask_secret_key        = "${{ secrets.FLASK_SECRET_KEY }}"
           project_id              = "${{ secrets.GCP_PROJECT_ID }}"
           region                  = "${{ secrets.GCP_REGION }}"
-          firestore_location      = "${{ secrets.FIRESTORE_LOCATION }}"
+          genius_access_token     = "${{ secrets.GENIUS_ACCESS_TOKEN }}"
+          scraper_api_key         = "${{ secrets.SCRAPER_API_KEY }}"
           spotify_client_id       = "${{ secrets.SPOTIFY_CLIENT_ID }}"
           spotify_client_secret   = "${{ secrets.SPOTIFY_CLIENT_SECRET }}"
-          genius_access_token     = "${{ secrets.GENIUS_ACCESS_TOKEN }}"
           spotify_playlist_url    = "${{ secrets.SPOTIFY_PLAYLIST_URL }}"
-          flask_secret_key        = "${{ secrets.FLASK_SECRET_KEY }}"
-          firebase_api_key        = "${{ secrets.FIREBASE_API_KEY }}"
-          allowed_user_emails     = ${{ secrets.ALLOWED_USER_EMAILS }}
           EOF
 
       - name: Terraform Init

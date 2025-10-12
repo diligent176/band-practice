@@ -124,6 +124,19 @@ resource "google_secret_manager_secret_version" "allowed_users" {
   secret_data = join(",", var.allowed_user_emails)
 }
 
+resource "google_secret_manager_secret" "scraper_api_key" {
+  secret_id = "SCRAPER_API_KEY"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "scraper_api_key" {
+  secret      = google_secret_manager_secret.scraper_api_key.id
+  secret_data = var.scraper_api_key
+}
+
 # Firestore Database
 resource "google_firestore_database" "database" {
   project     = var.project_id
@@ -231,6 +244,16 @@ resource "google_cloud_run_service" "band_practice" {
           value_from {
             secret_key_ref {
               name = google_secret_manager_secret.allowed_users.secret_id
+              key  = "latest"
+            }
+          }
+        }
+
+        env {
+          name = "SCRAPER_API_KEY"
+          value_from {
+            secret_key_ref {
+              name = google_secret_manager_secret.scraper_api_key.secret_id
               key  = "latest"
             }
           }
