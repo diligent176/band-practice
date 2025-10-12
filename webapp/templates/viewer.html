@@ -37,8 +37,14 @@
                     <button id="sync-playlist-btn" class="btn btn-primary" title="Sync songs from current playlist">
                         <span class="icon">🔄</span> Sync
                     </button>
+                    <button id="edit-lyrics-btn" class="btn btn-secondary" disabled title="Edit lyrics for current song">
+                        <span class="icon">✏️</span> Edit Lyrics
+                    </button>
                     <button id="refresh-song-btn" class="btn btn-secondary" disabled title="Refresh lyrics for current song">
                         <span class="icon">♻️</span> Refresh
+                    </button>
+                    <button id="delete-song-btn" class="btn btn-secondary" disabled title="Delete current song from database" style="background-color: #c33;">
+                        <span class="icon">🗑️</span> Delete
                     </button>
                 </div>
                 <div class="status-bar">
@@ -136,10 +142,48 @@ Lines 45-48: Double time, watch for break"></textarea>
             </div>
         </div>
 
+        <!-- Lyrics Editor Dialog -->
+        <div id="lyrics-editor-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog-large">
+                <div class="dialog-header">
+                    <h3 id="lyrics-editor-title">Edit Lyrics</h3>
+                    <div class="customization-badge" id="customization-badge" style="display: none;">
+                        <span style="color: #FF9800;">⚠️ Customized</span>
+                    </div>
+                </div>
+                <div class="dialog-help">
+                    Editing lyrics will mark this song as <strong>customized</strong>.
+                    Customized songs will not be overwritten during sync or refresh operations.
+                </div>
+                <textarea id="lyrics-editor-textarea" class="lyrics-editor-textarea"
+                          placeholder="Enter lyrics here..."></textarea>
+                <div class="dialog-actions">
+                    <button id="lyrics-editor-cancel-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="lyrics-editor-save-btn" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Dialog -->
+        <div id="confirm-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog">
+                <h3 id="confirm-dialog-title">Confirm Action</h3>
+                <p id="confirm-dialog-message"></p>
+                <div class="dialog-actions">
+                    <button id="confirm-dialog-cancel-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="confirm-dialog-confirm-btn" class="btn btn-primary">Confirm</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Loading Overlay -->
         <div id="loading-overlay" class="loading-overlay" style="display: none;">
             <div class="spinner"></div>
             <p id="loading-message">Loading...</p>
+            <div id="loading-details" style="display: none; margin-top: 20px; text-align: center; max-width: 400px;">
+                <div id="playlist-info" style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;"></div>
+                <div id="sync-progress" style="font-size: 14px; color: #aaa;"></div>
+            </div>
         </div>
 
         <!-- Toast Notifications -->

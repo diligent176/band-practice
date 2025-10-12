@@ -83,6 +83,54 @@ def update_notes(song_id):
         return jsonify({'error': str(e), 'success': False}), 500
 
 
+@app.route('/api/songs/<song_id>/lyrics', methods=['PUT'])
+@require_auth
+def update_lyrics(song_id):
+    """Update lyrics for a song and mark as customized"""
+    try:
+        data = request.get_json()
+        lyrics = data.get('lyrics', '')
+
+        logger.info(f"User {g.user.get('email')} updating lyrics for song {song_id}")
+
+        # Update lyrics and mark as customized
+        firestore.update_lyrics(song_id, lyrics, is_customized=True)
+
+        # Get updated song
+        updated_song = firestore.get_song(song_id)
+
+        return jsonify({
+            'success': True,
+            'message': 'Lyrics updated and marked as customized',
+            'song': updated_song
+        })
+    except Exception as e:
+        logger.error(f"Error updating lyrics for song {song_id} by user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/playlist/info', methods=['POST'])
+@require_auth
+def get_playlist_info():
+    """Get playlist information before syncing"""
+    try:
+        data = request.get_json()
+        playlist_url = data.get('playlist_url', os.getenv('SPOTIFY_PLAYLIST_URL'))
+
+        if not playlist_url:
+            return jsonify({'error': 'No playlist URL provided', 'success': False}), 400
+
+        logger.info(f"User {g.user.get('email')} requested playlist info")
+        info = lyrics_service.get_playlist_info(playlist_url)
+        return jsonify({
+            'success': True,
+            'playlist': info
+        })
+    except Exception as e:
+        logger.error(f"Error getting playlist info for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
 @app.route('/api/playlist/sync', methods=['POST'])
 @require_auth
 def sync_playlist():
@@ -113,15 +161,28 @@ def sync_playlist():
 def refresh_song(song_id):
     """Refresh lyrics for a specific song"""
     try:
+        data = request.get_json() or {}
+        force_overwrite = data.get('force_overwrite', False)
+
         song = firestore.get_song(song_id)
         if not song:
             return jsonify({'error': 'Song not found', 'success': False}), 404
 
-        logger.info(f"User {g.user.get('email')} refreshing lyrics for song {song_id}")
+        # Check if song is customized
+        if song.get('is_customized') and not force_overwrite:
+            return jsonify({
+                'success': False,
+                'requires_confirmation': True,
+                'message': 'This song has customized lyrics. Refreshing will overwrite your changes.',
+                'song': song
+            })
+
+        logger.info(f"User {g.user.get('email')} refreshing lyrics for song {song_id} (force={force_overwrite})")
         updated_song = lyrics_service.fetch_and_update_song(
             song_id,
             song['title'],
-            song['artist']
+            song['artist'],
+            clear_customization=True
         )
 
         return jsonify({
@@ -131,6 +192,27 @@ def refresh_song(song_id):
         })
     except Exception as e:
         logger.error(f"Error refreshing song {song_id} for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/songs/<song_id>', methods=['DELETE'])
+@require_auth
+def delete_song(song_id):
+    """Delete a song from the database"""
+    try:
+        song = firestore.get_song(song_id)
+        if not song:
+            return jsonify({'error': 'Song not found', 'success': False}), 404
+
+        logger.info(f"User {g.user.get('email')} deleting song {song_id}: {song.get('title')} by {song.get('artist')}")
+        firestore.delete_song(song_id)
+
+        return jsonify({
+            'success': True,
+            'message': f"Deleted '{song.get('title')}' by {song.get('artist')}"
+        })
+    except Exception as e:
+        logger.error(f"Error deleting song {song_id} for user {g.user.get('email')}: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
 
 

@@ -23,6 +23,8 @@ const saveNotesBtn = document.getElementById('save-notes-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const syncPlaylistBtn = document.getElementById('sync-playlist-btn');
 const refreshSongBtn = document.getElementById('refresh-song-btn');
+const editLyricsBtn = document.getElementById('edit-lyrics-btn');
+const deleteSongBtn = document.getElementById('delete-song-btn');
 const changePlaylistBtn = document.getElementById('change-playlist-btn');
 const toggleColumnsBtn = document.getElementById('toggle-columns-btn');
 const fontSizeSelect = document.getElementById('font-size-select');
@@ -31,6 +33,19 @@ const playlistDialog = document.getElementById('playlist-dialog');
 const playlistUrlInput = document.getElementById('playlist-url-input');
 const playlistSaveBtn = document.getElementById('playlist-save-btn');
 const playlistCancelBtn = document.getElementById('playlist-cancel-btn');
+
+const lyricsEditorDialog = document.getElementById('lyrics-editor-dialog');
+const lyricsEditorTitle = document.getElementById('lyrics-editor-title');
+const lyricsEditorTextarea = document.getElementById('lyrics-editor-textarea');
+const lyricsEditorSaveBtn = document.getElementById('lyrics-editor-save-btn');
+const lyricsEditorCancelBtn = document.getElementById('lyrics-editor-cancel-btn');
+const customizationBadge = document.getElementById('customization-badge');
+
+const confirmDialog = document.getElementById('confirm-dialog');
+const confirmDialogTitle = document.getElementById('confirm-dialog-title');
+const confirmDialogMessage = document.getElementById('confirm-dialog-message');
+const confirmDialogConfirmBtn = document.getElementById('confirm-dialog-confirm-btn');
+const confirmDialogCancelBtn = document.getElementById('confirm-dialog-cancel-btn');
 
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
@@ -49,9 +64,24 @@ function setupEventListeners() {
     cancelEditBtn.addEventListener('click', exitEditMode);
     syncPlaylistBtn.addEventListener('click', syncPlaylist);
     refreshSongBtn.addEventListener('click', refreshCurrentSong);
+    editLyricsBtn.addEventListener('click', openLyricsEditor);
+    deleteSongBtn.addEventListener('click', deleteCurrentSong);
     changePlaylistBtn.addEventListener('click', showPlaylistDialog);
     playlistSaveBtn.addEventListener('click', syncNewPlaylist);
     playlistCancelBtn.addEventListener('click', hidePlaylistDialog);
+    lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
+    lyricsEditorCancelBtn.addEventListener('click', closeLyricsEditor);
+
+    // Confirmation dialog close buttons
+    confirmDialogCancelBtn.addEventListener('click', hideConfirmDialog);
+
+    // Close dialogs when clicking outside
+    lyricsEditorDialog.addEventListener('click', (e) => {
+        if (e.target === lyricsEditorDialog) {
+            closeLyricsEditor();
+        }
+    });
+
     toggleColumnsBtn.addEventListener('click', toggleColumns);
     fontSizeSelect.addEventListener('change', handleFontSizeChange);
 }
@@ -103,6 +133,8 @@ async function loadSong(songId) {
             renderSong();
             refreshSongBtn.disabled = false;
             editNotesBtn.disabled = false;
+            editLyricsBtn.disabled = false;
+            deleteSongBtn.disabled = false;
             setStatus('Song loaded', 'success');
         } else {
             showToast('Failed to load song', 'error');
@@ -152,6 +184,31 @@ async function syncPlaylist() {
     try {
         showLoading('Syncing playlist from Spotify...');
 
+        // Get playlist info first
+        const infoResponse = await authenticatedApiCall('/api/playlist/info', {
+            method: 'POST',
+            body: JSON.stringify({})
+        });
+
+        const infoData = await infoResponse.json();
+
+        if (!infoData.success) {
+            showToast('Failed to get playlist info: ' + infoData.error, 'error');
+            return;
+        }
+
+        const playlist = infoData.playlist;
+
+        // Show playlist details
+        showLoadingDetails(
+            `<strong>Playlist:</strong> ${playlist.name}<br>` +
+            `<strong>Total Songs:</strong> ${playlist.total_tracks}`
+        );
+        updateSyncProgress('Preparing to sync...');
+
+        // Start the sync
+        updateSyncProgress('Syncing songs and fetching lyrics...');
+
         const response = await authenticatedApiCall('/api/playlist/sync', {
             method: 'POST',
             body: JSON.stringify({})
@@ -160,6 +217,11 @@ async function syncPlaylist() {
         const data = await response.json();
 
         if (data.success) {
+            updateSyncProgress(
+                `✅ Complete! Added: ${data.added}, Updated: ${data.updated}, Failed: ${data.failed}`
+            );
+            // Wait a moment so user can see the final result
+            await new Promise(resolve => setTimeout(resolve, 2000));
             showToast(data.message, 'success');
             setStatus(`Synced: +${data.added} new, ${data.updated} updated`, 'success');
             await loadSongs(); // Reload song list
@@ -176,11 +238,31 @@ async function syncPlaylist() {
 async function refreshCurrentSong() {
     if (!currentSong) return;
 
+    // If song is customized, show confirmation dialog
+    if (currentSong.is_customized) {
+        showConfirmDialog(
+            'Overwrite Customized Lyrics?',
+            `This song has customized lyrics. Refreshing will overwrite your custom changes with lyrics from Genius.\n\nAre you sure you want to continue?`,
+            async () => {
+                await performRefresh(true);
+            }
+        );
+        return;
+    }
+
+    // If not customized, just refresh directly
+    await performRefresh(false);
+}
+
+async function performRefresh(forceOverwrite) {
+    if (!currentSong) return;
+
     try {
         showLoading('Refreshing lyrics...');
 
         const response = await authenticatedApiCall(`/api/songs/${currentSong.id}/refresh`, {
-            method: 'POST'
+            method: 'POST',
+            body: JSON.stringify({ force_overwrite: forceOverwrite })
         });
 
         const data = await response.json();
@@ -189,11 +271,71 @@ async function refreshCurrentSong() {
             currentSong = data.song;
             renderSong();
             showToast('Lyrics refreshed!', 'success');
+            setStatus('Lyrics refreshed', 'success');
+        } else if (data.requires_confirmation) {
+            // This shouldn't happen now since we check on the client side, but keep as fallback
+            showConfirmDialog(
+                'Overwrite Customized Lyrics?',
+                data.message,
+                async () => {
+                    await performRefresh(true);
+                }
+            );
         } else {
-            showToast('Failed to refresh lyrics', 'error');
+            showToast('Failed to refresh lyrics: ' + (data.error || 'Unknown error'), 'error');
         }
     } catch (error) {
         showToast('Error refreshing lyrics: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function deleteCurrentSong() {
+    if (!currentSong) return;
+
+    const songTitle = `${currentSong.title} - ${currentSong.artist}`;
+
+    if (!confirm(`Are you sure you want to delete "${songTitle}" from the database?\n\nThis action cannot be undone.`)) {
+        return;
+    }
+
+    try {
+        showLoading('Deleting song...');
+
+        const response = await authenticatedApiCall(`/api/songs/${currentSong.id}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast(data.message, 'success');
+            setStatus('Song deleted', 'success');
+
+            // Clear current song
+            currentSong = null;
+
+            // Disable buttons
+            refreshSongBtn.disabled = true;
+            editNotesBtn.disabled = true;
+            deleteSongBtn.disabled = true;
+
+            // Clear displays
+            lyricsContentInner.innerHTML = '<div class="empty-state"><p>Select a song to view lyrics</p></div>';
+            notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
+            songMetadata.innerHTML = '';
+
+            // Reset song selector
+            songSelect.value = '';
+
+            // Reload song list
+            await loadSongs();
+        } else {
+            showToast('Failed to delete song: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error deleting song: ' + error.message, 'error');
     } finally {
         hideLoading();
     }
@@ -398,10 +540,25 @@ function handleSongChange(e) {
 function showLoading(message = 'Loading...') {
     document.getElementById('loading-overlay').style.display = 'flex';
     document.getElementById('loading-message').textContent = message;
+    // Hide details by default
+    document.getElementById('loading-details').style.display = 'none';
 }
 
 function hideLoading() {
     document.getElementById('loading-overlay').style.display = 'none';
+    document.getElementById('loading-details').style.display = 'none';
+}
+
+function showLoadingDetails(playlistInfo) {
+    const detailsEl = document.getElementById('loading-details');
+    const playlistInfoEl = document.getElementById('playlist-info');
+    playlistInfoEl.innerHTML = playlistInfo;
+    detailsEl.style.display = 'block';
+}
+
+function updateSyncProgress(message) {
+    const progressEl = document.getElementById('sync-progress');
+    progressEl.textContent = message;
 }
 
 function setStatus(message, type = 'info') {
@@ -499,6 +656,31 @@ async function syncNewPlaylist() {
     try {
         showLoading('Syncing new playlist from Spotify...');
 
+        // Get playlist info first
+        const infoResponse = await authenticatedApiCall('/api/playlist/info', {
+            method: 'POST',
+            body: JSON.stringify({ playlist_url: playlistUrl })
+        });
+
+        const infoData = await infoResponse.json();
+
+        if (!infoData.success) {
+            showToast('Failed to get playlist info: ' + infoData.error, 'error');
+            return;
+        }
+
+        const playlist = infoData.playlist;
+
+        // Show playlist details
+        showLoadingDetails(
+            `<strong>Playlist:</strong> ${playlist.name}<br>` +
+            `<strong>Total Songs:</strong> ${playlist.total_tracks}`
+        );
+        updateSyncProgress('Preparing to sync...');
+
+        // Start the sync
+        updateSyncProgress('Syncing songs and fetching lyrics...');
+
         const response = await authenticatedApiCall('/api/playlist/sync', {
             method: 'POST',
             body: JSON.stringify({ playlist_url: playlistUrl })
@@ -507,6 +689,11 @@ async function syncNewPlaylist() {
         const data = await response.json();
 
         if (data.success) {
+            updateSyncProgress(
+                `✅ Complete! Added: ${data.added}, Updated: ${data.updated}, Failed: ${data.failed}`
+            );
+            // Wait a moment so user can see the final result
+            await new Promise(resolve => setTimeout(resolve, 2000));
             showToast(data.message, 'success');
             setStatus(`Synced: +${data.added} new, ${data.updated} updated`, 'success');
             await loadSongs(); // Reload song list
@@ -518,4 +705,84 @@ async function syncNewPlaylist() {
     } finally {
         hideLoading();
     }
+}
+
+// Lyrics Editor Functions
+function openLyricsEditor() {
+    if (!currentSong) return;
+
+    // Set the dialog title with song info
+    lyricsEditorTitle.textContent = `Edit Lyrics: ${currentSong.title} - ${currentSong.artist}`;
+
+    // Show customization badge if song is already customized
+    if (currentSong.is_customized) {
+        customizationBadge.style.display = 'block';
+    } else {
+        customizationBadge.style.display = 'none';
+    }
+
+    // Populate textarea with current lyrics (without line numbers)
+    lyricsEditorTextarea.value = currentSong.lyrics || '';
+
+    // Show the dialog
+    lyricsEditorDialog.style.display = 'flex';
+    lyricsEditorTextarea.focus();
+}
+
+function closeLyricsEditor() {
+    lyricsEditorDialog.style.display = 'none';
+    lyricsEditorTextarea.value = '';
+}
+
+async function saveLyrics() {
+    if (!currentSong) return;
+
+    try {
+        showLoading('Saving lyrics...');
+        const lyrics = lyricsEditorTextarea.value;
+
+        const response = await authenticatedApiCall(`/api/songs/${currentSong.id}/lyrics`, {
+            method: 'PUT',
+            body: JSON.stringify({ lyrics })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            currentSong = data.song;
+            renderSong();
+            closeLyricsEditor();
+            showToast('Lyrics saved and marked as customized!', 'success');
+            setStatus('Lyrics customized', 'success');
+        } else {
+            showToast('Failed to save lyrics', 'error');
+        }
+    } catch (error) {
+        showToast('Error saving lyrics: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Confirmation Dialog Functions
+function showConfirmDialog(title, message, onConfirm) {
+    confirmDialogTitle.textContent = title;
+    confirmDialogMessage.textContent = message;
+    confirmDialog.style.display = 'flex';
+
+    // Remove any existing event listeners and add new one
+    const newConfirmBtn = confirmDialogConfirmBtn.cloneNode(true);
+    confirmDialogConfirmBtn.parentNode.replaceChild(newConfirmBtn, confirmDialogConfirmBtn);
+
+    // Update the global reference
+    window.confirmDialogConfirmBtn = newConfirmBtn;
+
+    newConfirmBtn.addEventListener('click', () => {
+        hideConfirmDialog();
+        onConfirm();
+    });
+}
+
+function hideConfirmDialog() {
+    confirmDialog.style.display = 'none';
 }

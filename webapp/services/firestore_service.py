@@ -72,6 +72,24 @@ class FirestoreService:
             'notes_updated_at': datetime.utcnow()
         })
 
+    def update_lyrics(self, song_id, lyrics, is_customized=False):
+        """Update lyrics for a song and mark as customized"""
+        doc_ref = self.db.collection(self.songs_collection).document(song_id)
+
+        if not doc_ref.get().exists:
+            raise ValueError(f"Song {song_id} not found")
+
+        # Re-number the lyrics
+        from services.lyrics_service import LyricsService
+        lyrics_numbered = LyricsService._add_line_numbers_static(lyrics)
+
+        doc_ref.update({
+            'lyrics': lyrics,
+            'lyrics_numbered': lyrics_numbered,
+            'is_customized': is_customized,
+            'lyrics_updated_at': datetime.utcnow()
+        })
+
     def delete_song(self, song_id):
         """Delete a song"""
         self.db.collection(self.songs_collection).document(song_id).delete()

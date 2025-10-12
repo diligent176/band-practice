@@ -62,6 +62,20 @@ class LyricsService:
                 return playlist_id
         raise ValueError("Invalid Spotify playlist URL")
 
+    def get_playlist_info(self, playlist_url):
+        """Get basic playlist information without syncing"""
+        playlist_id = self.extract_playlist_id(playlist_url)
+
+        # Get playlist details
+        playlist = self.spotify.playlist(playlist_id)
+
+        return {
+            'name': playlist['name'],
+            'total_tracks': playlist['tracks']['total'],
+            'description': playlist.get('description', ''),
+            'owner': playlist['owner']['display_name']
+        }
+
     def sync_playlist(self, playlist_url):
         """Sync all songs from Spotify playlist"""
         playlist_id = self.extract_playlist_id(playlist_url)
@@ -94,6 +108,13 @@ class LyricsService:
                 # Check if song exists
                 exists = self.firestore.song_exists(song_id)
 
+                # Skip if song is customized
+                if exists:
+                    existing_song = self.firestore.get_song(song_id)
+                    if existing_song.get('is_customized'):
+                        print(f"Skipping customized song: {artist} - {title}")
+                        continue
+
                 # Fetch lyrics from Genius
                 lyrics_data = self._fetch_lyrics(title, artist)
 
@@ -123,7 +144,7 @@ class LyricsService:
 
         return stats
 
-    def fetch_and_update_song(self, song_id, title, artist):
+    def fetch_and_update_song(self, song_id, title, artist, clear_customization=False):
         """Fetch and update lyrics for a single song"""
         lyrics_data = self._fetch_lyrics(title, artist)
 
@@ -131,6 +152,10 @@ class LyricsService:
             'lyrics': lyrics_data['lyrics'],
             'lyrics_numbered': lyrics_data['lyrics_numbered']
         }
+
+        # Clear customization flag if requested
+        if clear_customization:
+            song_data['is_customized'] = False
 
         self.firestore.create_or_update_song(song_id, song_data)
         return self.firestore.get_song(song_id)
@@ -276,6 +301,11 @@ class LyricsService:
 
     def _add_line_numbers(self, lyrics):
         """Add line numbers to lyrics (skip section headers)"""
+        return self._add_line_numbers_static(lyrics)
+
+    @staticmethod
+    def _add_line_numbers_static(lyrics):
+        """Static method to add line numbers to lyrics (skip section headers)"""
         lines = lyrics.split('\n')
         formatted_lines = []
         line_num = 1
