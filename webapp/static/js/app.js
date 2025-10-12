@@ -11,6 +11,7 @@ let authenticatedApiCall = null;
 // DOM Elements
 const songSelect = document.getElementById('song-select');
 const lyricsContent = document.getElementById('lyrics-content');
+const lyricsContentInner = document.getElementById('lyrics-content-inner');
 const notesView = document.getElementById('notes-view');
 const notesEdit = document.getElementById('notes-edit');
 const notesTextarea = document.getElementById('notes-textarea');
@@ -23,6 +24,8 @@ const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const syncPlaylistBtn = document.getElementById('sync-playlist-btn');
 const refreshSongBtn = document.getElementById('refresh-song-btn');
 const changePlaylistBtn = document.getElementById('change-playlist-btn');
+const toggleColumnsBtn = document.getElementById('toggle-columns-btn');
+const fontSizeSelect = document.getElementById('font-size-select');
 
 const playlistDialog = document.getElementById('playlist-dialog');
 const playlistUrlInput = document.getElementById('playlist-url-input');
@@ -33,6 +36,7 @@ const playlistCancelBtn = document.getElementById('playlist-cancel-btn');
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
     authenticatedApiCall = apiCallFunction;
+    loadFontSizePreference();
     loadUserInfo();
     loadSongs();
     setupEventListeners();
@@ -48,6 +52,8 @@ function setupEventListeners() {
     changePlaylistBtn.addEventListener('click', showPlaylistDialog);
     playlistSaveBtn.addEventListener('click', syncNewPlaylist);
     playlistCancelBtn.addEventListener('click', hidePlaylistDialog);
+    toggleColumnsBtn.addEventListener('click', toggleColumns);
+    fontSizeSelect.addEventListener('change', handleFontSizeChange);
 }
 
 // API Functions
@@ -170,10 +176,6 @@ async function syncPlaylist() {
 async function refreshCurrentSong() {
     if (!currentSong) return;
 
-    if (!confirm('Refresh lyrics for this song?')) {
-        return;
-    }
-
     try {
         showLoading('Refreshing lyrics...');
 
@@ -204,7 +206,7 @@ function populateSongSelect() {
     allSongs.forEach(song => {
         const option = document.createElement('option');
         option.value = song.id;
-        option.textContent = `${song.artist} - ${song.title}`;
+        option.textContent = `${song.title} - ${song.artist}`;
         songSelect.appendChild(option);
     });
 }
@@ -226,8 +228,8 @@ function renderMetadata() {
     ];
 
     songMetadata.innerHTML = metadata.map(item =>
-        `<div class="metadata-item"><strong>${item.label}:</strong>${item.value}</div>`
-    ).join('');
+        `<div class="metadata-item"><strong>${item.label}:</strong> ${item.value}</div>`
+    ).join('<div class="metadata-item">|</div>');
 }
 
 function renderLyrics() {
@@ -255,7 +257,7 @@ function renderLyrics() {
         }
     });
 
-    lyricsContent.innerHTML = html || '<div class="empty-state"><p>No lyrics available</p></div>';
+    lyricsContentInner.innerHTML = html || '<div class="empty-state"><p>No lyrics available</p></div>';
 }
 
 function renderNotes() {
@@ -426,6 +428,46 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Column Toggle Function
+let isColumnMode2 = false;
+
+function toggleColumns() {
+    isColumnMode2 = !isColumnMode2;
+
+    if (isColumnMode2) {
+        lyricsContentInner.classList.remove('lyrics-columns-1');
+        lyricsContentInner.classList.add('lyrics-columns-2');
+        toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 2 Col';
+    } else {
+        lyricsContentInner.classList.remove('lyrics-columns-2');
+        lyricsContentInner.classList.add('lyrics-columns-1');
+        toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 1 Col';
+    }
+}
+
+// Font Size Change Function
+function handleFontSizeChange(e) {
+    const fontSize = e.target.value;
+    const mainApp = document.getElementById('main-app');
+
+    // Remove all font size classes
+    mainApp.classList.remove('font-size-small', 'font-size-medium', 'font-size-large', 'font-size-xlarge');
+
+    // Add the selected font size class
+    mainApp.classList.add(`font-size-${fontSize}`);
+
+    // Save preference to localStorage
+    localStorage.setItem('bandPracticeFontSize', fontSize);
+}
+
+// Load saved font size on init
+function loadFontSizePreference() {
+    const savedSize = localStorage.getItem('bandPracticeFontSize') || 'medium';
+    fontSizeSelect.value = savedSize;
+    const mainApp = document.getElementById('main-app');
+    mainApp.classList.add(`font-size-${savedSize}`);
 }
 
 // Playlist Dialog Functions
