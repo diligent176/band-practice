@@ -4,10 +4,13 @@ Band Practice PRO - Flask Web Application
 
 import logging
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from parent directory (project root)
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 from flask import Flask, render_template, request, jsonify, g
 from services.firestore_service import FirestoreService

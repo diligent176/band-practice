@@ -93,9 +93,11 @@ def require_auth(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        logger.info(f"🔐 require_auth decorator called for {request.path}")
+
         # Skip authentication in development mode
         if auth_service.is_development_mode():
-            logger.info("Running in dev mode - using mock user")
+            logger.info("✅ Running in dev mode - using mock user")
             g.user = {
                 'email': 'dev@localhost.com',
                 'verified': True
@@ -104,8 +106,10 @@ def require_auth(f):
 
         # Get token from Authorization header
         auth_header = request.headers.get('Authorization', '')
+        logger.info(f"📋 Auth header present: {bool(auth_header)}")
+
         if not auth_header.startswith('Bearer '):
-            logger.warning(f"Missing or invalid auth header. Headers: {dict(request.headers)}")
+            logger.error(f"❌ Missing or invalid auth header. Headers: {dict(request.headers)}")
             return jsonify({
                 'error': 'Authentication required',
                 'message': 'Missing or invalid authorization header',
@@ -113,14 +117,18 @@ def require_auth(f):
             }), 401
 
         token = auth_header.split('Bearer ')[1]
+        logger.info(f"🎫 Token extracted (first 30 chars): {token[:30]}...")
+
         user_info = auth_service.verify_token(token)
 
         if not user_info:
+            logger.error(f"❌ Token verification failed or user not authorized")
             return jsonify({
                 'error': 'Authentication failed',
                 'message': 'Invalid token or unauthorized user'
             }), 401
 
+        logger.info(f"✅ User authenticated: {user_info.get('email')}")
         g.user = user_info
         return f(*args, **kwargs)
 

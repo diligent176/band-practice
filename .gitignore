@@ -1,12 +1,28 @@
+# credential files
+firebase-admin.json
 github-actions-key.json
-.claude/*
+
+#temp files
 zztemp**
+
+# setting
+.claude/*
 
 # terraform
 *.tfstate
 *.tfstate.*backup
 .terraform/
 **/*.tfvars
+
+# Environments
+.env
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -143,16 +159,6 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
-
-# Environments
-.env
-.envrc
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject

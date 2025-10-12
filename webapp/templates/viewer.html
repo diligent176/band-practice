@@ -139,6 +139,29 @@ Lines 45-48: Double time, watch for break"></textarea>
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
 
     <script>
+        // Check if we're in development mode
+        const isDevelopmentMode = {{ 'true' if config.get('FLASK_ENV') == 'development' else 'false' }};
+
+        if (isDevelopmentMode) {
+            console.log('🔧 DEVELOPMENT MODE - Bypassing Firebase Auth');
+            // Skip all Firebase auth, show main app immediately
+            document.getElementById('auth-gate').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            document.getElementById('user-email').textContent = 'dev@localhost.com (Dev Mode)';
+
+            // Mock apiCall function for development
+            window.apiCall = async function(url, options = {}) {
+                return fetch(url, options);
+            };
+
+            // Initialize the main app
+            if (window.initializeApp) {
+                window.initializeApp(window.apiCall);
+            }
+        } else {
+            // Production mode - use Firebase Auth
+            console.log('🔥 PRODUCTION MODE - Using Firebase Auth');
+
         // Firebase configuration - replace with your project's config
         const firebaseConfig = {
             apiKey: "{{ config.FIREBASE_API_KEY }}",
@@ -156,7 +179,7 @@ Lines 45-48: Double time, watch for break"></textarea>
         const auth = firebase.auth();
         console.log('🔥 Step 3: Auth instance created');
 
-        // Set persistence to LOCAL (survives page reloads)
+        // Set persistence to LOCAL for redirect flow
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
             console.log('🔥 Step 4: Persistence set to LOCAL');
         }).catch((error) => {
@@ -165,19 +188,33 @@ Lines 45-48: Double time, watch for break"></textarea>
 
         // FirebaseUI configuration
         const uiConfig = {
+            signInFlow: 'popup',  // Use popup flow (works reliably on localhost)
             signInOptions: [
-                firebase.auth.GoogleAuthProvider.PROVIDER_ID
+                {
+                    provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                    customParameters: {
+                        prompt: 'select_account'
+                    }
+                }
             ],
             callbacks: {
                 signInSuccessWithAuthResult: (authResult) => {
                     console.log('✅✅✅ SIGN IN SUCCESS CALLBACK FIRED ✅✅✅');
-                    console.log('User email:', authResult.user.email);
-                    console.log('User object:', authResult.user);
-                    // Don't redirect - let onAuthStateChanged handle it
+                    console.log('📧 User email:', authResult.user.email);
+                    console.log('🆔 User uid:', authResult.user.uid);
+                    console.log('✅ Email verified:', authResult.user.emailVerified);
+                    console.log('👤 Full user object:', authResult.user);
+                    console.log('🔐 Credential:', authResult.credential);
+                    console.log('📝 Additional user info:', authResult.additionalUserInfo);
+                    console.log('🔄 Auth successful - onAuthStateChanged will handle UI');
+                    // Return false - let onAuthStateChanged handle showing the app
                     return false;
                 },
                 signInFailure: (error) => {
-                    console.error('❌❌❌ SIGN IN FAILURE ❌❌❌', error);
+                    console.error('❌❌❌ SIGN IN FAILURE ❌❌❌');
+                    console.error('Error code:', error.code);
+                    console.error('Error message:', error.message);
+                    console.error('Full error:', error);
                     return Promise.resolve();
                 },
                 uiShown: () => {
@@ -192,13 +229,26 @@ Lines 45-48: Double time, watch for break"></textarea>
 
         let currentUser = null;
         let idToken = null;
+        let authStateCallCount = 0;
 
         // Auth state observer
         console.log('🔥 Step 7: Setting up onAuthStateChanged listener...');
         auth.onAuthStateChanged(async (user) => {
-            console.log('🔐🔐🔐 AUTH STATE CHANGED CALLBACK FIRED 🔐🔐🔐');
+            authStateCallCount++;
+            console.log('🔐🔐🔐 AUTH STATE CHANGED CALLBACK FIRED (Call #' + authStateCallCount + ') 🔐🔐🔐');
+            console.log('📍 Current URL:', window.location.href);
+            console.log('📍 Has URL params?', window.location.search);
             console.log('User object:', user);
             console.log('User email:', user ? user.email : 'NULL');
+            console.log('User emailVerified:', user ? user.emailVerified : 'N/A');
+            console.log('User uid:', user ? user.uid : 'N/A');
+
+            // DEBUG: Check if user was signed in before
+            if (!user && currentUser) {
+                console.error('🚨🚨🚨 USER WAS SIGNED IN BUT NOW IS NULL 🚨🚨🚨');
+                console.error('Previous user:', currentUser.email);
+                console.error('This means Firebase signed the user out!');
+            }
 
             if (user) {
                 // User is signed in
@@ -263,12 +313,29 @@ Lines 45-48: Double time, watch for break"></textarea>
             } else {
                 // User is signed out
                 console.log('👋👋👋 USER IS NULL - SIGNED OUT 👋👋👋');
+                console.log('🔍 Checking localStorage for auth data...');
+                console.log('localStorage keys:', Object.keys(localStorage));
+                console.log('firebase:authUser keys:', Object.keys(localStorage).filter(k => k.includes('firebase')));
+
+                // Check if we're returning from OAuth redirect
+                const urlParams = new URLSearchParams(window.location.search);
+                console.log('🔍 URL params:', Array.from(urlParams.entries()));
+
                 console.log('Step X: Hiding main app, showing auth gate');
                 document.getElementById('main-app').style.display = 'none';
                 document.getElementById('auth-gate').style.display = 'block';
-                console.log('Step Y: Starting FirebaseUI...');
-                ui.start('#firebaseui-auth-container', uiConfig);
-                console.log('Step Z: FirebaseUI started');
+
+                // Check if FirebaseUI is already rendered
+                const authContainer = document.getElementById('firebaseui-auth-container');
+                console.log('🔍 Auth container children:', authContainer.children.length);
+
+                if (authContainer.children.length === 0) {
+                    console.log('Step Y: Starting FirebaseUI...');
+                    ui.start('#firebaseui-auth-container', uiConfig);
+                    console.log('Step Z: FirebaseUI started');
+                } else {
+                    console.log('⚠️ FirebaseUI already rendered, not starting again');
+                }
             }
         });
 
@@ -298,6 +365,8 @@ Lines 45-48: Double time, watch for break"></textarea>
         function loadApp() {
             // Load your existing app.js functionality here or include it separately
         }
+
+        } // End of production mode else block
     </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
