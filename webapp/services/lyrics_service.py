@@ -1,8 +1,9 @@
 """
 Service for fetching and syncing lyrics from Spotify/Genius
+Updated to use official Genius API instead of lyricsgenius library
 """
 
-import lyricsgenius
+import requests
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
@@ -23,11 +24,12 @@ class LyricsService:
             )
         )
 
-        # Initialize Genius
-        self.genius = lyricsgenius.Genius(os.getenv('GENIUS_ACCESS_TOKEN'))
-        self.genius.remove_section_headers = False
-        self.genius.skip_non_songs = True
-        self.genius.excluded_terms = ["(Remix)", "(Live)"]
+        # Genius API configuration
+        self.genius_token = os.getenv('GENIUS_ACCESS_TOKEN')
+        self.genius_base_url = 'https://api.genius.com'
+        self.genius_headers = {
+            'Authorization': f'Bearer {self.genius_token}'
+        }
 
     def extract_playlist_id(self, playlist_url):
         """Extract playlist ID from Spotify URL"""
@@ -113,19 +115,103 @@ class LyricsService:
         self.firestore.create_or_update_song(song_id, song_data)
         return self.firestore.get_song(song_id)
 
-    def _fetch_lyrics(self, title, artist):
-        """Fetch lyrics from Genius and format them"""
-        try:
-            song = self.genius.search_song(title, artist)
+    def _search_genius(self, query):
+        """Search Genius API for a song"""
+        search_url = f'{self.genius_base_url}/search'
+        params = {'q': query}
 
-            if not song or not song.lyrics:
+        response = requests.get(search_url, headers=self.genius_headers, params=params)
+        response.raise_for_status()
+
+        return response.json()
+
+    def _get_song_lyrics_url(self, song_id):
+        """Get song details from Genius API"""
+        song_url = f'{self.genius_base_url}/songs/{song_id}'
+
+        response = requests.get(song_url, headers=self.genius_headers)
+        response.raise_for_status()
+
+        return response.json()
+
+    def _scrape_lyrics_from_page(self, url):
+        """
+        Scrape lyrics from Genius page using BeautifulSoup
+        This is a fallback method since Genius API doesn't provide lyrics directly
+        """
+        try:
+            from bs4 import BeautifulSoup
+            import re
+
+            # Request the page
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            # Find lyrics container - Genius uses data-lyrics-container attribute
+            lyrics_divs = soup.find_all('div', {'data-lyrics-container': 'true'})
+
+            if not lyrics_divs:
+                # Fallback: try finding by class
+                lyrics_divs = soup.find_all('div', class_=re.compile('Lyrics__Container'))
+
+            if not lyrics_divs:
+                return None
+
+            # Extract text from all lyrics containers
+            lyrics_parts = []
+            for div in lyrics_divs:
+                # Get text with line breaks preserved
+                for br in div.find_all('br'):
+                    br.replace_with('\n')
+                text = div.get_text()
+                lyrics_parts.append(text)
+
+            lyrics = '\n'.join(lyrics_parts)
+
+            # Clean up
+            lyrics = re.sub(r'\[.*?\]', lambda m: f'\n{m.group(0)}\n', lyrics)  # Add newlines around section headers
+            lyrics = re.sub(r'\n\n+', '\n\n', lyrics)  # Remove excessive newlines
+            lyrics = lyrics.strip()
+
+            return lyrics
+
+        except Exception as e:
+            print(f"Error scraping lyrics from {url}: {e}")
+            return None
+
+    def _fetch_lyrics(self, title, artist):
+        """Fetch lyrics from Genius using official API + scraping"""
+        try:
+            # Search for the song
+            query = f"{title} {artist}"
+            search_results = self._search_genius(query)
+
+            if not search_results.get('response', {}).get('hits'):
                 return {
                     'lyrics': f"Lyrics not found for {title} by {artist}",
                     'lyrics_numbered': f"Lyrics not found for {title} by {artist}"
                 }
 
+            # Get the first result
+            first_hit = search_results['response']['hits'][0]['result']
+            song_url = first_hit.get('url')
+            song_title = first_hit.get('title')
+            song_artist = first_hit.get('primary_artist', {}).get('name')
+
+            print(f"Found on Genius: {song_title} by {song_artist}")
+
+            # Scrape lyrics from the song page
+            lyrics = self._scrape_lyrics_from_page(song_url)
+
+            if not lyrics:
+                return {
+                    'lyrics': f"Could not retrieve lyrics for {title} by {artist}",
+                    'lyrics_numbered': f"Could not retrieve lyrics for {title} by {artist}"
+                }
+
             # Clean up lyrics
-            lyrics = song.lyrics
             lyrics = re.sub(r'.*?Lyrics', '', lyrics, count=1)  # Remove "XXXLyrics" header
             lyrics = re.sub(r'\d+Embed$', '', lyrics)  # Remove "XXEmbed" footer
             lyrics = re.sub(r'You might also like', '', lyrics)
