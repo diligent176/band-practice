@@ -46,20 +46,13 @@ A complete, production-ready web application for managing song lyrics and practi
 run-local.bat
 ```
 
-**Mac/Linux:**
-
-```bash
-./run-local.sh
-```
+**Note:** Only `run-local.bat` exists for Windows. There is no Mac/Linux version (`run-local.sh` does not exist).
 
 Access at: http://localhost:8080
 
 ### Deploy to Cloud
 
-```bash
-# One command - Cloud Build does everything!
-./deploy.sh
-```
+Deployment is handled via GitHub Actions. Push your changes to the repository and the workflow will automatically deploy to Cloud Run.
 
 ## Your Workflow
 
@@ -73,8 +66,9 @@ Access at: http://localhost:8080
 ### Deploy Changes
 
 1. Make sure code works locally
-2. Run `./deploy.sh`
-3. Done! Live in ~3 minutes
+2. Commit and push your changes to GitHub
+3. GitHub Actions automatically deploys to Cloud Run
+4. Done! Live in ~3 minutes
 
 ## File Organization
 
@@ -90,13 +84,10 @@ band-practice-pro/
 │   ├── main.tf              # GCP resources
 │   └── variables.tf         # Configuration
 │
-├── deploy.sh                 # 👈 Deploy to cloud
-├── run-local.sh/.bat         # 👈 Run locally
+├── run-local.bat             # 👈 Run locally (Windows)
 ├── .env                      # 👈 Your secrets (not in git)
 ├── README.md                 # 👈 Project overview
-├── WEBAPP_DEPLOYMENT.md      # 👈 Deployment guide
-│
-└── deprecated/               # 👈 Old files (ignore)
+└── .docs/                    # 👈 Documentation
 ```
 
 ## Environment Setup
@@ -109,12 +100,12 @@ GCP_PROJECT_ID=band-practice-pro
 GCP_REGION=us-west1
 
 # Spotify
-SPOTIFY_CLIENT_ID=ee1e8f44848e4212a986bc4b29f0f87e
-SPOTIFY_CLIENT_SECRET=ae1ccda290244f5980da5e9c5bd0b3b2
+SPOTIFY_CLIENT_ID=<REPLACE_WITH_CLIENT_ID>
+SPOTIFY_CLIENT_SECRET=<REPLACE_WITH_CLIENT_SECRET>
 SPOTIFY_PLAYLIST_URL=https://open.spotify.com/playlist/3U1OFYCOg0sGEGMQEGz5u8
 
 # Genius
-GENIUS_ACCESS_TOKEN=UVE3AyTHAchrqxyqkkm2zy_chZR1JagxYOeoNK-wvpz4kg9B2KI1dt3PAFRyFSTI
+GENIUS_ACCESS_TOKEN=<REPLACE_TOKEN>
 
 # Flask
 SECRET_KEY=your-random-secret-key-here
@@ -125,11 +116,8 @@ SECRET_KEY=your-random-secret-key-here
 ### 1. Try It Locally First
 
 ```bash
-# Windows
+# Windows only
 run-local.bat
-
-# Mac/Linux
-./run-local.sh
 ```
 
 This runs the app on your computer so you can see how it works!
@@ -142,8 +130,7 @@ Basic steps:
 
 ```bash
 # Create GCP project
-gcloud projects create band-practice-pro
-gcloud projects create band-practice-pro-pro --name="Band Practice Pro"
+gcloud projects create band-practice-pro --name="Band Practice Pro"
 
 # Enable APIs
 gcloud services enable run.googleapis.com firestore.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
@@ -154,8 +141,8 @@ gcloud firestore databases create --location=nam5
 # Create Docker repository
 gcloud artifacts repositories create band-practice-pro --repository-format=docker --location=us-west1
 
-# Deploy!
-./deploy.sh
+# Deploy via GitHub Actions
+git push
 ```
 
 ### 3. Use Your App

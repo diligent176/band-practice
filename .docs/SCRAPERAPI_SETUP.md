@@ -39,26 +39,11 @@ gcloud run services update band-practice-pro \
     --project=band-practice-pro
 ```
 
-Or update your GitHub Actions workflow (`.github/workflows/deploy.yml`), add to the secrets list on line 65:
-
-```yaml
---update-secrets="...,SCRAPER_API_KEY=SCRAPER_API_KEY:latest"
-```
-
-### 4. Replace the Lyrics Service
-
-```bash
-cd /c/github/band-practice/webapp/services
-cp lyrics_service.py lyrics_service_backup_before_scraperapi.py
-cp ../../lyrics_service_with_scraperapi.py lyrics_service.py
-git add lyrics_service.py
-git commit -m "Add ScraperAPI integration for Genius scraping"
-git push
-```
+Note: The GitHub Actions workflow (`.github/workflows/deploy.yml`) already has SCRAPER_API_KEY configured in the secrets list.
 
 ## How It Works
 
-The updated service will:
+ScraperAPI is already integrated into the lyrics service (`webapp/services/lyrics_service.py`). The service will:
 1. Check if `SCRAPER_API_KEY` environment variable exists
 2. If yes, route all Genius page requests through ScraperAPI
 3. If no, fall back to direct requests with browser headers

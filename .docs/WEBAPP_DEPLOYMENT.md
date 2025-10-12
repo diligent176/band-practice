@@ -1,4 +1,4 @@
-# 🥁 Band Practice Viewer - Web Application Deployment Guide
+# 🥁 Band Practice Pro - Web Application Deployment Guide
 
 A real-time web application for viewing song lyrics and managing drummer notes during band practice.
 
@@ -46,7 +46,7 @@ This is a Flask web application deployed to Google Cloud Platform that:
 
 ### 3. Local Tools
 
-- Docker Desktop installed
+- Docker Desktop (only needed for manual deployment, not required for local development)
 - Terraform (optional, for infrastructure as code)
 
 ## Quick Start Deployment
@@ -120,22 +120,22 @@ GENIUS_ACCESS_TOKEN=your_genius_token
 SECRET_KEY=your-super-secret-random-key-here
 ```
 
-#### Step 5: Build and Deploy
+#### Step 5: Deploy via GitHub Actions
+
+Deployment is automated via GitHub Actions. Simply push your code to trigger deployment:
 
 ```bash
-# Make deploy script executable
-chmod +x deploy.sh
-
-# Run deployment
-./deploy.sh
+git add .
+git commit -m "Initial deployment"
+git push
 ```
 
-The script will:
+GitHub Actions will:
 
-1. Build Docker image
+1. Build Docker image using Cloud Build
 2. Push to Artifact Registry
 3. Deploy to Cloud Run
-4. Output your application URL
+4. Your app will be live in ~3-5 minutes
 
 **Your app will be live at:** `https://band-practice-pro-XXXXX.run.app`
 
@@ -178,14 +178,16 @@ terraform plan
 terraform apply
 ```
 
-#### Step 3: Build and Deploy Application
+#### Step 3: Deploy Application via GitHub Actions
 
 ```bash
 # Return to project root
 cd ..
 
-# Build and push Docker image
-./deploy.sh
+# Push to trigger GitHub Actions deployment
+git add .
+git commit -m "Deploy infrastructure"
+git push
 ```
 
 ---
@@ -291,8 +293,10 @@ deploy.sh                      # Deployment automation
 
 ```bash
 # Make your changes to webapp/ files
-# Then redeploy
-./deploy.sh
+# Then commit and push to trigger deployment
+git add .
+git commit -m "Update application"
+git push
 ```
 
 ### Update Infrastructure
@@ -351,12 +355,18 @@ gcloud run logs read band-practice-pro --region=us-west1 --limit=50
 
 ## Security Considerations
 
-### Current Setup (Public Access)
+### Current Setup (Public Access with Firebase Auth)
 
-- Anyone with the URL can view/edit
-- Fine for personal/small band use
+Cloud Run is configured with `allUsers` IAM permission to allow unauthenticated access at the infrastructure level. However, the application enforces Firebase authentication internally, meaning:
 
-### Adding Authentication
+- Cloud Run allows all traffic through (no 403 errors)
+- The Flask app requires Firebase auth tokens for all protected endpoints
+- Only authenticated users can view/edit content
+- This approach simplifies deployment while maintaining security
+
+### Adding Additional IAM Restrictions
+
+If you want to add additional IAM-level restrictions on top of Firebase auth:
 
 Update [terraform/main.tf](terraform/main.tf):
 
@@ -391,15 +401,29 @@ gcloud firestore import gs://YOUR_BUCKET_NAME/backup
 
 ### Run Locally
 
+**Windows:**
+
+```bash
+# Use the provided batch script
+run-local.bat
+```
+
+This script will:
+1. Load environment variables from `.env`
+2. Start the Flask development server
+3. Make the app available at http://localhost:8080
+
+**Manual method (if needed):**
+
 ```bash
 cd webapp
 
 # Install dependencies
 pip install -r ../requirements.txt
 
-# Set environment
-export GCP_PROJECT_ID=your-project
-export SPOTIFY_CLIENT_ID=xxx
+# Set environment variables (or use .env file)
+set GCP_PROJECT_ID=your-project
+set SPOTIFY_CLIENT_ID=xxx
 # ... other env vars
 
 # Run Flask dev server
@@ -450,5 +474,3 @@ You now have a **production-ready web application** that:
 - ✅ Easy to maintain and update
 
 **Rock on! 🎸🥁**
-
-gcloud run deploy band-practice-pro --image us-west1-docker.pkg.dev/band-practice-pro/band-practice-pro/band-practice-pro:latest --region us-west1 --platform managed

@@ -27,9 +27,11 @@ cp .env.example .env
 # 3. Run locally (Windows)
 run-local.bat
 
-# Or on Mac/Linux
-chmod +x run-local.sh
-./run-local.sh
+# Note: Mac/Linux users should manually activate venv and run:
+# python -m venv venv
+# source venv/bin/activate  # On Mac/Linux
+# pip install -r requirements.txt
+# python webapp/app.py
 ```
 
 Access at: http://localhost:8080
@@ -38,12 +40,9 @@ Access at: http://localhost:8080
 
 Deploy to Google Cloud Run (serverless, near-zero cost):
 
-```bash
-# One-command deploy (Cloud Build does everything - no local Docker!)
-./deploy.sh
-```
+Deployment is handled via GitHub Actions workflows automatically when you push to the `main` branch.
 
-See [WEBAPP_DEPLOYMENT.md](WEBAPP_DEPLOYMENT.md) for complete deployment guide.
+See [.docs/WEBAPP_DEPLOYMENT.md](.docs/WEBAPP_DEPLOYMENT.md) for complete deployment guide.
 
 ## Project Structure
 
@@ -98,10 +97,10 @@ SECRET_KEY=your-random-secret-key
 
 ```bash
 # Run locally
-./run-local.sh  # or run-local.bat on Windows
+run-local.bat  # On Windows
 
 # Deploy to cloud
-./deploy.sh
+# Push to main branch - GitHub Actions handles deployment automatically
 
 # Infrastructure changes
 cd terraform
@@ -111,8 +110,9 @@ terraform apply
 
 ## Documentation
 
-- **[Deployment Guide](WEBAPP_DEPLOYMENT.md)** - Complete GCP deployment instructions
-- **[Terraform README](terraform/README.md)** - Infrastructure documentation
+- **[Deployment Guide](.docs/WEBAPP_DEPLOYMENT.md)** - Complete GCP deployment instructions
+- **[Authentication Setup](.docs/AUTHENTICATION.md)** - Firebase Authentication configuration
+- **[ScraperAPI Setup](.docs/SCRAPERAPI_SETUP.md)** - Optional lyrics scraping proxy setup
 
 ## Tech Stack
 

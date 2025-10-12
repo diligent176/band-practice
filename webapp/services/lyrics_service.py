@@ -1,15 +1,20 @@
 """
-BACKUP SOLUTION - If browser headers don't work, use this version with ScraperAPI
+Lyrics Service - Fetch lyrics from Genius using official API + web scraping
 
-To use this:
-1. Sign up at https://www.scraperapi.com/ (1000 free requests/month)
-2. Get your API key
-3. Add SCRAPER_API_KEY to your environment variables in Cloud Run
-4. Replace lyrics_service.py with this file
+This service integrates with:
+1. Spotify API - to sync playlist tracks
+2. Genius API - to search for songs
+3. Web scraping - to extract lyrics from Genius pages
+4. ScraperAPI (optional) - to bypass IP blocking
 
-ScraperAPI automatically:
+ScraperAPI Integration:
+- If SCRAPER_API_KEY environment variable is set, uses ScraperAPI for web scraping
+- If not set, falls back to direct requests with browser headers
+- Sign up at https://www.scraperapi.com/ for 1000 free requests/month
+
+ScraperAPI Benefits:
 - Rotates IPs from a pool of millions
-- Handles headers and cookies
+- Handles headers and cookies automatically
 - Bypasses CAPTCHAs
 - Manages retries
 """

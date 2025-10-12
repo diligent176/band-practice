@@ -22,36 +22,13 @@ gcloud secrets add-iam-policy-binding SCRAPER_API_KEY \
     --project=band-practice-pro
 ```
 
-## Step 3: Update Lyrics Service
+## Step 3: Verify Integration
 
-```bash
-cd /c/github/band-practice/webapp/services
+ScraperAPI is already integrated into `webapp/services/lyrics_service.py`. The service automatically uses ScraperAPI when the `SCRAPER_API_KEY` environment variable is available.
 
-# Backup current version
-cp lyrics_service.py lyrics_service_no_scraper_backup.py
+The GitHub Actions workflow (`.github/workflows/deploy.yml`) is already configured with SCRAPER_API_KEY.
 
-# Switch to ScraperAPI version
-cp lyrics_service_with_scraperapi.py lyrics_service.py
-```
-
-## Step 4: Review and Commit
-
-Check the changes:
-```bash
-cd /c/github/band-practice
-git status
-git diff webapp/services/lyrics_service.py
-```
-
-When ready:
-```bash
-git add webapp/services/lyrics_service.py
-git add .github/workflows/deploy.yml
-git commit -m "Add ScraperAPI integration to bypass Genius IP blocking"
-git push
-```
-
-## Step 5: Verify Deployment
+## Step 4: Verify Deployment
 
 After GitHub Actions completes (~3-5 minutes):
 1. Go to: https://band-practice-pro-425083870011.us-west1.run.app
