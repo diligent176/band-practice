@@ -125,6 +125,9 @@ async function loadSong(songId) {
             editLyricsBtn.disabled = false;
             deleteSongBtn.disabled = false;
             setStatus('Song loaded', 'success');
+
+            // Load panel split for this song
+            loadPanelSplit(currentSong.id);
         } else {
             showToast('Failed to load song', 'error');
         }
@@ -1009,3 +1012,77 @@ async function finishImport() {
     closeImportDialog();
     await loadSongs(); // Reload song list
 }
+
+//=============================================================================
+// Panel Resizing with localStorage
+//=============================================================================
+
+const resizeHandle = document.getElementById('resize-handle');
+const lyricsPanel = document.getElementById('lyrics-panel');
+const notesPanel = document.getElementById('notes-panel');
+const panelsContainer = document.querySelector('.panels');
+
+let isResizing = false;
+
+// Set up resize functionality
+if (resizeHandle && lyricsPanel && notesPanel) {
+    resizeHandle.addEventListener('mousedown', startResize);
+    document.addEventListener('mousemove', handleResize);
+    document.addEventListener('mouseup', stopResize);
+}
+
+function startResize(e) {
+    isResizing = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+}
+
+function handleResize(e) {
+    if (!isResizing) return;
+
+    const containerRect = panelsContainer.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    const mouseX = e.clientX - containerRect.left;
+
+    // Calculate percentage (20% minimum for each panel, 80% maximum)
+    let lyricsPercentage = (mouseX / containerWidth) * 100;
+    lyricsPercentage = Math.max(20, Math.min(80, lyricsPercentage));
+
+    const notesPercentage = 100 - lyricsPercentage;
+
+    // Apply flex basis
+    lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
+    notesPanel.style.flex = `0 0 ${notesPercentage}%`;
+}
+
+function stopResize(e) {
+    if (!isResizing) return;
+
+    isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+
+    // Save the current split for this song
+    if (currentSong) {
+        const lyricsPercentage = (lyricsPanel.getBoundingClientRect().width / panelsContainer.getBoundingClientRect().width) * 100;
+        savePanelSplit(currentSong.id, lyricsPercentage);
+    }
+}
+
+function savePanelSplit(songId, lyricsPercentage) {
+    const splits = JSON.parse(localStorage.getItem('bandPracticePanelSplits') || '{}');
+    splits[songId] = lyricsPercentage;
+    localStorage.setItem('bandPracticePanelSplits', JSON.stringify(splits));
+}
+
+window.loadPanelSplit = function(songId) {
+    if (!lyricsPanel || !notesPanel) return;
+
+    const splits = JSON.parse(localStorage.getItem('bandPracticePanelSplits') || '{}');
+    const lyricsPercentage = splits[songId] || 66.67; // Default to 2/3 for lyrics, 1/3 for notes
+
+    const notesPercentage = 100 - lyricsPercentage;
+
+    lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
+    notesPanel.style.flex = `0 0 ${notesPercentage}%`;
+};

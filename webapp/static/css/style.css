@@ -218,10 +218,10 @@ header h1 {
 }
 
 .panels {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 8px;
+  display: flex;
+  gap: 0;
   height: 100%;
+  position: relative;
 }
 
 /* Panels */
@@ -232,6 +232,50 @@ header h1 {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.lyrics-panel {
+  flex: 2;
+  min-width: 300px;
+  margin-right: 0;
+}
+
+.notes-panel {
+  flex: 1;
+  min-width: 200px;
+  margin-left: 8px;
+}
+
+/* Resize Handle */
+.resize-handle {
+  width: 8px;
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resize-handle::before {
+  content: '';
+  width: 2px;
+  height: 40px;
+  background: var(--border-color);
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.resize-handle:hover::before {
+  background: var(--accent-primary);
+  height: 60px;
+}
+
+.resize-handle:active::before {
+  background: var(--accent-primary);
+  height: 100%;
 }
 
 .panel-header {
