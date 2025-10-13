@@ -209,8 +209,8 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
-    // T to enter panel resize mode
-    if (e.key === 't' || e.key === 'T') {
+    // R to enter panel resize mode
+    if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
         toggleResizeMode();
         return;
@@ -1963,14 +1963,13 @@ window.loadPanelSplit = function(songId) {
 // Keyboard resize mode
 function toggleResizeMode() {
     if (!lyricsPanel || !notesPanel) return;
-    
+
     isInResizeMode = !isInResizeMode;
-    
+
     if (isInResizeMode) {
         // Entering resize mode
         resizeHandle.style.background = '#18a049';
         resizeHandle.style.width = '12px';
-        showToast('Resize Mode: Use ← → arrows to adjust, Enter to save', 'info');
     } else {
         exitResizeMode();
     }
