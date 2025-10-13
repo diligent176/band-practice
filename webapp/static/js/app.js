@@ -874,16 +874,12 @@ function scrollIntoViewIfNeeded(element) {
     // Get the scrollable container (lyrics-content which is the panel-content)
     const lyricsContainer = document.getElementById('lyrics-content');
     if (!lyricsContainer || !element) {
-        console.log('❌ scrollIntoViewIfNeeded: container or element not found');
         return;
     }
 
     // Get container bounds
     const containerRect = lyricsContainer.getBoundingClientRect();
     const elementRect = element.getBoundingClientRect();
-    
-    console.log('📍 Container top:', containerRect.top, 'bottom:', containerRect.bottom);
-    console.log('📍 Element top:', elementRect.top, 'bottom:', elementRect.bottom);
     
     // Check if element is already fully visible in the container
     const isVisible = (
@@ -893,7 +889,6 @@ function scrollIntoViewIfNeeded(element) {
     
     // If already visible, no need to scroll
     if (isVisible) {
-        console.log('✅ Element already visible, no scroll needed');
         return;
     }
     
@@ -908,8 +903,6 @@ function scrollIntoViewIfNeeded(element) {
     
     // Calculate target scroll to center the element
     const targetScroll = currentScroll + elementTop - (containerHeight / 2) + (elementHeight / 2);
-    
-    console.log('🎯 Current scroll:', currentScroll, 'Target scroll:', targetScroll);
     
     // Smoothly scroll ONLY the lyrics container, not the page
     lyricsContainer.scrollTo({
@@ -935,19 +928,19 @@ function navigateNotes(direction) {
         // No active note, select first or last based on direction
         nextIndex = direction > 0 ? 0 : noteBlocks.length - 1;
     } else {
-        // Move to next/previous note
-        nextIndex = activeIndex + direction;
-        
-        // Check if we're going past boundaries
-        if (nextIndex < 0) {
-            // Going up past the first note - scroll lyrics to top
+        // Check if we're already at a boundary before moving
+        if (direction < 0 && activeIndex === 0) {
+            // Already at first note, going up - scroll to top
             scrollToTop();
             return false;
-        } else if (nextIndex >= noteBlocks.length) {
-            // Going down past the last note - scroll lyrics to bottom
+        } else if (direction > 0 && activeIndex === noteBlocks.length - 1) {
+            // Already at last note, going down - scroll to bottom
             scrollToBottom();
             return false;
         }
+        
+        // Move to next/previous note
+        nextIndex = activeIndex + direction;
     }
 
     // Highlight the selected note
