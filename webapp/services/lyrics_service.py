@@ -183,6 +183,12 @@ class LyricsService:
             album = track['album']['name']
             year = track['album']['release_date'][:4] if track['album'].get('release_date') else 'Unknown'
 
+            # Get album art (smallest available)
+            album_art_url = None
+            if track['album'].get('images'):
+                # Get the smallest image
+                album_art_url = track['album']['images'][-1]['url']
+
             # Create song ID
             song_id = self._create_song_id(title, artist)
 
@@ -221,6 +227,7 @@ class LyricsService:
                     'artist': artist,
                     'album': album,
                     'year': year,
+                    'album_art_url': album_art_url,
                     'spotify_uri': track['uri'],
                     'lyrics': lyrics_data['lyrics'],
                     'lyrics_numbered': lyrics_data['lyrics_numbered'],
@@ -277,6 +284,12 @@ class LyricsService:
             album = track['album']['name']
             year = track['album']['release_date'][:4] if track['album'].get('release_date') else 'Unknown'
 
+            # Get album art (smallest available)
+            album_art_url = None
+            if track['album'].get('images'):
+                # Get the smallest image
+                album_art_url = track['album']['images'][-1]['url']
+
             # Create song ID
             song_id = self._create_song_id(title, artist)
 
@@ -300,6 +313,7 @@ class LyricsService:
                     'artist': artist,
                     'album': album,
                     'year': year,
+                    'album_art_url': album_art_url,
                     'spotify_uri': track['uri'],
                     'lyrics': lyrics_data['lyrics'],
                     'lyrics_numbered': lyrics_data['lyrics_numbered'],

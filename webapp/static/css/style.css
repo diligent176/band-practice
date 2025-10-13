@@ -1220,8 +1220,10 @@ header h1 {
 
 .song-selector-item {
   display: flex;
-  flex-direction: column;
-  padding: 10px 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
   background: var(--bg-tertiary);
   border: 1px solid transparent;
   border-radius: 4px;
@@ -1241,22 +1243,59 @@ header h1 {
   box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 }
 
+.song-selector-item-art {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg-primary);
+}
+
+.song-selector-item-art-placeholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--text-muted);
+}
+
+.song-selector-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 .song-selector-item-title {
   font-weight: 600;
   color: var(--text-primary);
   font-size: 14px;
-  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .song-selector-item-artist {
   color: var(--text-secondary);
   font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .song-selector-item-meta {
   color: var(--text-muted);
   font-size: 11px;
-  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Back to Top Button */
