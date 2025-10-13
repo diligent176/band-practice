@@ -109,8 +109,8 @@ class LyricsService:
                 # Get the smallest image
                 album_art = track['album']['images'][-1]['url']
 
-            # Fetch BPM from GetSongBPM
-            bpm = self._fetch_bpm(title, artist)
+            # Don't fetch BPM during playlist details - it will be fetched in background when song is selected
+            bpm = 'N/A'
 
             # Create song ID
             song_id = self._create_song_id(title, artist)
