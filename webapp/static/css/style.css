@@ -217,6 +217,15 @@ header h1 {
   font-size: 14px;
   min-width: auto;
   border-radius: 4px;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%);
+  color: white;
+  border: none;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1ed760 0%, #169c46 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
 }
 
 .btn-icon .icon {
@@ -225,13 +234,14 @@ header h1 {
 }
 
 .btn-icon-danger {
-  background: rgba(204, 51, 51, 0.2);
-  border-color: #c33;
+  background: linear-gradient(135deg, #c33 0%, #a02828 100%);
+  border: none;
 }
 
 .btn-icon-danger:hover:not(:disabled) {
-  background: rgba(204, 51, 51, 0.4);
-  border-color: #ff4444;
+  background: linear-gradient(135deg, #ff4444 0%, #c33 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(204, 51, 51, 0.4);
 }
 
 .icon {
