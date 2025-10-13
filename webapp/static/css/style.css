@@ -153,6 +153,7 @@ header h1 {
 .keyboard-shortcuts-help {
   display: flex;
   align-items: center;
+  justify-content: center;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 6px;
@@ -160,6 +161,7 @@ header h1 {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: help;
+  white-space: pre-line;
 }
 
 .keyboard-shortcuts-help:hover {
@@ -167,28 +169,9 @@ header h1 {
   border-color: #444;
 }
 
-.keyboard-shortcuts-help .btn-icon {
-  padding: 0;
-  background: transparent;
-  border: none;
-  min-width: auto;
-  transition: none;
-}
-
-.keyboard-shortcuts-help .btn-icon:hover {
-  background: transparent;
-  transform: none;
-  box-shadow: none;
-}
-
-.keyboard-shortcuts-help .btn-icon i {
-  font-size: 16px;
+.keyboard-shortcuts-help i {
+  font-size: 18px;
   color: var(--text-secondary);
-}
-
-.keyboard-shortcuts-help .btn-icon[title] {
-  white-space: pre-line;
-  cursor: help;
 }
 
 .user-info {
