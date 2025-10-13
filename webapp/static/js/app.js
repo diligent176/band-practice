@@ -21,18 +21,11 @@ const statusMessage = document.getElementById('status-message');
 const editNotesBtn = document.getElementById('edit-notes-btn');
 const saveNotesBtn = document.getElementById('save-notes-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
-const syncPlaylistBtn = document.getElementById('sync-playlist-btn');
 const refreshSongBtn = document.getElementById('refresh-song-btn');
 const editLyricsBtn = document.getElementById('edit-lyrics-btn');
 const deleteSongBtn = document.getElementById('delete-song-btn');
-const changePlaylistBtn = document.getElementById('change-playlist-btn');
 const toggleColumnsBtn = document.getElementById('toggle-columns-btn');
 const fontSizeSelect = document.getElementById('font-size-select');
-
-const playlistDialog = document.getElementById('playlist-dialog');
-const playlistUrlInput = document.getElementById('playlist-url-input');
-const playlistSaveBtn = document.getElementById('playlist-save-btn');
-const playlistCancelBtn = document.getElementById('playlist-cancel-btn');
 
 const lyricsEditorDialog = document.getElementById('lyrics-editor-dialog');
 const lyricsEditorTitle = document.getElementById('lyrics-editor-title');
@@ -62,13 +55,9 @@ function setupEventListeners() {
     editNotesBtn.addEventListener('click', enterEditMode);
     saveNotesBtn.addEventListener('click', saveNotes);
     cancelEditBtn.addEventListener('click', exitEditMode);
-    syncPlaylistBtn.addEventListener('click', syncPlaylist);
     refreshSongBtn.addEventListener('click', refreshCurrentSong);
     editLyricsBtn.addEventListener('click', openLyricsEditor);
     deleteSongBtn.addEventListener('click', deleteCurrentSong);
-    changePlaylistBtn.addEventListener('click', showPlaylistDialog);
-    playlistSaveBtn.addEventListener('click', syncNewPlaylist);
-    playlistCancelBtn.addEventListener('click', hidePlaylistDialog);
     lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
     lyricsEditorCancelBtn.addEventListener('click', closeLyricsEditor);
 
@@ -176,64 +165,6 @@ async function saveNotes() {
     }
 }
 
-async function syncPlaylist() {
-    if (!confirm('Sync all songs from Spotify playlist? This may take a few minutes.')) {
-        return;
-    }
-
-    try {
-        showLoading('Syncing playlist from Spotify...');
-
-        // Get playlist info first
-        const infoResponse = await authenticatedApiCall('/api/playlist/info', {
-            method: 'POST',
-            body: JSON.stringify({})
-        });
-
-        const infoData = await infoResponse.json();
-
-        if (!infoData.success) {
-            showToast('Failed to get playlist info: ' + infoData.error, 'error');
-            return;
-        }
-
-        const playlist = infoData.playlist;
-
-        // Show playlist details
-        showLoadingDetails(
-            `<strong>Playlist:</strong> ${playlist.name}<br>` +
-            `<strong>Total Songs:</strong> ${playlist.total_tracks}`
-        );
-        updateSyncProgress('Preparing to sync...');
-
-        // Start the sync
-        updateSyncProgress('Syncing songs and fetching lyrics...');
-
-        const response = await authenticatedApiCall('/api/playlist/sync', {
-            method: 'POST',
-            body: JSON.stringify({})
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            updateSyncProgress(
-                `✅ Complete! Added: ${data.added}, Updated: ${data.updated}, Failed: ${data.failed}`
-            );
-            // Wait a moment so user can see the final result
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            showToast(data.message, 'success');
-            setStatus(`Synced: +${data.added} new, ${data.updated} updated`, 'success');
-            await loadSongs(); // Reload song list
-        } else {
-            showToast('Sync failed: ' + data.error, 'error');
-        }
-    } catch (error) {
-        showToast('Error syncing playlist: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
 
 async function refreshCurrentSong() {
     if (!currentSong) return;
@@ -627,85 +558,6 @@ function loadFontSizePreference() {
     mainApp.classList.add(`font-size-${savedSize}`);
 }
 
-// Playlist Dialog Functions
-function showPlaylistDialog() {
-    playlistDialog.style.display = 'flex';
-    playlistUrlInput.focus();
-}
-
-function hidePlaylistDialog() {
-    playlistDialog.style.display = 'none';
-    playlistUrlInput.value = '';
-}
-
-async function syncNewPlaylist() {
-    const playlistUrl = playlistUrlInput.value.trim();
-
-    if (!playlistUrl) {
-        showToast('Please enter a playlist URL', 'error');
-        return;
-    }
-
-    if (!playlistUrl.includes('spotify.com/playlist/')) {
-        showToast('Invalid Spotify playlist URL', 'error');
-        return;
-    }
-
-    hidePlaylistDialog();
-
-    try {
-        showLoading('Syncing new playlist from Spotify...');
-
-        // Get playlist info first
-        const infoResponse = await authenticatedApiCall('/api/playlist/info', {
-            method: 'POST',
-            body: JSON.stringify({ playlist_url: playlistUrl })
-        });
-
-        const infoData = await infoResponse.json();
-
-        if (!infoData.success) {
-            showToast('Failed to get playlist info: ' + infoData.error, 'error');
-            return;
-        }
-
-        const playlist = infoData.playlist;
-
-        // Show playlist details
-        showLoadingDetails(
-            `<strong>Playlist:</strong> ${playlist.name}<br>` +
-            `<strong>Total Songs:</strong> ${playlist.total_tracks}`
-        );
-        updateSyncProgress('Preparing to sync...');
-
-        // Start the sync
-        updateSyncProgress('Syncing songs and fetching lyrics...');
-
-        const response = await authenticatedApiCall('/api/playlist/sync', {
-            method: 'POST',
-            body: JSON.stringify({ playlist_url: playlistUrl })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            updateSyncProgress(
-                `✅ Complete! Added: ${data.added}, Updated: ${data.updated}, Failed: ${data.failed}`
-            );
-            // Wait a moment so user can see the final result
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            showToast(data.message, 'success');
-            setStatus(`Synced: +${data.added} new, ${data.updated} updated`, 'success');
-            await loadSongs(); // Reload song list
-        } else {
-            showToast('Sync failed: ' + data.error, 'error');
-        }
-    } catch (error) {
-        showToast('Error syncing playlist: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
 
 // Lyrics Editor Functions
 function openLyricsEditor() {
@@ -848,4 +700,312 @@ function showConfirmDialog(title, message, onConfirm) {
 
 function hideConfirmDialog() {
     confirmDialog.style.display = 'none';
+}
+
+//=============================================================================
+// Import Playlist Dialog
+//=============================================================================
+
+let importDialogState = {
+    playlistUrl: '',
+    playlist: null,
+    songs: [],
+    selectedSongIds: new Set()
+};
+
+// DOM Elements for Import Dialog
+const importDialog = document.getElementById('import-dialog');
+const importDialogClose = document.getElementById('import-dialog-close');
+const importStepUrl = document.getElementById('import-step-url');
+const importStepSelect = document.getElementById('import-step-select');
+const importStepProgress = document.getElementById('import-step-progress');
+const importPlaylistUrl = document.getElementById('import-playlist-url');
+const importLoadBtn = document.getElementById('import-load-btn');
+const importPlaylistBtn = document.getElementById('import-playlist-btn');
+const importSelectAllBtn = document.getElementById('import-select-all-btn');
+const importSelectNoneBtn = document.getElementById('import-select-none-btn');
+const importBackBtn = document.getElementById('import-back-btn');
+const importStartBtn = document.getElementById('import-start-btn');
+const importDoneBtn = document.getElementById('import-done-btn');
+
+// Set up import dialog event listeners in the main setup
+document.addEventListener('DOMContentLoaded', () => {
+    if (importPlaylistBtn) {
+        importPlaylistBtn.addEventListener('click', showImportDialog);
+        importDialogClose.addEventListener('click', closeImportDialog);
+        importLoadBtn.addEventListener('click', loadPlaylistDetails);
+        importSelectAllBtn.addEventListener('click', selectAllSongs);
+        importSelectNoneBtn.addEventListener('click', selectNoneSongs);
+        importBackBtn.addEventListener('click', backToUrlStep);
+        importStartBtn.addEventListener('click', startImport);
+        importDoneBtn.addEventListener('click', finishImport);
+    }
+});
+
+function showImportDialog() {
+    importDialog.style.display = 'flex';
+    importStepUrl.style.display = 'flex';
+    importStepSelect.style.display = 'none';
+    importStepProgress.style.display = 'none';
+    importPlaylistUrl.focus();
+}
+
+function closeImportDialog() {
+    importDialog.style.display = 'none';
+    importDialogState = {
+        playlistUrl: '',
+        playlist: null,
+        songs: [],
+        selectedSongIds: new Set()
+    };
+}
+
+async function loadPlaylistDetails() {
+    const playlistUrl = importPlaylistUrl.value.trim();
+
+    if (!playlistUrl) {
+        showToast('Please enter a playlist URL', 'error');
+        return;
+    }
+
+    if (!playlistUrl.includes('spotify.com/playlist/')) {
+        showToast('Invalid Spotify playlist URL', 'error');
+        return;
+    }
+
+    try {
+        showLoading('Loading playlist details...');
+
+        const response = await authenticatedApiCall('/api/playlist/details', {
+            method: 'POST',
+            body: JSON.stringify({ playlist_url: playlistUrl })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            importDialogState.playlistUrl = playlistUrl;
+            importDialogState.playlist = data.playlist;
+            importDialogState.songs = data.songs;
+            importDialogState.selectedSongIds = new Set();
+
+            // Auto-select non-conflict songs
+            data.songs.forEach(song => {
+                if (!song.has_conflict) {
+                    importDialogState.selectedSongIds.add(song.id);
+                }
+            });
+
+            renderPlaylistDetails();
+            renderSongList();
+
+            // Switch to select step
+            importStepUrl.style.display = 'none';
+            importStepSelect.style.display = 'flex';
+        } else {
+            showToast('Failed to load playlist: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error loading playlist: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function renderPlaylistDetails() {
+    const detailsDiv = document.getElementById('import-playlist-details');
+    const { playlist } = importDialogState;
+
+    detailsDiv.innerHTML = `
+        <div>
+            <h3 style="margin: 0; color: var(--accent-primary);">${escapeHtml(playlist.name)}</h3>
+            <p style="margin: 5px 0 0 0; color: var(--text-secondary); font-size: 12px;">
+                by ${escapeHtml(playlist.owner)} • ${playlist.total_tracks} songs
+            </p>
+        </div>
+    `;
+
+    updateSelectionCount();
+}
+
+function renderSongList() {
+    const listDiv = document.getElementById('import-songs-list');
+    const { songs } = importDialogState;
+
+    let html = '';
+    songs.forEach(song => {
+        const isSelected = importDialogState.selectedSongIds.has(song.id);
+        const conflictClass = song.has_conflict ? 'has-conflict' : '';
+
+        let statusBadge = '';
+        if (song.status === 'conflict') {
+            statusBadge = '<span class="import-song-status status-conflict">⚠️ Has custom lyrics/notes</span>';
+        } else if (song.status === 'existing') {
+            statusBadge = '<span class="import-song-status status-existing">✓ In database</span>';
+        } else {
+            statusBadge = '<span class="import-song-status status-new">New</span>';
+        }
+
+        html += `
+            <div class="import-song-item ${conflictClass}">
+                <input type="checkbox" class="import-song-checkbox"
+                       data-song-id="${song.id}"
+                       ${isSelected ? 'checked' : ''}
+                       onchange="toggleSongSelection('${song.id}')">
+                ${song.album_art ?
+                    `<img src="${song.album_art}" class="import-song-art" alt="Album art">` :
+                    `<div class="import-song-art"></div>`
+                }
+                <div class="import-song-info">
+                    <div class="import-song-title">${escapeHtml(song.title)}</div>
+                    <div class="import-song-artist">${escapeHtml(song.artist)} • ${escapeHtml(song.album)}</div>
+                </div>
+                ${statusBadge}
+            </div>
+        `;
+    });
+
+    listDiv.innerHTML = html;
+}
+
+function toggleSongSelection(songId) {
+    if (importDialogState.selectedSongIds.has(songId)) {
+        importDialogState.selectedSongIds.delete(songId);
+    } else {
+        importDialogState.selectedSongIds.add(songId);
+    }
+
+    updateSelectionCount();
+}
+
+// Make toggleSongSelection global so it can be called from onclick
+window.toggleSongSelection = toggleSongSelection;
+
+function updateSelectionCount() {
+    const count = importDialogState.selectedSongIds.size;
+    document.getElementById('import-selection-count').textContent =
+        `${count} song${count !== 1 ? 's' : ''} selected`;
+
+    importStartBtn.disabled = count === 0;
+}
+
+function selectAllSongs() {
+    importDialogState.songs.forEach(song => {
+        importDialogState.selectedSongIds.add(song.id);
+    });
+    renderSongList();
+    updateSelectionCount();
+}
+
+function selectNoneSongs() {
+    importDialogState.selectedSongIds.clear();
+    renderSongList();
+    updateSelectionCount();
+}
+
+function backToUrlStep() {
+    importStepSelect.style.display = 'none';
+    importStepUrl.style.display = 'flex';
+}
+
+async function startImport() {
+    if (importDialogState.selectedSongIds.size === 0) {
+        return;
+    }
+
+    // Switch to progress step
+    importStepSelect.style.display = 'none';
+    importStepProgress.style.display = 'flex';
+
+    const selectedIds = Array.from(importDialogState.selectedSongIds);
+
+    try {
+        // Reset progress
+        document.getElementById('import-progress-fill').style.width = '0%';
+        document.getElementById('import-progress-text').textContent = `0 / ${selectedIds.length}`;
+        document.getElementById('import-progress-list').innerHTML = '';
+
+        // Create progress items for each song
+        const progressItems = {};
+        importDialogState.songs.forEach(song => {
+            if (importDialogState.selectedSongIds.has(song.id)) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'import-progress-item status-importing';
+                itemDiv.innerHTML = `
+                    <span class="import-progress-icon">⏳</span>
+                    <div class="import-progress-song">
+                        <div style="font-weight: 600;">${escapeHtml(song.title)}</div>
+                        <div style="color: var(--text-secondary); font-size: 11px;">${escapeHtml(song.artist)}</div>
+                    </div>
+                    <span class="import-progress-status">Waiting...</span>
+                `;
+                document.getElementById('import-progress-list').appendChild(itemDiv);
+                progressItems[song.id] = itemDiv;
+            }
+        });
+
+        // Start import
+        const response = await authenticatedApiCall('/api/playlist/import', {
+            method: 'POST',
+            body: JSON.stringify({
+                playlist_url: importDialogState.playlistUrl,
+                selected_songs: selectedIds
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update progress for each result
+            let completed = 0;
+            data.results.forEach(result => {
+                completed++;
+                const percentage = (completed / selectedIds.length) * 100;
+                document.getElementById('import-progress-fill').style.width = `${percentage}%`;
+                document.getElementById('import-progress-text').textContent = `${completed} / ${selectedIds.length}`;
+
+                const itemDiv = progressItems[result.id];
+                if (itemDiv) {
+                    itemDiv.classList.remove('status-importing');
+
+                    let icon = '✓';
+                    let statusClass = 'status-success';
+                    let statusText = result.message || 'Success';
+
+                    if (result.status === 'failed') {
+                        icon = '✗';
+                        statusClass = 'status-error';
+                    } else if (result.status === 'skipped') {
+                        icon = '⊘';
+                        statusClass = 'status-skipped';
+                    }
+
+                    itemDiv.classList.add(statusClass);
+                    itemDiv.querySelector('.import-progress-icon').textContent = icon;
+                    itemDiv.querySelector('.import-progress-status').textContent = statusText;
+                }
+            });
+
+            // Show done button
+            importDoneBtn.style.display = 'inline-flex';
+
+            // Show summary toast
+            const stats = data.stats;
+            showToast(
+                `Import complete! Added: ${stats.added}, Updated: ${stats.updated}, Skipped: ${stats.skipped}, Failed: ${stats.failed}`,
+                stats.failed > 0 ? 'error' : 'success'
+            );
+        } else {
+            showToast('Import failed: ' + data.error, 'error');
+            importDoneBtn.style.display = 'inline-flex';
+        }
+    } catch (error) {
+        showToast('Error importing songs: ' + error.message, 'error');
+        importDoneBtn.style.display = 'inline-flex';
+    }
+}
+
+async function finishImport() {
+    closeImportDialog();
+    await loadSongs(); // Reload song list
 }

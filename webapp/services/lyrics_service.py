@@ -76,6 +76,178 @@ class LyricsService:
             'owner': playlist['owner']['display_name']
         }
 
+    def get_playlist_details_with_conflicts(self, playlist_url):
+        """Get detailed playlist information with conflict detection"""
+        playlist_id = self.extract_playlist_id(playlist_url)
+
+        # Get playlist details
+        playlist = self.spotify.playlist(playlist_id)
+
+        # Get playlist tracks
+        results = self.spotify.playlist_tracks(playlist_id)
+        tracks = results['items']
+
+        # Handle pagination
+        while results['next']:
+            results = self.spotify.next(results)
+            tracks.extend(results['items'])
+
+        songs_list = []
+        for item in tracks:
+            track = item['track']
+            if not track:
+                continue
+
+            title = track['name']
+            artist = track['artists'][0]['name']
+            album = track['album']['name']
+            year = track['album']['release_date'][:4] if track['album'].get('release_date') else 'Unknown'
+
+            # Get album art (smallest available)
+            album_art = None
+            if track['album'].get('images'):
+                # Get the smallest image
+                album_art = track['album']['images'][-1]['url']
+
+            # Create song ID
+            song_id = self._create_song_id(title, artist)
+
+            # Check if song exists and has conflicts
+            status = 'new'
+            has_conflict = False
+            existing_song = None
+
+            if self.firestore.song_exists(song_id):
+                existing_song = self.firestore.get_song(song_id)
+                status = 'existing'
+
+                # Check for conflicts (customized lyrics or notes)
+                if existing_song.get('is_customized'):
+                    has_conflict = True
+                    status = 'conflict'
+                elif existing_song.get('notes', '').strip():
+                    has_conflict = True
+                    status = 'conflict'
+
+            song_data = {
+                'id': song_id,
+                'title': title,
+                'artist': artist,
+                'album': album,
+                'year': year,
+                'album_art': album_art,
+                'spotify_uri': track['uri'],
+                'status': status,
+                'has_conflict': has_conflict
+            }
+
+            songs_list.append(song_data)
+
+        return {
+            'playlist': {
+                'name': playlist['name'],
+                'description': playlist.get('description', ''),
+                'owner': playlist['owner']['display_name'],
+                'total_tracks': len(songs_list)
+            },
+            'songs': songs_list
+        }
+
+    def import_selected_songs(self, playlist_url, selected_song_ids):
+        """Import only selected songs from playlist"""
+        playlist_id = self.extract_playlist_id(playlist_url)
+
+        # Get playlist tracks
+        results = self.spotify.playlist_tracks(playlist_id)
+        tracks = results['items']
+
+        # Handle pagination
+        while results['next']:
+            results = self.spotify.next(results)
+            tracks.extend(results['items'])
+
+        stats = {'total': len(selected_song_ids), 'added': 0, 'updated': 0, 'skipped': 0, 'failed': 0}
+        results_list = []
+
+        for item in tracks:
+            track = item['track']
+            if not track:
+                continue
+
+            title = track['name']
+            artist = track['artists'][0]['name']
+            album = track['album']['name']
+            year = track['album']['release_date'][:4] if track['album'].get('release_date') else 'Unknown'
+
+            # Create song ID
+            song_id = self._create_song_id(title, artist)
+
+            # Skip if not in selected list
+            if song_id not in selected_song_ids:
+                continue
+
+            result = {
+                'id': song_id,
+                'title': title,
+                'artist': artist,
+                'status': 'importing',
+                'message': ''
+            }
+
+            try:
+                # Check if song exists
+                exists = self.firestore.song_exists(song_id)
+
+                # Check for conflicts and skip if found
+                if exists:
+                    existing_song = self.firestore.get_song(song_id)
+                    if existing_song.get('is_customized') or existing_song.get('notes', '').strip():
+                        result['status'] = 'skipped'
+                        result['message'] = 'Song has custom lyrics or notes - skipped'
+                        stats['skipped'] += 1
+                        results_list.append(result)
+                        continue
+
+                # Fetch lyrics from Genius
+                lyrics_data = self._fetch_lyrics(title, artist)
+
+                # Prepare song data
+                song_data = {
+                    'title': title,
+                    'artist': artist,
+                    'album': album,
+                    'year': year,
+                    'spotify_uri': track['uri'],
+                    'lyrics': lyrics_data['lyrics'],
+                    'lyrics_numbered': lyrics_data['lyrics_numbered'],
+                    'bpm': 'N/A'
+                }
+
+                # Save to Firestore
+                self.firestore.create_or_update_song(song_id, song_data)
+
+                if exists:
+                    result['status'] = 'updated'
+                    result['message'] = 'Updated successfully'
+                    stats['updated'] += 1
+                else:
+                    result['status'] = 'added'
+                    result['message'] = 'Added successfully'
+                    stats['added'] += 1
+
+            except Exception as e:
+                print(f"Failed to import {artist} - {title}: {e}")
+                result['status'] = 'failed'
+                result['message'] = str(e)
+                stats['failed'] += 1
+
+            results_list.append(result)
+
+        return {
+            'stats': stats,
+            'results': results_list
+        }
+
     def sync_playlist(self, playlist_url):
         """Sync all songs from Spotify playlist"""
         playlist_id = self.extract_playlist_id(playlist_url)

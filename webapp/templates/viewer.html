@@ -31,20 +31,8 @@
                     </select>
                 </div>
                 <div class="header-actions">
-                    <button id="change-playlist-btn" class="btn btn-secondary" title="Change the active Spotify playlist">
-                        <span class="icon">📋</span> Change
-                    </button>
-                    <button id="sync-playlist-btn" class="btn btn-primary" title="Sync songs from current playlist">
-                        <span class="icon">🔄</span> Sync
-                    </button>
-                    <button id="edit-lyrics-btn" class="btn btn-secondary" disabled title="Edit lyrics for current song">
-                        <span class="icon">✏️</span> Edit Lyrics
-                    </button>
-                    <button id="refresh-song-btn" class="btn btn-secondary" disabled title="Refresh lyrics for current song">
-                        <span class="icon">♻️</span> Refresh
-                    </button>
-                    <button id="delete-song-btn" class="btn btn-secondary" disabled title="Delete current song from database" style="background-color: #c33;">
-                        <span class="icon">🗑️</span> Delete
+                    <button id="import-playlist-btn" class="btn btn-primary" title="Import songs from Spotify playlist">
+                        <span class="icon">📥</span> Import Spotify Playlist...
                     </button>
                 </div>
                 <div class="status-bar">
@@ -75,9 +63,20 @@
                             <h2>Lyrics</h2>
                             <div class="song-metadata" id="song-metadata"></div>
                         </div>
-                        <button id="toggle-columns-btn" class="btn btn-small btn-secondary" title="Toggle between 1 and 2 column layout">
-                            <span class="icon">⚙</span> 1 Col
-                        </button>
+                        <div class="lyrics-header-actions">
+                            <button id="toggle-columns-btn" class="btn btn-small btn-secondary" title="Toggle between 1 and 2 column layout">
+                                <span class="icon">⚙</span> 1 Col
+                            </button>
+                            <button id="edit-lyrics-btn" class="btn btn-small btn-secondary" disabled title="Edit lyrics for current song">
+                                <span class="icon">✏️</span> Edit
+                            </button>
+                            <button id="refresh-song-btn" class="btn btn-small btn-secondary" disabled title="Refresh lyrics for current song">
+                                <span class="icon">♻️</span> Refresh
+                            </button>
+                            <button id="delete-song-btn" class="btn btn-small btn-secondary" disabled title="Delete current song from database" style="background-color: #c33;">
+                                <span class="icon">🗑️</span> Delete
+                            </button>
+                        </div>
                     </div>
                     <div class="panel-content" id="lyrics-content">
                         <div id="lyrics-content-inner" class="lyrics-columns-1">
@@ -129,15 +128,56 @@ Lines 45-48: Double time, watch for break"></textarea>
             </div>
         </main>
 
-        <!-- Playlist Dialog -->
-        <div id="playlist-dialog" class="dialog-overlay" style="display: none;">
-            <div class="dialog">
-                <h3>Change Spotify Playlist</h3>
-                <input type="text" id="playlist-url-input" class="input"
-                       placeholder="https://open.spotify.com/playlist/YOUR_PLAYLIST_ID">
-                <div class="dialog-actions">
-                    <button id="playlist-cancel-btn" class="btn btn-secondary">Cancel</button>
-                    <button id="playlist-save-btn" class="btn btn-primary">Sync New Playlist</button>
+        <!-- Import Playlist Dialog -->
+        <div id="import-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog-large">
+                <div class="dialog-header">
+                    <h3>Import Spotify Playlist</h3>
+                    <button id="import-dialog-close" class="btn btn-small btn-secondary">✕</button>
+                </div>
+
+                <!-- Step 1: Enter URL -->
+                <div id="import-step-url" class="import-step">
+                    <div class="import-url-section">
+                        <label for="import-playlist-url">Spotify Playlist URL:</label>
+                        <input type="text" id="import-playlist-url" class="input"
+                               placeholder="https://open.spotify.com/playlist/YOUR_PLAYLIST_ID">
+                        <button id="import-load-btn" class="btn btn-primary">Load Playlist</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Select Songs -->
+                <div id="import-step-select" class="import-step" style="display: none;">
+                    <div class="import-playlist-info">
+                        <div id="import-playlist-details"></div>
+                        <div class="import-selection-controls">
+                            <button id="import-select-all-btn" class="btn btn-small btn-secondary">Select All</button>
+                            <button id="import-select-none-btn" class="btn btn-small btn-secondary">Select None</button>
+                            <span id="import-selection-count" class="selection-count">0 songs selected</span>
+                        </div>
+                    </div>
+                    <div id="import-songs-list" class="import-songs-list"></div>
+                    <div class="dialog-actions">
+                        <button id="import-back-btn" class="btn btn-secondary">Back</button>
+                        <button id="import-start-btn" class="btn btn-primary" disabled>Import Selected Songs</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Import Progress -->
+                <div id="import-step-progress" class="import-step" style="display: none;">
+                    <div class="import-progress-header">
+                        <h4>Importing Songs...</h4>
+                        <div id="import-overall-progress">
+                            <div class="progress-bar">
+                                <div id="import-progress-fill" class="progress-fill"></div>
+                            </div>
+                            <div id="import-progress-text">0 / 0</div>
+                        </div>
+                    </div>
+                    <div id="import-progress-list" class="import-progress-list"></div>
+                    <div class="dialog-actions">
+                        <button id="import-done-btn" class="btn btn-primary" style="display: none;">Done</button>
+                    </div>
                 </div>
             </div>
         </div>

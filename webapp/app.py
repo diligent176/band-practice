@@ -131,6 +131,51 @@ def get_playlist_info():
         return jsonify({'error': str(e), 'success': False}), 500
 
 
+@app.route('/api/playlist/details', methods=['POST'])
+@require_auth
+def get_playlist_details():
+    """Get detailed playlist information with all songs and conflict detection"""
+    try:
+        data = request.get_json()
+        playlist_url = data.get('playlist_url')
+
+        if not playlist_url:
+            return jsonify({'error': 'No playlist URL provided', 'success': False}), 400
+
+        logger.info(f"User {g.user.get('email')} requested detailed playlist info")
+        details = lyrics_service.get_playlist_details_with_conflicts(playlist_url)
+        return jsonify({
+            'success': True,
+            **details
+        })
+    except Exception as e:
+        logger.error(f"Error getting playlist details for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/playlist/import', methods=['POST'])
+@require_auth
+def import_selected_songs():
+    """Import selected songs from playlist"""
+    try:
+        data = request.get_json()
+        playlist_url = data.get('playlist_url')
+        selected_songs = data.get('selected_songs', [])
+
+        if not playlist_url or not selected_songs:
+            return jsonify({'error': 'Invalid request', 'success': False}), 400
+
+        logger.info(f"User {g.user.get('email')} importing {len(selected_songs)} songs")
+        result = lyrics_service.import_selected_songs(playlist_url, selected_songs)
+        return jsonify({
+            'success': True,
+            **result
+        })
+    except Exception as e:
+        logger.error(f"Error importing songs for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
 @app.route('/api/playlist/sync', methods=['POST'])
 @require_auth
 def sync_playlist():
