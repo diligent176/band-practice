@@ -120,22 +120,22 @@ function handleGlobalKeyboard(e) {
                      activeElement.tagName === 'TEXTAREA' || 
                      activeElement.isContentEditable;
 
-    // Ctrl+O to open song selector
-    if (e.ctrlKey && e.key === 'o') {
-        e.preventDefault();
-        openSongSelector();
+    // Don't process simple key shortcuts if user is typing
+    if (isTyping) {
         return;
     }
 
-    // Ctrl+I to open playlist import dialog
-    if (e.ctrlKey && e.key === 'i') {
+    // P for playlist import
+    if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         openImportDialog();
         return;
     }
 
-    // Don't process simple key shortcuts if user is typing
-    if (isTyping) {
+    // S for song selector
+    if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        openSongSelector();
         return;
     }
 
@@ -165,6 +165,16 @@ function handleGlobalKeyboard(e) {
         if (toggleColumnsBtn && !toggleColumnsBtn.disabled) {
             e.preventDefault();
             toggleColumnsBtn.click();
+        }
+        return;
+    }
+
+    // Alt+D to delete song
+    if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+        const deleteSongBtn = document.getElementById('delete-song-btn');
+        if (deleteSongBtn && !deleteSongBtn.disabled) {
+            e.preventDefault();
+            deleteSongBtn.click();
         }
         return;
     }
@@ -953,13 +963,9 @@ function toggleColumns() {
     if (isColumnMode2) {
         lyricsContentInner.classList.remove('lyrics-columns-1');
         lyricsContentInner.classList.add('lyrics-columns-2');
-        toggleColumnsBtn.innerHTML = '<span class="icon">⚙️</span>';
-        toggleColumnsBtn.title = 'Columns (C)';
     } else {
         lyricsContentInner.classList.remove('lyrics-columns-2');
         lyricsContentInner.classList.add('lyrics-columns-1');
-        toggleColumnsBtn.innerHTML = '<span class="icon">⚙️</span>';
-        toggleColumnsBtn.title = 'Columns (C)';
     }
 
     // Save column preference for this song
@@ -983,13 +989,9 @@ function loadColumnPreference(songId) {
     if (isColumnMode2) {
         lyricsContentInner.classList.remove('lyrics-columns-1');
         lyricsContentInner.classList.add('lyrics-columns-2');
-        toggleColumnsBtn.innerHTML = '<span class="icon">⚙️</span>';
-        toggleColumnsBtn.title = 'Columns (C)';
     } else {
         lyricsContentInner.classList.remove('lyrics-columns-2');
         lyricsContentInner.classList.add('lyrics-columns-1');
-        toggleColumnsBtn.innerHTML = '<span class="icon">⚙️</span>';
-        toggleColumnsBtn.title = 'Columns (C)';
     }
 }
 
