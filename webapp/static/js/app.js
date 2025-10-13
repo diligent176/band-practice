@@ -1513,62 +1513,110 @@ async function startImport() {
             }
         });
 
-        // Start import
-        const response = await authenticatedApiCall('/api/playlist/import', {
-            method: 'POST',
-            body: JSON.stringify({
-                playlist_url: importDialogState.playlistUrl,
-                selected_songs: selectedIds
-            })
-        });
+        // Use Server-Sent Events to get real-time progress
+        await new Promise((resolve, reject) => {
+            // Get auth token for SSE request
+            const makeSSERequest = async () => {
+                try {
+                    const response = await authenticatedApiCall('/api/playlist/import', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            playlist_url: importDialogState.playlistUrl,
+                            selected_songs: selectedIds
+                        })
+                    });
 
-        const data = await response.json();
-
-        if (data.success) {
-            // Update progress for each result
-            let completed = 0;
-            data.results.forEach(result => {
-                completed++;
-                const percentage = (completed / selectedIds.length) * 100;
-                document.getElementById('import-progress-fill').style.width = `${percentage}%`;
-                document.getElementById('import-progress-text').textContent = `${completed} / ${selectedIds.length}`;
-
-                const itemDiv = progressItems[result.id];
-                if (itemDiv) {
-                    itemDiv.classList.remove('status-importing');
-
-                    let icon = '✓';
-                    let statusClass = 'status-success';
-                    let statusText = result.message || 'Success';
-
-                    if (result.status === 'failed') {
-                        icon = '✗';
-                        statusClass = 'status-error';
-                    } else if (result.status === 'skipped') {
-                        icon = '⊘';
-                        statusClass = 'status-skipped';
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
-                    itemDiv.classList.add(statusClass);
-                    itemDiv.querySelector('.import-progress-icon').textContent = icon;
-                    itemDiv.querySelector('.import-progress-status').textContent = statusText;
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        
+                        if (done) {
+                            console.log('Stream complete');
+                            break;
+                        }
+
+                        // Decode the chunk and add to buffer
+                        buffer += decoder.decode(value, { stream: true });
+
+                        // Process complete messages (split by double newline)
+                        const messages = buffer.split('\n\n');
+                        buffer = messages.pop(); // Keep incomplete message in buffer
+
+                        for (const message of messages) {
+                            if (message.startsWith('data: ')) {
+                                const jsonStr = message.substring(6);
+                                try {
+                                    const update = JSON.parse(jsonStr);
+                                    
+                                    if (update.type === 'progress') {
+                                        // Update progress bar
+                                        const percentage = (update.completed / update.total) * 100;
+                                        document.getElementById('import-progress-fill').style.width = `${percentage}%`;
+                                        document.getElementById('import-progress-text').textContent = `${update.completed} / ${update.total}`;
+
+                                        // Update individual song status
+                                        const result = update.result;
+                                        const itemDiv = progressItems[result.id];
+                                        if (itemDiv) {
+                                            itemDiv.classList.remove('status-importing');
+
+                                            let icon = '✓';
+                                            let statusClass = 'status-success';
+                                            let statusText = result.message || 'Success';
+
+                                            if (result.status === 'failed') {
+                                                icon = '✗';
+                                                statusClass = 'status-error';
+                                            } else if (result.status === 'skipped') {
+                                                icon = '⊘';
+                                                statusClass = 'status-skipped';
+                                            }
+
+                                            itemDiv.classList.add(statusClass);
+                                            itemDiv.querySelector('.import-progress-icon').textContent = icon;
+                                            itemDiv.querySelector('.import-progress-status').textContent = statusText;
+                                        }
+                                    } else if (update.type === 'complete') {
+                                        // Import complete
+                                        console.log('Import complete:', update.stats);
+                                        
+                                        // Show done button
+                                        importDoneBtn.style.display = 'inline-flex';
+
+                                        // Show summary toast
+                                        const stats = update.stats;
+                                        showToast(
+                                            `Import complete! Added: ${stats.added}, Updated: ${stats.updated}, Skipped: ${stats.skipped}, Failed: ${stats.failed}`,
+                                            stats.failed > 0 ? 'error' : 'success'
+                                        );
+                                        
+                                        resolve();
+                                    } else if (update.type === 'error') {
+                                        throw new Error(update.error);
+                                    }
+                                } catch (parseError) {
+                                    console.error('Error parsing SSE message:', parseError);
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    reject(error);
                 }
-            });
+            };
 
-            // Show done button
-            importDoneBtn.style.display = 'inline-flex';
+            makeSSERequest();
+        });
 
-            // Show summary toast
-            const stats = data.stats;
-            showToast(
-                `Import complete! Added: ${stats.added}, Updated: ${stats.updated}, Skipped: ${stats.skipped}, Failed: ${stats.failed}`,
-                stats.failed > 0 ? 'error' : 'success'
-            );
-        } else {
-            showToast('Import failed: ' + data.error, 'error');
-            importDoneBtn.style.display = 'inline-flex';
-        }
     } catch (error) {
+        console.error('Import error:', error);
         showToast('Error importing songs: ' + error.message, 'error');
         importDoneBtn.style.display = 'inline-flex';
     }

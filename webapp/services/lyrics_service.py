@@ -259,6 +259,141 @@ class LyricsService:
             'results': results_list
         }
 
+    def import_selected_songs_stream(self, playlist_url, selected_song_ids):
+        """
+        Import selected songs from playlist with real-time progress updates.
+        This is a generator function that yields progress updates as songs are processed.
+        
+        Yields:
+            dict: Progress updates with format:
+                - type: 'progress' | 'complete' | 'error'
+                - completed: number of songs completed so far
+                - total: total number of songs
+                - result: details about the current song (for 'progress' type)
+                - stats: final statistics (for 'complete' type)
+                - results: all results (for 'complete' type)
+        """
+        playlist_id = self.extract_playlist_id(playlist_url)
+
+        # Get playlist tracks
+        results = self.spotify.playlist_tracks(playlist_id)
+        tracks = results['items']
+
+        # Handle pagination
+        while results['next']:
+            results = self.spotify.next(results)
+            tracks.extend(results['items'])
+
+        stats = {'total': len(selected_song_ids), 'added': 0, 'updated': 0, 'skipped': 0, 'failed': 0}
+        results_list = []
+        completed = 0
+
+        for item in tracks:
+            track = item['track']
+            if not track:
+                continue
+
+            title = track['name']
+            artist = track['artists'][0]['name']
+            album = track['album']['name']
+            year = track['album']['release_date'][:4] if track['album'].get('release_date') else 'Unknown'
+
+            # Get album art (smallest available)
+            album_art_url = None
+            if track['album'].get('images'):
+                # Get the smallest image
+                album_art_url = track['album']['images'][-1]['url']
+
+            # Create song ID
+            song_id = self._create_song_id(title, artist)
+
+            # Skip if not in selected list
+            if song_id not in selected_song_ids:
+                continue
+
+            result = {
+                'id': song_id,
+                'title': title,
+                'artist': artist,
+                'status': 'importing',
+                'message': ''
+            }
+
+            try:
+                # Check if song exists
+                exists = self.firestore.song_exists(song_id)
+
+                # Check for conflicts and skip if found
+                if exists:
+                    existing_song = self.firestore.get_song(song_id)
+                    if existing_song.get('is_customized') or existing_song.get('notes', '').strip():
+                        result['status'] = 'skipped'
+                        result['message'] = 'Song has custom lyrics or notes - skipped'
+                        stats['skipped'] += 1
+                        results_list.append(result)
+                        completed += 1
+                        
+                        # Yield progress update
+                        yield {
+                            'type': 'progress',
+                            'completed': completed,
+                            'total': stats['total'],
+                            'result': result
+                        }
+                        continue
+
+                # Fetch lyrics from Genius
+                lyrics_data = self._fetch_lyrics(title, artist)
+
+                # Prepare song data (BPM will be fetched in background via separate API call)
+                song_data = {
+                    'title': title,
+                    'artist': artist,
+                    'album': album,
+                    'year': year,
+                    'album_art_url': album_art_url,
+                    'spotify_uri': track['uri'],
+                    'lyrics': lyrics_data['lyrics'],
+                    'lyrics_numbered': lyrics_data['lyrics_numbered'],
+                    'bpm': 'N/A'  # Will be updated by background fetch
+                }
+
+                # Save to Firestore
+                self.firestore.create_or_update_song(song_id, song_data)
+
+                if exists:
+                    result['status'] = 'updated'
+                    result['message'] = 'Updated successfully'
+                    stats['updated'] += 1
+                else:
+                    result['status'] = 'added'
+                    result['message'] = 'Added successfully'
+                    stats['added'] += 1
+
+            except Exception as e:
+                print(f"Failed to import {artist} - {title}: {e}")
+                result['status'] = 'failed'
+                result['message'] = str(e)
+                stats['failed'] += 1
+
+            results_list.append(result)
+            completed += 1
+            
+            # Yield progress update after each song
+            yield {
+                'type': 'progress',
+                'completed': completed,
+                'total': stats['total'],
+                'result': result
+            }
+
+        # Yield final completion update
+        yield {
+            'type': 'complete',
+            'stats': stats,
+            'results': results_list
+        }
+
     def sync_playlist(self, playlist_url):
         """Sync all songs from Spotify playlist"""
         playlist_id = self.extract_playlist_id(playlist_url)

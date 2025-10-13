@@ -156,7 +156,11 @@ def get_playlist_details():
 @app.route('/api/playlist/import', methods=['POST'])
 @require_auth
 def import_selected_songs():
-    """Import selected songs from playlist"""
+    """Import selected songs from playlist with real-time progress updates using Server-Sent Events"""
+    from flask import Response, stream_with_context
+    import json
+    import time
+    
     try:
         data = request.get_json()
         playlist_url = data.get('playlist_url')
@@ -166,11 +170,28 @@ def import_selected_songs():
             return jsonify({'error': 'Invalid request', 'success': False}), 400
 
         logger.info(f"User {g.user.get('email')} importing {len(selected_songs)} songs")
-        result = lyrics_service.import_selected_songs(playlist_url, selected_songs)
-        return jsonify({
-            'success': True,
-            **result
-        })
+        
+        def generate():
+            """Generator function that yields progress updates"""
+            try:
+                # Call the generator-based import method
+                for update in lyrics_service.import_selected_songs_stream(playlist_url, selected_songs):
+                    # Send progress update as Server-Sent Event
+                    yield f"data: {json.dumps(update)}\n\n"
+                    
+            except Exception as e:
+                logger.error(f"Error during import stream: {e}")
+                yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
+        
+        return Response(
+            stream_with_context(generate()),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no'  # Disable buffering for nginx
+            }
+        )
+        
     except Exception as e:
         logger.error(f"Error importing songs for user {g.user.get('email')}: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
