@@ -101,9 +101,11 @@ header h1 {
 .status-bar {
   display: flex;
   align-items: center;
+  gap: 8px;
   flex: 1;
   min-width: 0;
   margin-right: 8px;
+  justify-content: center;
 }
 
 .font-size-selector {
@@ -296,20 +298,44 @@ header h1 {
   font-size: 10px;
 }
 
+.btn-subtle {
+  background: rgba(24, 160, 73, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(24, 160, 73, 0.2);
+  padding: 2px 8px;
+}
+
+.btn-subtle:hover:not(:disabled) {
+  background: rgba(24, 160, 73, 0.15);
+  border-color: rgba(24, 160, 73, 0.35);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-subtle i {
+  color: var(--accent-primary);
+}
+
 .btn-icon {
   padding: 3px 5px;
   font-size: 13px;
   min-width: auto;
   border-radius: 4px;
-  background: linear-gradient(135deg, #18a049 0%, #128a3d 100%);
-  color: white;
-  border: none;
+  background: rgba(24, 160, 73, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(24, 160, 73, 0.2);
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1db954 0%, #169c46 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.25);
+  background: rgba(24, 160, 73, 0.15);
+  border-color: rgba(24, 160, 73, 0.35);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-icon i {
+  color: var(--accent-primary);
+  font-size: 13px;
 }
 
 .btn-icon .icon {
@@ -318,14 +344,19 @@ header h1 {
 }
 
 .btn-icon-danger {
-  background: linear-gradient(135deg, #c33 0%, #a02828 100%);
-  border: none;
+  background: rgba(204, 51, 51, 0.08);
+  border: 1px solid rgba(204, 51, 51, 0.2);
 }
 
 .btn-icon-danger:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ff4444 0%, #c33 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(204, 51, 51, 0.4);
+  background: rgba(204, 51, 51, 0.15);
+  border-color: rgba(204, 51, 51, 0.35);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-icon-danger i {
+  color: var(--accent-error);
 }
 
 .icon {

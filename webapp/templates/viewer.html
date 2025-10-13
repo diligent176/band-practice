@@ -27,16 +27,14 @@
     <div id="main-app" style="display: none;">
         <header>
             <div class="header-single-row">
-                <h1>🎸 Band Practice Pro</h1>
-                <div class="song-selector">
-                    <button id="import-playlist-btn" class="btn btn-primary" title="Import songs from Spotify playlist (P)">
-                        <span class="icon">📥</span> Playlist...
-                    </button>
-                    <button id="open-song-selector-btn" class="btn btn-primary" title="Open song selector (S)">
-                        <span class="icon">🎵</span> Song...
-                    </button>
-                </div>
+                <h1><i class="fa-solid fa-guitar"></i> Band Practice Pro</h1>
                 <div class="status-bar">
+                    <button id="import-playlist-btn" class="btn btn-subtle" title="Import songs from Spotify playlist (P)">
+                        <i class="fa-solid fa-list"></i> Playlist...
+                    </button>
+                    <button id="open-song-selector-btn" class="btn btn-subtle" title="Open song selector (S)">
+                        <i class="fa-solid fa-music"></i> Song...
+                    </button>
                     <span id="status-message" class="status-message"></span>
                 </div>
                 <div class="font-size-selector">
@@ -112,14 +110,14 @@
                         <div class="notes-header-left">
                             <h2>Practice Notes</h2>
                             <button id="edit-notes-btn" class="btn btn-icon" disabled title="Edit notes (N)">
-                                <span class="icon">✏️</span>
+                                <i class="fa-solid fa-pen"></i>
                             </button>
                         </div>
                         <div class="notes-actions">
-                            <button id="save-notes-btn" class="btn btn-small btn-primary" style="display: none;">
-                                <span class="icon">💾</span> Save
+                            <button id="save-notes-btn" class="btn btn-small btn-subtle" style="display: none;">
+                                <i class="fa-solid fa-floppy-disk"></i> Save
                             </button>
-                            <button id="cancel-edit-btn" class="btn btn-small btn-secondary" style="display: none;">
+                            <button id="cancel-edit-btn" class="btn btn-small btn-subtle" style="display: none;">
                                 Cancel
                             </button>
                         </div>
@@ -214,8 +212,8 @@ Line 71: thend"></textarea>
                 <div class="dialog-header">
                     <h3 id="lyrics-editor-title">Edit Lyrics</h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <button id="tighten-lyrics-btn" class="btn btn-small btn-secondary" title="Remove blank lines after section headers (Alt+T)">
-                            <span class="icon">📐</span> Tighten
+                        <button id="tighten-lyrics-btn" class="btn btn-small btn-subtle" title="Remove blank lines after section headers (Alt+T)">
+                            <i class="fa-solid fa-compress"></i> Tighten
                         </button>
                         <div class="customization-badge" id="customization-badge" style="display: none;">
                             <span style="color: #FF9800;">⚠️ Customized</span>
@@ -255,8 +253,8 @@ Line 71: thend"></textarea>
                     <h3>Select Song</h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <span id="song-count-display" class="song-count-display">0 songs</span>
-                        <button id="toggle-sort-btn" class="btn btn-small btn-secondary" title="Toggle sort by Artist (Alt+T)">
-                            <span class="icon">🔄</span> Sort: <span id="sort-mode">Song</span>
+                        <button id="toggle-sort-btn" class="btn btn-small btn-subtle" title="Toggle sort by Artist (Alt+T)">
+                            <i class="fa-solid fa-arrow-down-a-z"></i> Sort: <span id="sort-mode">Song</span>
                         </button>
                         <button id="song-selector-close" class="btn btn-small btn-secondary">✕</button>
                     </div>
