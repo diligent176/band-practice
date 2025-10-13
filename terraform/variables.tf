@@ -21,6 +21,12 @@ variable "scraper_api_key" {
   sensitive   = true
 }
 
+variable "getsongbpm_api_key" {
+  description = "GetSongBPM API Key for fetching song tempo data"
+  type        = string
+  sensitive   = true
+}
+
 variable "spotify_client_id" {
   description = "Spotify API Client ID"
   type        = string
