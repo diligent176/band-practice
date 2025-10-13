@@ -572,8 +572,8 @@ function handleSongSelectorKeyboard(e) {
         return;
     }
     
-    // Ctrl+T to toggle sort
-    if (e.ctrlKey && e.key === 't') {
+    // Alt+T to toggle sort
+    if (e.altKey && (e.key === 't' || e.key === 'T')) {
         e.preventDefault();
         toggleSongSort();
         return;
