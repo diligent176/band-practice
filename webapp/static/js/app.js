@@ -179,7 +179,7 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
-    // Arrow keys to navigate through notes
+    // Arrow keys to navigate through notes OR adjust panel split in resize mode
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         if (navigateNotes(e.key === 'ArrowDown' ? 1 : -1)) {
             e.preventDefault();
@@ -187,10 +187,46 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
-    // T to scroll to top
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (isInResizeMode) {
+            e.preventDefault();
+            adjustPanelSplit(e.key === 'ArrowRight' ? 2 : -2); // Adjust by 2% per keypress
+        }
+        return;
+    }
+
+    // HOME to jump to first note and scroll to top
+    if (e.key === 'Home') {
+        e.preventDefault();
+        jumpToFirstNote();
+        return;
+    }
+
+    // END to jump to last note and scroll to bottom
+    if (e.key === 'End') {
+        e.preventDefault();
+        jumpToLastNote();
+        return;
+    }
+
+    // T to enter panel resize mode
     if (e.key === 't' || e.key === 'T') {
         e.preventDefault();
-        scrollToTop();
+        toggleResizeMode();
+        return;
+    }
+
+    // Enter to exit resize mode
+    if (e.key === 'Enter' && isInResizeMode) {
+        e.preventDefault();
+        exitResizeMode();
+        return;
+    }
+
+    // Escape to cancel resize mode
+    if (e.key === 'Escape' && isInResizeMode) {
+        e.preventDefault();
+        exitResizeMode();
         return;
     }
 }
@@ -962,6 +998,44 @@ function scrollToBottom() {
             behavior: 'smooth'
         });
     }
+}
+
+// Jump to first note and scroll to top
+function jumpToFirstNote() {
+    const noteBlocks = Array.from(document.querySelectorAll('.note-block'));
+    
+    if (noteBlocks.length === 0) {
+        return;
+    }
+    
+    // Highlight first note
+    const firstNote = noteBlocks[0];
+    highlightLines(firstNote);
+    
+    // Scroll note into view in notes panel
+    firstNote.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Scroll lyrics to top
+    scrollToTop();
+}
+
+// Jump to last note and scroll to bottom
+function jumpToLastNote() {
+    const noteBlocks = Array.from(document.querySelectorAll('.note-block'));
+    
+    if (noteBlocks.length === 0) {
+        return;
+    }
+    
+    // Highlight last note
+    const lastNote = noteBlocks[noteBlocks.length - 1];
+    highlightLines(lastNote);
+    
+    // Scroll note into view in notes panel
+    lastNote.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Scroll lyrics to bottom
+    scrollToBottom();
 }
 
 // Edit Mode Functions
@@ -1821,6 +1895,7 @@ const notesPanel = document.getElementById('notes-panel');
 const panelsContainer = document.querySelector('.panels');
 
 let isResizing = false;
+let isInResizeMode = false;
 
 // Set up resize functionality
 if (resizeHandle && lyricsPanel && notesPanel) {
@@ -1842,9 +1917,9 @@ function handleResize(e) {
     const containerWidth = containerRect.width;
     const mouseX = e.clientX - containerRect.left;
 
-    // Calculate percentage (20% minimum for each panel, 80% maximum)
+    // Calculate percentage (10% minimum for notes, 90% maximum for lyrics)
     let lyricsPercentage = (mouseX / containerWidth) * 100;
-    lyricsPercentage = Math.max(20, Math.min(80, lyricsPercentage));
+    lyricsPercentage = Math.max(10, Math.min(90, lyricsPercentage));
 
     const notesPercentage = 100 - lyricsPercentage;
 
@@ -1877,13 +1952,65 @@ window.loadPanelSplit = function(songId) {
     if (!lyricsPanel || !notesPanel) return;
 
     const splits = JSON.parse(localStorage.getItem('bandPracticePanelSplits') || '{}');
-    const lyricsPercentage = splits[songId] || 66.67; // Default to 2/3 for lyrics, 1/3 for notes
+    const lyricsPercentage = splits[songId] || 75; // Default to 75% for lyrics, 25% for notes
 
     const notesPercentage = 100 - lyricsPercentage;
 
     lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
     notesPanel.style.flex = `0 0 ${notesPercentage}%`;
 };
+
+// Keyboard resize mode
+function toggleResizeMode() {
+    if (!lyricsPanel || !notesPanel) return;
+    
+    isInResizeMode = !isInResizeMode;
+    
+    if (isInResizeMode) {
+        // Entering resize mode
+        resizeHandle.style.background = 'var(--accent-primary)';
+        resizeHandle.style.width = '12px';
+        showToast('Resize Mode: Use ← → arrows to adjust, Enter to save', 'info');
+    } else {
+        exitResizeMode();
+    }
+}
+
+function adjustPanelSplit(deltaPercentage) {
+    if (!lyricsPanel || !notesPanel || !panelsContainer) return;
+    
+    // Get current lyrics percentage
+    const currentLyricsWidth = lyricsPanel.getBoundingClientRect().width;
+    const containerWidth = panelsContainer.getBoundingClientRect().width;
+    let lyricsPercentage = (currentLyricsWidth / containerWidth) * 100;
+    
+    // Adjust by delta
+    lyricsPercentage += deltaPercentage;
+    
+    // Clamp to limits (10% minimum for notes, 90% maximum for lyrics)
+    lyricsPercentage = Math.max(10, Math.min(90, lyricsPercentage));
+    
+    const notesPercentage = 100 - lyricsPercentage;
+    
+    // Apply flex basis
+    lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
+    notesPanel.style.flex = `0 0 ${notesPercentage}%`;
+}
+
+function exitResizeMode() {
+    isInResizeMode = false;
+    
+    // Reset resize handle styling
+    resizeHandle.style.background = '';
+    resizeHandle.style.width = '';
+    
+    // Save the current split for this song
+    if (currentSong) {
+        const lyricsPercentage = (lyricsPanel.getBoundingClientRect().width / panelsContainer.getBoundingClientRect().width) * 100;
+        savePanelSplit(currentSong.id, lyricsPercentage);
+        showToast('Panel split saved', 'success');
+    }
+}
 
 //=============================================================================
 // Back to Top Button
