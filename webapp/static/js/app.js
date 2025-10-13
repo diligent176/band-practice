@@ -938,11 +938,15 @@ function navigateNotes(direction) {
         // Move to next/previous note
         nextIndex = activeIndex + direction;
         
-        // Wrap around
+        // Check if we're going past boundaries
         if (nextIndex < 0) {
-            nextIndex = noteBlocks.length - 1;
+            // Going up past the first note - scroll lyrics to top
+            scrollToTop();
+            return false;
         } else if (nextIndex >= noteBlocks.length) {
-            nextIndex = 0;
+            // Going down past the last note - scroll lyrics to bottom
+            scrollToBottom();
+            return false;
         }
     }
 
@@ -954,6 +958,17 @@ function navigateNotes(direction) {
     nextNoteBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     return true;
+}
+
+// Scroll lyrics to bottom
+function scrollToBottom() {
+    const lyricsContainer = document.getElementById('lyrics-content');
+    if (lyricsContainer) {
+        lyricsContainer.scrollTo({
+            top: lyricsContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
 }
 
 // Edit Mode Functions
