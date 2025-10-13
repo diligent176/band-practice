@@ -1236,6 +1236,7 @@ const importPlaylistUrl = document.getElementById('import-playlist-url');
 const importLoadBtn = document.getElementById('import-load-btn');
 const importPlaylistBtn = document.getElementById('import-playlist-btn');
 const importSelectAllBtn = document.getElementById('import-select-all-btn');
+const importSelectNewBtn = document.getElementById('import-select-new-btn');
 const importSelectNoneBtn = document.getElementById('import-select-none-btn');
 const importBackBtn = document.getElementById('import-back-btn');
 const importStartBtn = document.getElementById('import-start-btn');
@@ -1248,6 +1249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         importDialogClose.addEventListener('click', closeImportDialog);
         importLoadBtn.addEventListener('click', loadPlaylistDetails);
         importSelectAllBtn.addEventListener('click', selectAllSongs);
+        importSelectNewBtn.addEventListener('click', selectNewSongs);
         importSelectNoneBtn.addEventListener('click', selectNoneSongs);
         importBackBtn.addEventListener('click', backToUrlStep);
         importStartBtn.addEventListener('click', startImport);
@@ -1345,9 +1347,9 @@ async function loadPlaylistDetails() {
             importDialogState.songs = data.songs;
             importDialogState.selectedSongIds = new Set();
 
-            // Auto-select non-conflict songs
+            // Auto-select only new songs by default
             data.songs.forEach(song => {
-                if (!song.has_conflict) {
+                if (song.status === 'new') {
                     importDialogState.selectedSongIds.add(song.id);
                 }
             });
@@ -1448,6 +1450,17 @@ function updateSelectionCount() {
 function selectAllSongs() {
     importDialogState.songs.forEach(song => {
         importDialogState.selectedSongIds.add(song.id);
+    });
+    renderImportSongList();
+    updateSelectionCount();
+}
+
+function selectNewSongs() {
+    importDialogState.selectedSongIds.clear();
+    importDialogState.songs.forEach(song => {
+        if (song.status === 'new') {
+            importDialogState.selectedSongIds.add(song.id);
+        }
     });
     renderImportSongList();
     updateSelectionCount();
