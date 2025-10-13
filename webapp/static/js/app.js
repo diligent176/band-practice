@@ -21,6 +21,7 @@ const songSelectorList = document.getElementById('song-selector-list');
 const toggleSortBtn = document.getElementById('toggle-sort-btn');
 const sortModeDisplay = document.getElementById('sort-mode');
 const songCountDisplay = document.getElementById('song-count-display');
+const backToTopBtn = document.getElementById('back-to-top-btn');
 
 const lyricsContent = document.getElementById('lyrics-content');
 const lyricsContentInner = document.getElementById('lyrics-content-inner');
@@ -73,7 +74,7 @@ function setupEventListeners() {
     toggleSortBtn.addEventListener('click', toggleSongSort);
     songSearchInput.addEventListener('input', filterSongs);
     songSearchInput.addEventListener('keyup', filterSongs);
-    
+
     editNotesBtn.addEventListener('click', enterEditMode);
     saveNotesBtn.addEventListener('click', saveNotes);
     cancelEditBtn.addEventListener('click', exitEditMode);
@@ -94,7 +95,7 @@ function setupEventListeners() {
             closeSongSelector();
         }
     });
-    
+
     lyricsEditorDialog.addEventListener('click', (e) => {
         if (e.target === lyricsEditorDialog) {
             closeLyricsEditor();
@@ -103,7 +104,10 @@ function setupEventListeners() {
 
     toggleColumnsBtn.addEventListener('click', toggleColumns);
     fontSizeSelect.addEventListener('change', handleFontSizeChange);
-    
+
+    // Back to top button
+    backToTopBtn.addEventListener('click', scrollToTop);
+
     // Global keyboard shortcuts
     document.addEventListener('keydown', handleGlobalKeyboard);
 }
@@ -1628,3 +1632,18 @@ window.loadPanelSplit = function(songId) {
     lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
     notesPanel.style.flex = `0 0 ${notesPercentage}%`;
 };
+
+//=============================================================================
+// Back to Top Button
+//=============================================================================
+
+function scrollToTop() {
+    // Find all elements with scrollTop > 0 and scroll them back to top
+    const allElements = document.querySelectorAll('*');
+
+    allElements.forEach(element => {
+        if (element.scrollTop > 0) {
+            element.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+}
