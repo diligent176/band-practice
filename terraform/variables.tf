@@ -63,7 +63,7 @@ variable "allowed_user_emails" {
 }
 
 variable "custom_domain" {
-  description = "Custom domain for Cloud Run service (e.g., bandpractice.seagoat.dev)"
+  description = "Custom domain for web app in Cloud Run service"
   type        = string
   default     = ""
 }
