@@ -1968,7 +1968,7 @@ function toggleResizeMode() {
     
     if (isInResizeMode) {
         // Entering resize mode
-        resizeHandle.style.background = 'var(--accent-primary)';
+        resizeHandle.style.background = '#18a049';
         resizeHandle.style.width = '12px';
         showToast('Resize Mode: Use ← → arrows to adjust, Enter to save', 'info');
     } else {
