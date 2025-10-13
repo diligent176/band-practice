@@ -871,19 +871,8 @@ function highlightLines(noteBlock) {
 }
 
 function scrollIntoViewIfNeeded(element) {
-    const rect = element.getBoundingClientRect();
-    const parent = element.parentElement;
-    const parentRect = parent.getBoundingClientRect();
-    
-    // Check if element is already fully visible within its parent
-    const isVisible = (
-        rect.top >= parentRect.top &&
-        rect.bottom <= parentRect.bottom
-    );
-    
-    if (!isVisible) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+    // Just scroll - no checks, no BS
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function navigateNotes(direction) {
