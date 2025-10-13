@@ -303,7 +303,7 @@ resource "google_cloud_run_service_iam_member" "authenticated_access" {
   member   = "allUsers"
 }
 
-# Custom Domain Mapping (if custom_domain var is provided)
+# Custom Domain Mapping (if custom_domain var is set)
 resource "google_cloud_run_domain_mapping" "custom_domain" {
   count    = var.custom_domain != "" ? 1 : 0
   location = var.region
@@ -360,5 +360,5 @@ output "custom_domain_dns_records" {
     name   = try(split(".", var.custom_domain)[0], "")
     value  = "ghs.googlehosted.com."
   } : null
-  description = "DNS records to configure at your domain registrar (Namecheap)"
+  description = "DNS records to configure at your domain registrar."
 }
