@@ -63,7 +63,7 @@ variable "allowed_user_emails" {
 }
 
 variable "custom_domain" {
-  description = "Custom domain for web app in Cloud Run service"
+  description = "Custom domain for web app in Cloud Run service."
   type        = string
   default     = ""
 }

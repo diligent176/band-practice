@@ -303,7 +303,7 @@ resource "google_cloud_run_service_iam_member" "authenticated_access" {
   member   = "allUsers"
 }
 
-# Custom Domain Mapping (if custom_domain is provided)
+# Custom Domain Mapping (if custom_domain var is provided)
 resource "google_cloud_run_domain_mapping" "custom_domain" {
   count    = var.custom_domain != "" ? 1 : 0
   location = var.region
