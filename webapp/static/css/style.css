@@ -59,7 +59,7 @@ header h1 {
 .song-selector {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   flex: 1;
   max-width: 500px;
 }
@@ -728,6 +728,18 @@ header h1 {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
+.dialog-medium {
+  background: var(--bg-tertiary);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  width: 700px;
+  max-height: 80vh;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
 .dialog h3 {
   color: var(--accent-primary);
   margin-bottom: 20px;
@@ -1139,4 +1151,98 @@ header h1 {
     width: 40px;
     height: 40px;
   }
+}
+
+/* Song Selector Dialog */
+.current-song-display {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+.song-count-display {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.song-selector-search {
+  margin-bottom: 15px;
+}
+
+.song-search-input {
+  width: 100%;
+  padding: 10px 15px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.song-search-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.song-selector-list {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 5px;
+  min-height: 400px;
+  max-height: 500px;
+  display: block;
+}
+
+.song-selector-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.song-selector-item:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-primary);
+}
+
+.song-selector-item.selected {
+  background: var(--bg-elevated);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.song-selector-item-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.song-selector-item-artist {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.song-selector-item-meta {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 2px;
 }

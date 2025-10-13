@@ -3,13 +3,25 @@
 let currentSong = null;
 let allSongs = [];
 let isEditMode = false;
+let songSelectorSortByArtist = false;
+let filteredSongs = [];
+let selectedSongIndex = -1;
 
 // Reference to the apiCall function from viewer.html
 // This will be passed in when initializeApp is called
 let authenticatedApiCall = null;
 
 // DOM Elements
-const songSelect = document.getElementById('song-select');
+const openSongSelectorBtn = document.getElementById('open-song-selector-btn');
+const currentSongDisplay = document.getElementById('current-song-display');
+const songSelectorDialog = document.getElementById('song-selector-dialog');
+const songSelectorClose = document.getElementById('song-selector-close');
+const songSearchInput = document.getElementById('song-search-input');
+const songSelectorList = document.getElementById('song-selector-list');
+const toggleSortBtn = document.getElementById('toggle-sort-btn');
+const sortModeDisplay = document.getElementById('sort-mode');
+const songCountDisplay = document.getElementById('song-count-display');
+
 const lyricsContent = document.getElementById('lyrics-content');
 const lyricsContentInner = document.getElementById('lyrics-content-inner');
 const notesView = document.getElementById('notes-view');
@@ -47,6 +59,13 @@ const confirmDialogCancelBtn = document.getElementById('confirm-dialog-cancel-bt
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
     authenticatedApiCall = apiCallFunction;
+    
+    // Debug: Check if dialog elements exist
+    console.log('🔍 Dialog elements check:');
+    console.log('  - songSelectorDialog:', songSelectorDialog);
+    console.log('  - songSelectorList:', songSelectorList);
+    console.log('  - songSearchInput:', songSearchInput);
+    
     loadFontSizePreference();
     loadUserInfo();
     loadSongs();
@@ -54,7 +73,13 @@ window.initializeApp = function(apiCallFunction) {
 };
 
 function setupEventListeners() {
-    songSelect.addEventListener('change', handleSongChange);
+    // Song selector
+    openSongSelectorBtn.addEventListener('click', openSongSelector);
+    songSelectorClose.addEventListener('click', closeSongSelector);
+    toggleSortBtn.addEventListener('click', toggleSongSort);
+    songSearchInput.addEventListener('input', filterSongs);
+    songSearchInput.addEventListener('keyup', filterSongs);
+    
     editNotesBtn.addEventListener('click', enterEditMode);
     saveNotesBtn.addEventListener('click', saveNotes);
     cancelEditBtn.addEventListener('click', exitEditMode);
@@ -70,6 +95,12 @@ function setupEventListeners() {
     confirmDialogCancelBtn.addEventListener('click', hideConfirmDialog);
 
     // Close dialogs when clicking outside
+    songSelectorDialog.addEventListener('click', (e) => {
+        if (e.target === songSelectorDialog) {
+            closeSongSelector();
+        }
+    });
+    
     lyricsEditorDialog.addEventListener('click', (e) => {
         if (e.target === lyricsEditorDialog) {
             closeLyricsEditor();
@@ -78,6 +109,19 @@ function setupEventListeners() {
 
     toggleColumnsBtn.addEventListener('click', toggleColumns);
     fontSizeSelect.addEventListener('change', handleFontSizeChange);
+    
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', handleGlobalKeyboard);
+}
+
+// Global keyboard shortcut handler
+function handleGlobalKeyboard(e) {
+    // Ctrl+O to open song selector
+    if (e.ctrlKey && e.key === 'o') {
+        e.preventDefault();
+        openSongSelector();
+        return;
+    }
 }
 
 // API Functions
@@ -104,12 +148,18 @@ async function loadSongs() {
 
         if (data.success) {
             allSongs = data.songs;
-            populateSongSelect();
+            console.log(`✅ Loaded ${allSongs.length} songs:`, allSongs);
+            updateCurrentSongDisplay();
+            // If song selector is open, refresh the list
+            if (songSelectorDialog && songSelectorDialog.style.display === 'flex') {
+                filterSongs();
+            }
             setStatus(`${allSongs.length} songs loaded`, 'success');
         } else {
             showToast('Failed to load songs', 'error');
         }
     } catch (error) {
+        console.error('Error loading songs:', error);
         showToast('Error loading songs: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -125,6 +175,7 @@ async function loadSong(songId) {
         if (data.success) {
             currentSong = data.song;
             renderSong();
+            updateCurrentSongDisplay();
             refreshSongBtn.disabled = false;
             editNotesBtn.disabled = false;
             editLyricsBtn.disabled = false;
@@ -320,8 +371,8 @@ async function deleteCurrentSong() {
                     notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
                     songMetadata.innerHTML = '';
 
-                    // Reset song selector
-                    songSelect.value = '';
+                    // Update current song display
+                    updateCurrentSongDisplay();
 
                     // Reload song list
                     await loadSongs();
@@ -337,16 +388,224 @@ async function deleteCurrentSong() {
     );
 }
 
-// Rendering Functions
-function populateSongSelect() {
-    songSelect.innerHTML = '<option value="">-- Select a song --</option>';
+function openSongSelector() {
+    console.log('🚀 Opening song selector. allSongs.length:', allSongs.length);
+    
+    songSelectorDialog.style.display = 'flex';
+    songSearchInput.value = '';
+    
+    // Initialize filtered songs with all songs
+    filteredSongs = [...allSongs];
+    
+    // Sort by title initially
+    filteredSongs.sort((a, b) => a.title.localeCompare(b.title));
+    
+    console.log('📋 About to render', filteredSongs.length, 'songs');
+    renderSongList();
+    
+    songSearchInput.focus();
+    
+    // Add keyboard handler for song selector
+    document.addEventListener('keydown', handleSongSelectorKeyboard);
+}
 
-    allSongs.forEach(song => {
-        const option = document.createElement('option');
-        option.value = song.id;
-        option.textContent = `${song.title} - ${song.artist}`;
-        songSelect.appendChild(option);
+function closeSongSelector() {
+    songSelectorDialog.style.display = 'none';
+    selectedSongIndex = -1;
+    
+    // Remove keyboard handler
+    document.removeEventListener('keydown', handleSongSelectorKeyboard);
+}
+
+function toggleSongSort() {
+    songSelectorSortByArtist = !songSelectorSortByArtist;
+    sortModeDisplay.textContent = songSelectorSortByArtist ? 'Artist' : 'Song';
+    filterSongs();
+}
+
+function filterSongs() {
+    try {
+        const searchTerm = songSearchInput.value.toLowerCase();
+        
+        console.log('🔍 filterSongs called. searchTerm:', searchTerm);
+        
+        // Filter songs
+        filteredSongs = allSongs.filter(song => {
+            const title = song.title.toLowerCase();
+            const artist = song.artist.toLowerCase();
+            return title.includes(searchTerm) || artist.includes(searchTerm);
+        });
+        
+        console.log('📝 Filtered to', filteredSongs.length, 'songs');
+        
+        // Sort songs
+        filteredSongs.sort((a, b) => {
+            if (songSelectorSortByArtist) {
+                const artistCompare = a.artist.localeCompare(b.artist);
+                return artistCompare !== 0 ? artistCompare : a.title.localeCompare(b.title);
+            } else {
+                return a.title.localeCompare(b.title);
+            }
+        });
+        
+        renderSongList();
+    } catch (error) {
+        console.error('❌ Error in filterSongs:', error);
+    }
+}
+
+function renderSongList() {
+    try {
+        const listElement = document.getElementById('song-selector-list');
+        
+        console.log('🎨 renderSongList called');
+        console.log('  - allSongs.length:', allSongs.length);
+        console.log('  - filteredSongs.length:', filteredSongs.length);
+        console.log('  - listElement:', listElement);
+        
+        if (!listElement) {
+            console.error('❌ song-selector-list element not found!');
+            return;
+        }
+        
+        if (allSongs.length === 0) {
+            console.log('⚠️ No songs in database');
+            listElement.innerHTML = '<div class="empty-state"><p>No songs in database. Import a playlist!</p></div>';
+            if (songCountDisplay) songCountDisplay.textContent = '0 songs';
+            return;
+        }
+        
+        if (filteredSongs.length === 0) {
+            console.log('⚠️ No filtered songs');
+            listElement.innerHTML = '<div class="empty-state"><p>No songs match your search</p></div>';
+            if (songCountDisplay) songCountDisplay.textContent = `0 of ${allSongs.length} songs`;
+            return;
+        }
+        
+        console.log('✅ Building HTML for', filteredSongs.length, 'songs');
+        
+        if (songCountDisplay) songCountDisplay.textContent = `${filteredSongs.length} song${filteredSongs.length !== 1 ? 's' : ''}`;
+        
+        let html = '';
+        filteredSongs.forEach((song, index) => {
+            const selectedClass = index === selectedSongIndex ? 'selected' : '';
+            html += `<div class="song-selector-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
+<div class="song-selector-item-title">${escapeHtml(song.title)}</div>
+<div class="song-selector-item-artist">🎤 ${escapeHtml(song.artist)}</div>
+<div class="song-selector-item-meta">💿 ${escapeHtml(song.album || 'N/A')} • 📅 ${song.year || 'N/A'} • 🎵 ${song.bpm || 'N/A'}</div>
+</div>`;
+        });
+        
+        console.log('📝 Generated HTML length:', html.length);
+        console.log('🔄 Setting innerHTML...');
+        
+        listElement.innerHTML = html;
+        
+        console.log('✅ innerHTML set! Element now has', listElement.children.length, 'children');
+        
+        // Add click handlers
+        document.querySelectorAll('.song-selector-item').forEach(item => {
+            item.addEventListener('click', () => {
+                selectSong(item.dataset.songId);
+            });
+        });
+        
+        if (selectedSongIndex >= filteredSongs.length) {
+            selectedSongIndex = filteredSongs.length - 1;
+        }
+    } catch (error) {
+        console.error('❌❌❌ FATAL ERROR in renderSongList:', error);
+        console.error('Stack:', error.stack);
+    }
+}
+
+function selectSong(songId) {
+    closeSongSelector();
+    loadSong(songId);
+}
+
+function handleSongSelectorKeyboard(e) {
+    // Only handle if song selector is visible
+    if (songSelectorDialog.style.display !== 'flex') return;
+    
+    // ESC to close
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSongSelector();
+        return;
+    }
+    
+    // Ctrl+T to toggle sort
+    if (e.ctrlKey && e.key === 't') {
+        e.preventDefault();
+        toggleSongSort();
+        return;
+    }
+    
+    // Arrow keys for navigation
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (selectedSongIndex < filteredSongs.length - 1) {
+            selectedSongIndex++;
+            updateSongListSelection();
+        }
+        return;
+    }
+    
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (selectedSongIndex > 0) {
+            selectedSongIndex--;
+            updateSongListSelection();
+        } else if (selectedSongIndex === -1 && filteredSongs.length > 0) {
+            selectedSongIndex = 0;
+            updateSongListSelection();
+        }
+        return;
+    }
+    
+    // Enter to select
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (selectedSongIndex >= 0 && selectedSongIndex < filteredSongs.length) {
+            const song = filteredSongs[selectedSongIndex];
+            selectSong(song.id);
+        }
+        return;
+    }
+}
+
+function updateSongListSelection() {
+    // Remove all selected classes
+    document.querySelectorAll('.song-selector-item').forEach(item => {
+        item.classList.remove('selected');
     });
+    
+    // Add selected class to current index
+    if (selectedSongIndex >= 0) {
+        const items = document.querySelectorAll('.song-selector-item');
+        if (items[selectedSongIndex]) {
+            items[selectedSongIndex].classList.add('selected');
+            items[selectedSongIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+}
+
+function updateCurrentSongDisplay() {
+    if (currentSong) {
+        currentSongDisplay.textContent = `${currentSong.title} - ${currentSong.artist}`;
+    } else {
+        currentSongDisplay.textContent = 'No song selected';
+    }
+}
+
+function populateSongSelect() {
+    // No longer needed - keeping for compatibility
+    updateCurrentSongDisplay();
+}
+
+function handleSongChange(e) {
+    // No longer needed - keeping for compatibility
 }
 
 function renderSong() {
@@ -355,6 +614,7 @@ function renderSong() {
     renderMetadata();
     renderLyrics();
     renderNotes();
+    updateCurrentSongDisplay();
 }
 
 function renderMetadata() {
@@ -590,23 +850,6 @@ function handleNotesEditorKeyboard(e) {
 }
 
 // Event Handlers
-function handleSongChange(e) {
-    const songId = e.target.value;
-    if (songId) {
-        loadSong(songId);
-    } else {
-        // No song selected - show the "Lyrics" heading
-        if (lyricsHeading) {
-            lyricsHeading.style.display = 'block';
-            lyricsHeading.textContent = 'Lyrics';
-        }
-        // Clear the song metadata
-        songMetadata.innerHTML = '';
-        // Reset current song
-        currentSong = null;
-    }
-}
-
 // UI Helper Functions
 function showLoading(message = 'Loading...') {
     document.getElementById('loading-overlay').style.display = 'flex';
@@ -1118,7 +1361,7 @@ async function loadPlaylistDetails() {
             });
 
             renderPlaylistDetails();
-            renderSongList();
+            renderImportSongList();
 
             // Switch to select step
             importStepUrl.style.display = 'none';
@@ -1149,7 +1392,7 @@ function renderPlaylistDetails() {
     updateSelectionCount();
 }
 
-function renderSongList() {
+function renderImportSongList() {
     const listDiv = document.getElementById('import-songs-list');
     const { songs } = importDialogState;
 
@@ -1214,13 +1457,13 @@ function selectAllSongs() {
     importDialogState.songs.forEach(song => {
         importDialogState.selectedSongIds.add(song.id);
     });
-    renderSongList();
+    renderImportSongList();
     updateSelectionCount();
 }
 
 function selectNoneSongs() {
     importDialogState.selectedSongIds.clear();
-    renderSongList();
+    renderImportSongList();
     updateSelectionCount();
 }
 
