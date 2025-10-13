@@ -61,3 +61,9 @@ variable "allowed_user_emails" {
   description = "List of email addresses allowed to access the app"
   type        = list(string)
 }
+
+variable "custom_domain" {
+  description = "Custom domain for Cloud Run service (e.g., bandpractice.seagoat.dev)"
+  type        = string
+  default     = ""
+}

@@ -8,6 +8,9 @@ spotify_client_secret   = "your-spotify-client-secret"
 genius_access_token     = "your-genius-access-token"
 spotify_playlist_url    = "https://open.spotify.com/playlist/YOUR_PLAYLIST_ID"
 flask_secret_key        = "generate-a-random-secret-key-here"
+firebase_api_key        = "your-firebase-web-api-key"
+allowed_user_emails     = ["user1@example.com", "user2@example.com"]
+custom_domain           = "bandpractice.seagoat.dev"  # Optional: Leave empty to skip custom domain
 
 # NOTE: After enabling authentication, only authenticated Google users can access the app
 # To add specific users, modify the IAM settings in main.tf

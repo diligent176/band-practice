@@ -303,6 +303,23 @@ resource "google_cloud_run_service_iam_member" "authenticated_access" {
   member   = "allUsers"
 }
 
+# Custom Domain Mapping (if custom_domain is provided)
+resource "google_cloud_run_domain_mapping" "custom_domain" {
+  count    = var.custom_domain != "" ? 1 : 0
+  location = var.region
+  name     = var.custom_domain
+
+  metadata {
+    namespace = var.project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_service.band_practice.name
+  }
+
+  depends_on = [google_cloud_run_service.band_practice]
+}
+
 # Service Account for Cloud Run
 resource "google_service_account" "cloud_run_sa" {
   account_id   = "band-practice-pro-sa"
@@ -334,4 +351,14 @@ output "cloud_run_url" {
 output "artifact_registry_url" {
   value       = "${var.region}-docker.pkg.dev/${var.project_id}/band-practice-pro"
   description = "Artifact Registry URL for Docker images"
+}
+
+output "custom_domain_dns_records" {
+  value = var.custom_domain != "" ? {
+    domain = var.custom_domain
+    type   = "CNAME"
+    name   = try(split(".", var.custom_domain)[0], "")
+    value  = "ghs.googlehosted.com."
+  } : null
+  description = "DNS records to configure at your domain registrar (Namecheap)"
 }
