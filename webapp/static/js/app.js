@@ -33,6 +33,7 @@ const lyricsEditorTextarea = document.getElementById('lyrics-editor-textarea');
 const lyricsEditorSaveBtn = document.getElementById('lyrics-editor-save-btn');
 const lyricsEditorCancelBtn = document.getElementById('lyrics-editor-cancel-btn');
 const customizationBadge = document.getElementById('customization-badge');
+const tightenLyricsBtn = document.getElementById('tighten-lyrics-btn');
 
 const confirmDialog = document.getElementById('confirm-dialog');
 const confirmDialogTitle = document.getElementById('confirm-dialog-title');
@@ -60,6 +61,7 @@ function setupEventListeners() {
     deleteSongBtn.addEventListener('click', deleteCurrentSong);
     lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
     lyricsEditorCancelBtn.addEventListener('click', closeLyricsEditor);
+    tightenLyricsBtn.addEventListener('click', tightenLyrics);
 
     // Confirmation dialog close buttons
     confirmDialogCancelBtn.addEventListener('click', hideConfirmDialog);
@@ -126,7 +128,8 @@ async function loadSong(songId) {
             deleteSongBtn.disabled = false;
             setStatus('Song loaded', 'success');
 
-            // Load panel split for this song
+            // Load saved preferences for this song
+            loadColumnPreference(currentSong.id);
             loadPanelSplit(currentSong.id);
         } else {
             showToast('Failed to load song', 'error');
@@ -230,49 +233,51 @@ async function deleteCurrentSong() {
 
     const songTitle = `${currentSong.title} - ${currentSong.artist}`;
 
-    if (!confirm(`Are you sure you want to delete "${songTitle}" from the database?\n\nThis action cannot be undone.`)) {
-        return;
-    }
+    showConfirmDialog(
+        'Delete Song?',
+        `Are you sure you want to delete "${songTitle}" from the database?\n\nThis action cannot be undone.`,
+        async () => {
+            try {
+                showLoading('Deleting song...');
 
-    try {
-        showLoading('Deleting song...');
+                const response = await authenticatedApiCall(`/api/songs/${currentSong.id}`, {
+                    method: 'DELETE'
+                });
 
-        const response = await authenticatedApiCall(`/api/songs/${currentSong.id}`, {
-            method: 'DELETE'
-        });
+                const data = await response.json();
 
-        const data = await response.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setStatus('Song deleted', 'success');
 
-        if (data.success) {
-            showToast(data.message, 'success');
-            setStatus('Song deleted', 'success');
+                    // Clear current song
+                    currentSong = null;
 
-            // Clear current song
-            currentSong = null;
+                    // Disable buttons
+                    refreshSongBtn.disabled = true;
+                    editNotesBtn.disabled = true;
+                    deleteSongBtn.disabled = true;
 
-            // Disable buttons
-            refreshSongBtn.disabled = true;
-            editNotesBtn.disabled = true;
-            deleteSongBtn.disabled = true;
+                    // Clear displays
+                    lyricsContentInner.innerHTML = '<div class="empty-state"><p>Select a song to view lyrics</p></div>';
+                    notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
+                    songMetadata.innerHTML = '';
 
-            // Clear displays
-            lyricsContentInner.innerHTML = '<div class="empty-state"><p>Select a song to view lyrics</p></div>';
-            notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
-            songMetadata.innerHTML = '';
+                    // Reset song selector
+                    songSelect.value = '';
 
-            // Reset song selector
-            songSelect.value = '';
-
-            // Reload song list
-            await loadSongs();
-        } else {
-            showToast('Failed to delete song: ' + data.error, 'error');
+                    // Reload song list
+                    await loadSongs();
+                } else {
+                    showToast('Failed to delete song: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error deleting song: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
         }
-    } catch (error) {
-        showToast('Error deleting song: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
+    );
 }
 
 // Rendering Functions
@@ -381,7 +386,10 @@ function parseNotes(notesText) {
             return;
         }
 
-        const lineMatch = line.match(/^(Lines?\s+\d+(-\d+)?):(.*)$/i);
+        // Match formats:
+        // "Line 12: note" or "Lines 45-48: note"
+        // "12: note" or "45-48: note"
+        const lineMatch = line.match(/^(Lines?\s+)?(\d+(-\d+)?):(.*)$/i);
         if (lineMatch) {
             if (currentBlock) {
                 blocks.push({
@@ -391,8 +399,13 @@ function parseNotes(notesText) {
                 });
             }
 
-            currentBlock = lineMatch[1];
-            currentContent = [lineMatch[3].trim()];
+            // Build display header with "Line" or "Lines"
+            const lineNumbers = lineMatch[2];
+            const isRange = lineNumbers.includes('-');
+            const displayHeader = (isRange ? 'Lines ' : 'Line ') + lineNumbers;
+
+            currentBlock = displayHeader;
+            currentContent = [lineMatch[4].trim()];
         } else if (currentBlock && line.trim()) {
             currentContent.push(line);
         }
@@ -461,7 +474,7 @@ function enterEditMode() {
     notesTextarea.focus();
 
     // Add keyboard shortcuts for notes editor
-    notesTextarea.addEventListener('keydown', handleNotesEditorKeyboard);
+    document.addEventListener('keydown', handleNotesEditorKeyboard);
 }
 
 function exitEditMode() {
@@ -473,19 +486,27 @@ function exitEditMode() {
     cancelEditBtn.style.display = 'none';
 
     // Remove keyboard shortcuts
-    notesTextarea.removeEventListener('keydown', handleNotesEditorKeyboard);
+    document.removeEventListener('keydown', handleNotesEditorKeyboard);
 }
 
 function handleNotesEditorKeyboard(e) {
+    // Only handle if in edit mode
+    if (!isEditMode) return;
+
     // ESC to cancel
     if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         exitEditMode();
+        return;
     }
-    // Ctrl+S to save
-    if (e.ctrlKey && e.key === 's') {
+
+    // Ctrl+S or Ctrl+Enter to save
+    if (e.ctrlKey && (e.key === 's' || e.key === 'Enter')) {
         e.preventDefault();
+        e.stopPropagation();
         saveNotes();
+        return;
     }
 }
 
@@ -563,6 +584,34 @@ function toggleColumns() {
         lyricsContentInner.classList.add('lyrics-columns-1');
         toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 1 Col';
     }
+
+    // Save column preference for this song
+    if (currentSong) {
+        saveColumnPreference(currentSong.id, isColumnMode2);
+    }
+}
+
+function saveColumnPreference(songId, is2Column) {
+    const preferences = JSON.parse(localStorage.getItem('bandPracticeColumnPreferences') || '{}');
+    preferences[songId] = is2Column;
+    localStorage.setItem('bandPracticeColumnPreferences', JSON.stringify(preferences));
+}
+
+function loadColumnPreference(songId) {
+    const preferences = JSON.parse(localStorage.getItem('bandPracticeColumnPreferences') || '{}');
+    const is2Column = preferences[songId] || false; // Default to 1 column
+
+    isColumnMode2 = is2Column;
+
+    if (isColumnMode2) {
+        lyricsContentInner.classList.remove('lyrics-columns-1');
+        lyricsContentInner.classList.add('lyrics-columns-2');
+        toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 2 Col';
+    } else {
+        lyricsContentInner.classList.remove('lyrics-columns-2');
+        lyricsContentInner.classList.add('lyrics-columns-1');
+        toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 1 Col';
+    }
 }
 
 // Font Size Change Function
@@ -619,8 +668,8 @@ function openLyricsEditor() {
     // Set up scroll sync and line number updates
     setupLyricsEditorScrollSync();
 
-    // Add keyboard shortcuts for lyrics editor
-    lyricsEditorTextarea.addEventListener('keydown', handleLyricsEditorKeyboard);
+    // Add keyboard shortcuts for lyrics editor (on dialog level, not textarea)
+    document.addEventListener('keydown', handleLyricsEditorKeyboard);
 }
 
 function updateLyricsEditorLineNumbers() {
@@ -699,20 +748,65 @@ function closeLyricsEditor() {
     lyricsEditorTextarea.value = '';
 
     // Remove keyboard shortcuts
-    lyricsEditorTextarea.removeEventListener('keydown', handleLyricsEditorKeyboard);
+    document.removeEventListener('keydown', handleLyricsEditorKeyboard);
 }
 
 function handleLyricsEditorKeyboard(e) {
+    // Only handle if lyrics editor dialog is visible
+    if (lyricsEditorDialog.style.display !== 'flex') return;
+
     // ESC to cancel
     if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         closeLyricsEditor();
+        return;
     }
-    // Ctrl+S to save
-    if (e.ctrlKey && e.key === 's') {
+
+    // Ctrl+S or Ctrl+Enter to save
+    if (e.ctrlKey && (e.key === 's' || e.key === 'Enter')) {
         e.preventDefault();
+        e.stopPropagation();
         saveLyrics();
+        return;
     }
+}
+
+function tightenLyrics() {
+    const lines = lyricsEditorTextarea.value.split('\n');
+    const tightenedLines = [];
+    let previousLineWasHeader = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmedLine = line.trim();
+
+        // Check if line is a section header like [Verse 1], [Chorus], etc.
+        const isHeader = /^\[.*\]/.test(trimmedLine);
+
+        // Check if line is blank
+        const isBlank = trimmedLine === '';
+
+        if (isBlank && previousLineWasHeader) {
+            // Skip blank lines that come immediately after headers
+            continue;
+        }
+
+        // Add the line
+        tightenedLines.push(line);
+
+        // Track if this line was a header
+        previousLineWasHeader = isHeader;
+    }
+
+    // Update the textarea with tightened lyrics
+    lyricsEditorTextarea.value = tightenedLines.join('\n');
+
+    // Update line numbers to reflect the changes
+    updateLyricsEditorLineNumbers();
+
+    // Show feedback
+    showToast('Removed blank lines after section headers', 'success');
 }
 
 async function saveLyrics() {
@@ -746,10 +840,13 @@ async function saveLyrics() {
 }
 
 // Confirmation Dialog Functions
+let currentConfirmCallback = null;
+
 function showConfirmDialog(title, message, onConfirm) {
     confirmDialogTitle.textContent = title;
     confirmDialogMessage.textContent = message;
     confirmDialog.style.display = 'flex';
+    currentConfirmCallback = onConfirm;
 
     // Remove any existing event listeners and add new one
     const newConfirmBtn = confirmDialogConfirmBtn.cloneNode(true);
@@ -762,10 +859,36 @@ function showConfirmDialog(title, message, onConfirm) {
         hideConfirmDialog();
         onConfirm();
     });
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleConfirmDialogKeyboard);
 }
 
 function hideConfirmDialog() {
     confirmDialog.style.display = 'none';
+    currentConfirmCallback = null;
+
+    // Remove keyboard shortcuts
+    document.removeEventListener('keydown', handleConfirmDialogKeyboard);
+}
+
+function handleConfirmDialogKeyboard(e) {
+    // Only handle if dialog is visible
+    if (confirmDialog.style.display !== 'flex') return;
+
+    // ESC to cancel
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        hideConfirmDialog();
+    }
+    // ENTER to confirm
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentConfirmCallback) {
+            hideConfirmDialog();
+            currentConfirmCallback();
+        }
+    }
 }
 
 //=============================================================================
@@ -814,6 +937,9 @@ function showImportDialog() {
     importStepSelect.style.display = 'none';
     importStepProgress.style.display = 'none';
     importPlaylistUrl.focus();
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleImportDialogKeyboard);
 }
 
 function closeImportDialog() {
@@ -824,6 +950,46 @@ function closeImportDialog() {
         songs: [],
         selectedSongIds: new Set()
     };
+
+    // Remove keyboard shortcuts
+    document.removeEventListener('keydown', handleImportDialogKeyboard);
+}
+
+function handleImportDialogKeyboard(e) {
+    // Only handle if import dialog is visible
+    if (importDialog.style.display !== 'flex') return;
+
+    // ESC to close dialog
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeImportDialog();
+        return;
+    }
+
+    // ENTER to proceed based on current step
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Step 1: Load playlist (Enter in URL field triggers load)
+        if (importStepUrl.style.display === 'flex') {
+            loadPlaylistDetails();
+        }
+        // Step 2: Start import (but not if user is in the songs list)
+        else if (importStepSelect.style.display === 'flex') {
+            if (!importStartBtn.disabled) {
+                startImport();
+            }
+        }
+        // Step 3: Finish import
+        else if (importStepProgress.style.display === 'flex') {
+            if (importDoneBtn.style.display !== 'none') {
+                finishImport();
+            }
+        }
+        return;
+    }
 }
 
 async function loadPlaylistDetails() {

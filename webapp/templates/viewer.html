@@ -117,14 +117,18 @@
                         <div id="notes-edit" class="notes-edit" style="display: none;">
                             <div class="edit-help">
                                 <strong>Note Syntax:</strong>
-                                <code>Line 12: Your note here</code> or
-                                <code>Lines 45-48: Your note here</code>
+                                <code>12: Your note here</code> or
+                                <code>45-48: Your note here</code>
+                                <br><small style="color: var(--text-muted);">(Optional: <code>Line 12:</code> or <code>Lines 45-48:</code>)</small>
                             </div>
                             <textarea id="notes-textarea" class="notes-textarea" placeholder="Add your practice notes here...
 
 Example:
-Line 12: Heavy kick on 1 and 3
-Lines 45-48: Double time, watch for break"></textarea>
+12: Heavy kick on 1 and 3
+45-48: Double time, watch for break
+
+Or with Line/Lines:
+Line 71: thend"></textarea>
                         </div>
                     </div>
                 </div>
@@ -190,8 +194,13 @@ Lines 45-48: Double time, watch for break"></textarea>
             <div class="dialog-large">
                 <div class="dialog-header">
                     <h3 id="lyrics-editor-title">Edit Lyrics</h3>
-                    <div class="customization-badge" id="customization-badge" style="display: none;">
-                        <span style="color: #FF9800;">⚠️ Customized</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button id="tighten-lyrics-btn" class="btn btn-small btn-secondary" title="Remove blank lines after section headers">
+                            <span class="icon">📐</span> Tighten
+                        </button>
+                        <div class="customization-badge" id="customization-badge" style="display: none;">
+                            <span style="color: #FF9800;">⚠️ Customized</span>
+                        </div>
                     </div>
                 </div>
                 <div class="lyrics-editor-content">
