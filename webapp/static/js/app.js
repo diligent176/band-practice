@@ -13,7 +13,6 @@ let authenticatedApiCall = null;
 
 // DOM Elements
 const openSongSelectorBtn = document.getElementById('open-song-selector-btn');
-const currentSongDisplay = document.getElementById('current-song-display');
 const songSelectorDialog = document.getElementById('song-selector-dialog');
 const songSelectorClose = document.getElementById('song-selector-close');
 const songSearchInput = document.getElementById('song-search-input');
@@ -575,9 +574,9 @@ function updateSongListSelection() {
 
 function updateCurrentSongDisplay() {
     if (currentSong) {
-        currentSongDisplay.textContent = `${currentSong.title} - ${currentSong.artist}`;
+        setStatus(`Song loaded: ${currentSong.title} - ${currentSong.artist}`, 'success');
     } else {
-        currentSongDisplay.textContent = 'No song selected';
+        setStatus('', 'info');
     }
 }
 
