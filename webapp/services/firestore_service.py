@@ -13,6 +13,7 @@ class FirestoreService:
         project_id = os.getenv('GCP_PROJECT_ID')
         self.db = firestore.Client(project=project_id) if project_id else firestore.Client()
         self.songs_collection = 'songs'
+        self.playlist_memory_collection = 'playlist_memory'
 
     def get_all_songs(self):
         """Get all songs sorted by artist and title"""
@@ -97,3 +98,67 @@ class FirestoreService:
     def song_exists(self, song_id):
         """Check if a song exists"""
         return self.db.collection(self.songs_collection).document(song_id).get().exists
+
+    # Playlist Memory Methods
+
+    def save_playlist_memory(self, user_id, playlist_id, playlist_data):
+        """
+        Save or update playlist memory for a user
+
+        Args:
+            user_id: User's email or ID
+            playlist_id: Spotify playlist ID
+            playlist_data: Dict containing name, owner, total_tracks, image_url, playlist_url
+        """
+        doc_ref = self.db.collection(self.playlist_memory_collection).document(playlist_id)
+
+        # Get existing document to preserve access_count
+        existing = doc_ref.get()
+        access_count = 1
+
+        if existing.exists:
+            existing_data = existing.to_dict()
+            access_count = existing_data.get('access_count', 0) + 1
+
+        memory_data = {
+            'user_id': user_id,
+            'playlist_url': playlist_data.get('playlist_url', ''),
+            'name': playlist_data.get('name', ''),
+            'owner': playlist_data.get('owner', ''),
+            'total_tracks': playlist_data.get('total_tracks', 0),
+            'image_url': playlist_data.get('image_url', ''),
+            'last_accessed': datetime.utcnow(),
+            'access_count': access_count
+        }
+
+        doc_ref.set(memory_data, merge=True)
+        return memory_data
+
+    def get_user_playlist_memory(self, user_id, limit=10):
+        """
+        Get user's recently accessed playlists
+
+        Args:
+            user_id: User's email or ID
+            limit: Maximum number of playlists to return (default 10)
+
+        Returns:
+            List of playlist memory documents sorted by last_accessed (most recent first)
+        """
+        docs = (self.db.collection(self.playlist_memory_collection)
+                .where('user_id', '==', user_id)
+                .order_by('last_accessed', direction=firestore.Query.DESCENDING)
+                .limit(limit)
+                .stream())
+
+        playlists = []
+        for doc in docs:
+            playlist_data = doc.to_dict()
+            playlist_data['id'] = doc.id
+            playlists.append(playlist_data)
+
+        return playlists
+
+    def delete_playlist_memory(self, playlist_id):
+        """Delete a playlist from memory"""
+        self.db.collection(self.playlist_memory_collection).document(playlist_id).delete()

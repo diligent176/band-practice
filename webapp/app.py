@@ -144,6 +144,24 @@ def get_playlist_details():
 
         logger.info(f"User {g.user.get('email')} requested detailed playlist info")
         details = lyrics_service.get_playlist_details_with_conflicts(playlist_url)
+
+        # Save playlist to memory for quick recall
+        user_id = g.user.get('email')
+        playlist_info = details.get('playlist', {})
+        playlist_id = playlist_info.get('id')
+
+        if user_id and playlist_id:
+            try:
+                firestore.save_playlist_memory(user_id, playlist_id, {
+                    'playlist_url': playlist_url,
+                    'name': playlist_info.get('name', ''),
+                    'owner': playlist_info.get('owner', ''),
+                    'total_tracks': playlist_info.get('total_tracks', 0),
+                    'image_url': playlist_info.get('image_url', '')
+                })
+            except Exception as mem_error:
+                logger.warning(f"Failed to save playlist memory: {mem_error}")
+
         return jsonify({
             'success': True,
             **details
@@ -316,6 +334,44 @@ def get_user_info():
         'user': g.user,
         'success': True
     })
+
+
+@app.route('/api/playlist/memory', methods=['GET'])
+@require_auth
+def get_playlist_memory():
+    """Get user's recently accessed playlists"""
+    try:
+        user_id = g.user.get('email')
+        logger.info(f"User {user_id} requested playlist memory")
+
+        playlists = firestore.get_user_playlist_memory(user_id, limit=10)
+
+        return jsonify({
+            'success': True,
+            'playlists': playlists
+        })
+    except Exception as e:
+        logger.error(f"Error getting playlist memory for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/playlist/memory/<playlist_id>', methods=['DELETE'])
+@require_auth
+def delete_playlist_memory(playlist_id):
+    """Delete a playlist from memory"""
+    try:
+        user_id = g.user.get('email')
+        logger.info(f"User {user_id} deleting playlist memory for {playlist_id}")
+
+        firestore.delete_playlist_memory(playlist_id)
+
+        return jsonify({
+            'success': True,
+            'message': 'Playlist removed from memory'
+        })
+    except Exception as e:
+        logger.error(f"Error deleting playlist memory for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
 
 
 @app.route('/health')

@@ -1474,7 +1474,9 @@ let importDialogState = {
     playlistUrl: '',
     playlist: null,
     songs: [],
-    selectedSongIds: new Set()
+    selectedSongIds: new Set(),
+    cachedPlaylists: [],
+    selectedPlaylistIndex: -1
 };
 
 // DOM Elements for Import Dialog
@@ -1508,11 +1510,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function showImportDialog() {
+async function showImportDialog() {
     importDialog.style.display = 'flex';
     importStepUrl.style.display = 'flex';
     importStepSelect.style.display = 'none';
     importStepProgress.style.display = 'none';
+
+    // Load playlist memory
+    await loadPlaylistMemory();
+
     importPlaylistUrl.focus();
 
     // Add keyboard shortcuts
@@ -1544,13 +1550,50 @@ function handleImportDialogKeyboard(e) {
         return;
     }
 
+    // Step 1: Navigate cached playlists with arrow keys
+    if (importStepUrl.style.display === 'flex' && importDialogState.cachedPlaylists.length > 0) {
+        // Don't handle arrow keys if user is typing in the input
+        const activeElement = document.activeElement;
+        const isTyping = activeElement === importPlaylistUrl;
+
+        if (!isTyping) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (importDialogState.selectedPlaylistIndex < importDialogState.cachedPlaylists.length - 1) {
+                    importDialogState.selectedPlaylistIndex++;
+                    updatePlaylistMemorySelection();
+                }
+                return;
+            }
+
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (importDialogState.selectedPlaylistIndex > 0) {
+                    importDialogState.selectedPlaylistIndex--;
+                    updatePlaylistMemorySelection();
+                } else if (importDialogState.selectedPlaylistIndex === -1 && importDialogState.cachedPlaylists.length > 0) {
+                    importDialogState.selectedPlaylistIndex = 0;
+                    updatePlaylistMemorySelection();
+                }
+                return;
+            }
+        }
+    }
+
     // ENTER to proceed based on current step
     if (e.key === 'Enter') {
         e.preventDefault();
         e.stopPropagation();
 
-        // Step 1: Load playlist (Enter in URL field triggers load)
+        // Step 1: Load playlist (Enter in URL field triggers load OR select cached playlist)
         if (importStepUrl.style.display === 'flex') {
+            // If a cached playlist is selected, load it
+            if (importDialogState.selectedPlaylistIndex >= 0) {
+                const selectedPlaylist = importDialogState.cachedPlaylists[importDialogState.selectedPlaylistIndex];
+                if (selectedPlaylist) {
+                    importPlaylistUrl.value = selectedPlaylist.playlist_url;
+                }
+            }
             loadPlaylistDetails();
         }
         // Step 2: Start import (but not if user is in the songs list)
@@ -1873,10 +1916,114 @@ async function startImport() {
     }
 }
 
+async function loadPlaylistMemory() {
+    try {
+        const response = await authenticatedApiCall('/api/playlist/memory');
+        const data = await response.json();
+
+        if (data.success && data.playlists && data.playlists.length > 0) {
+            importDialogState.cachedPlaylists = data.playlists;
+            importDialogState.selectedPlaylistIndex = -1;
+            renderPlaylistMemory(data.playlists);
+        } else {
+            importDialogState.cachedPlaylists = [];
+            importDialogState.selectedPlaylistIndex = -1;
+            // Hide the section if no playlists
+            const section = document.getElementById('playlist-memory-section');
+            if (section) section.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading playlist memory:', error);
+    }
+}
+
+function renderPlaylistMemory(playlists) {
+    const section = document.getElementById('playlist-memory-section');
+    const listDiv = document.getElementById('playlist-memory-list');
+
+    if (!section || !listDiv) return;
+
+    let html = '';
+    playlists.forEach((playlist, index) => {
+        const selectedClass = index === importDialogState.selectedPlaylistIndex ? 'selected' : '';
+        const imageHtml = playlist.image_url
+            ? `<img src="${escapeHtml(playlist.image_url)}" alt="Playlist cover" class="playlist-memory-item-art">`
+            : `<div class="playlist-memory-item-art-placeholder">🎵</div>`;
+
+        html += `<div class="playlist-memory-item ${selectedClass}" data-playlist-index="${index}" data-playlist-url="${escapeHtml(playlist.playlist_url)}">
+${imageHtml}
+<div class="playlist-memory-item-info">
+<div class="playlist-memory-item-title">${escapeHtml(playlist.name)}</div>
+<div class="playlist-memory-item-meta">by ${escapeHtml(playlist.owner)} • ${playlist.total_tracks} songs</div>
+</div>
+<button class="playlist-memory-delete-btn" data-playlist-id="${escapeHtml(playlist.id)}" title="Remove from recent"
+        onclick="deletePlaylistFromMemory('${escapeHtml(playlist.id)}', event)">✕</button>
+</div>`;
+    });
+
+    listDiv.innerHTML = html;
+    section.style.display = 'block';
+
+    // Add click handlers to playlist items
+    document.querySelectorAll('.playlist-memory-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            // Don't trigger if clicking the delete button
+            if (e.target.classList.contains('playlist-memory-delete-btn')) return;
+
+            const playlistUrl = item.dataset.playlistUrl;
+            importPlaylistUrl.value = playlistUrl;
+            loadPlaylistDetails();
+        });
+    });
+}
+
+function updatePlaylistMemorySelection() {
+    // Remove all selected classes
+    document.querySelectorAll('.playlist-memory-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+
+    // Add selected class to current index
+    if (importDialogState.selectedPlaylistIndex >= 0) {
+        const items = document.querySelectorAll('.playlist-memory-item');
+        if (items[importDialogState.selectedPlaylistIndex]) {
+            items[importDialogState.selectedPlaylistIndex].classList.add('selected');
+            items[importDialogState.selectedPlaylistIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+}
+
+async function deletePlaylistFromMemory(playlistId, event) {
+    if (event) {
+        event.stopPropagation(); // Prevent triggering the playlist item click
+    }
+
+    try {
+        const response = await authenticatedApiCall(`/api/playlist/memory/${playlistId}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Removed from recent playlists', 'success');
+            // Reload playlist memory
+            await loadPlaylistMemory();
+        } else {
+            showToast('Failed to remove playlist', 'error');
+        }
+    } catch (error) {
+        showToast('Error removing playlist: ' + error.message, 'error');
+    }
+}
+
+// Make deletePlaylistFromMemory global so it can be called from onclick
+window.deletePlaylistFromMemory = deletePlaylistFromMemory;
+
 async function finishImport() {
     closeImportDialog();
     await loadSongs(); // Reload song list
-    
+
     // Optionally: trigger background BPM fetches for all songs that were just imported
     // This will happen automatically when users view each song
 }

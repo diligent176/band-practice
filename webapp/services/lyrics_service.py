@@ -147,12 +147,20 @@ class LyricsService:
 
             songs_list.append(song_data)
 
+        # Get playlist cover image
+        image_url = ''
+        if playlist.get('images') and len(playlist['images']) > 0:
+            # Get the smallest image (last in list)
+            image_url = playlist['images'][-1]['url']
+
         return {
             'playlist': {
+                'id': playlist_id,
                 'name': playlist['name'],
                 'description': playlist.get('description', ''),
                 'owner': playlist['owner']['display_name'],
-                'total_tracks': len(songs_list)
+                'total_tracks': len(songs_list),
+                'image_url': image_url
             },
             'songs': songs_list
         }
