@@ -303,9 +303,17 @@ function renderMetadata() {
         { label: 'BPM', value: currentSong.bpm || 'N/A' }
     ];
 
-    songMetadata.innerHTML = metadata.map(item =>
+    let metadataHtml = metadata.map(item =>
         `<div class="metadata-item"><strong>${item.label}:</strong> ${item.value}</div>`
     ).join('<div class="metadata-item">|</div>');
+
+    // Add customization indicator if song has custom lyrics
+    if (currentSong.is_customized) {
+        metadataHtml += '<div class="metadata-item">|</div>';
+        metadataHtml += '<div class="metadata-item custom-lyrics-badge"><span class="custom-icon">✏️</span> Custom Lyrics</div>';
+    }
+
+    songMetadata.innerHTML = metadataHtml;
 }
 
 function renderLyrics() {
@@ -451,6 +459,9 @@ function enterEditMode() {
     saveNotesBtn.style.display = 'inline-flex';
     cancelEditBtn.style.display = 'inline-flex';
     notesTextarea.focus();
+
+    // Add keyboard shortcuts for notes editor
+    notesTextarea.addEventListener('keydown', handleNotesEditorKeyboard);
 }
 
 function exitEditMode() {
@@ -460,6 +471,22 @@ function exitEditMode() {
     editNotesBtn.style.display = 'inline-flex';
     saveNotesBtn.style.display = 'none';
     cancelEditBtn.style.display = 'none';
+
+    // Remove keyboard shortcuts
+    notesTextarea.removeEventListener('keydown', handleNotesEditorKeyboard);
+}
+
+function handleNotesEditorKeyboard(e) {
+    // ESC to cancel
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        exitEditMode();
+    }
+    // Ctrl+S to save
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        saveNotes();
+    }
 }
 
 // Event Handlers
@@ -591,16 +618,36 @@ function openLyricsEditor() {
 
     // Set up scroll sync and line number updates
     setupLyricsEditorScrollSync();
+
+    // Add keyboard shortcuts for lyrics editor
+    lyricsEditorTextarea.addEventListener('keydown', handleLyricsEditorKeyboard);
 }
 
 function updateLyricsEditorLineNumbers() {
     const lineNumbersDiv = document.getElementById('lyrics-editor-line-numbers');
     const lines = lyricsEditorTextarea.value.split('\n');
-    const lineCount = lines.length;
 
     let lineNumbersText = '';
-    for (let i = 1; i <= lineCount; i++) {
-        lineNumbersText += i + '\n';
+    let lineNum = 1;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmedLine = line.trim();
+
+        // Check if line is a section header like [Verse 1], [Chorus], etc.
+        const isHeader = /^\[.*\]/.test(trimmedLine);
+
+        // Check if line is blank
+        const isBlank = trimmedLine === '';
+
+        if (isHeader || isBlank) {
+            // Don't number headers or blank lines, just add empty space
+            lineNumbersText += '\n';
+        } else {
+            // Number regular lyric lines
+            lineNumbersText += lineNum + '\n';
+            lineNum++;
+        }
     }
 
     lineNumbersDiv.textContent = lineNumbersText;
@@ -650,6 +697,22 @@ function syncLyricsEditorScroll() {
 function closeLyricsEditor() {
     lyricsEditorDialog.style.display = 'none';
     lyricsEditorTextarea.value = '';
+
+    // Remove keyboard shortcuts
+    lyricsEditorTextarea.removeEventListener('keydown', handleLyricsEditorKeyboard);
+}
+
+function handleLyricsEditorKeyboard(e) {
+    // ESC to cancel
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeLyricsEditor();
+    }
+    // Ctrl+S to save
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        saveLyrics();
+    }
 }
 
 async function saveLyrics() {

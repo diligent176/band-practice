@@ -343,6 +343,20 @@ header h1 {
   margin-right: 3px;
 }
 
+.custom-lyrics-badge {
+  background: rgba(255, 152, 0, 0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-secondary);
+  font-weight: 600;
+  color: var(--accent-secondary);
+}
+
+.custom-icon {
+  font-size: 11px;
+  margin-right: 4px;
+}
+
 /* Lyrics Display */
 #lyrics-content-inner.lyrics-columns-1 {
   column-count: 1;
