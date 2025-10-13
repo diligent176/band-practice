@@ -6,6 +6,7 @@ A real-time web application for managing song lyrics and practice notes during b
 
 ✅ **Sync Spotify Playlists** - Import songs from any Spotify playlist
 ✅ **Auto-Fetch Lyrics** - Automatically downloads lyrics from Genius
+✅ **BPM Detection** - Automatically fetches song tempo/BPM data
 ✅ **Practice Notes** - Add line-specific notes that highlight when clicked
 ✅ **Real-Time Editing** - Edit notes during practice, auto-saves to cloud
 ✅ **Multi-Playlist Support** - Switch between different playlists anytime
@@ -79,6 +80,9 @@ SPOTIFY_PLAYLIST_URL=https://open.spotify.com/playlist/YOUR_ID
 # Genius API
 GENIUS_ACCESS_TOKEN=your_genius_token
 
+# GetSongBPM API (optional - for BPM detection)
+GETSONGBPM_API_KEY=your_getsongbpm_api_key
+
 # Flask
 SECRET_KEY=your-random-secret-key
 ```
@@ -112,6 +116,7 @@ terraform apply
 
 - **[Deployment Guide](.docs/WEBAPP_DEPLOYMENT.md)** - Complete GCP deployment instructions
 - **[Authentication Setup](.docs/AUTHENTICATION.md)** - Firebase Authentication configuration
+- **[GetSongBPM API Setup](.docs/GETSONGBPM-API.md)** - BPM detection configuration
 - **[ScraperAPI Setup](.docs/SCRAPERAPI_SETUP.md)** - Optional lyrics scraping proxy setup
 
 ## Tech Stack
