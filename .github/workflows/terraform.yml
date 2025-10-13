@@ -57,13 +57,13 @@ jobs:
           spotify_playlist_url    = "${{ secrets.SPOTIFY_PLAYLIST_URL }}"
           custom_domain           = "${{ vars.TF_VAR_CUSTOM_DOMAIN }}"
           EOF
+          terraform fmt terraform.tfvars
 
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Format Check
         run: terraform fmt -check
-        continue-on-error: true
 
       - name: Terraform Validate
         run: terraform validate
