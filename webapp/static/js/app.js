@@ -871,8 +871,51 @@ function highlightLines(noteBlock) {
 }
 
 function scrollIntoViewIfNeeded(element) {
-    // Just scroll - no checks, no BS
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Get the scrollable container (lyrics-content which is the panel-content)
+    const lyricsContainer = document.getElementById('lyrics-content');
+    if (!lyricsContainer || !element) {
+        console.log('❌ scrollIntoViewIfNeeded: container or element not found');
+        return;
+    }
+
+    // Get container bounds
+    const containerRect = lyricsContainer.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+    
+    console.log('📍 Container top:', containerRect.top, 'bottom:', containerRect.bottom);
+    console.log('📍 Element top:', elementRect.top, 'bottom:', elementRect.bottom);
+    
+    // Check if element is already fully visible in the container
+    const isVisible = (
+        elementRect.top >= containerRect.top &&
+        elementRect.bottom <= containerRect.bottom
+    );
+    
+    // If already visible, no need to scroll
+    if (isVisible) {
+        console.log('✅ Element already visible, no scroll needed');
+        return;
+    }
+    
+    // Calculate how much to scroll
+    // We want to center the element in the container
+    const containerHeight = lyricsContainer.clientHeight;
+    const elementHeight = element.offsetHeight;
+    
+    // Get current scroll position and element position relative to the container
+    const currentScroll = lyricsContainer.scrollTop;
+    const elementTop = elementRect.top - containerRect.top;
+    
+    // Calculate target scroll to center the element
+    const targetScroll = currentScroll + elementTop - (containerHeight / 2) + (elementHeight / 2);
+    
+    console.log('🎯 Current scroll:', currentScroll, 'Target scroll:', targetScroll);
+    
+    // Smoothly scroll ONLY the lyrics container, not the page
+    lyricsContainer.scrollTo({
+        top: Math.max(0, targetScroll),
+        behavior: 'smooth'
+    });
 }
 
 function navigateNotes(direction) {

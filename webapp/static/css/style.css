@@ -36,13 +36,15 @@ body {
 
 /* Header */
 header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow);
   padding: 2px 8px;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .header-single-row {
@@ -252,7 +254,11 @@ header h1 {
 
 /* Main Container */
 .container {
-  flex: 1;
+  position: fixed;
+  top: 32px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow: hidden;
   padding: 4px;
 }
@@ -326,6 +332,9 @@ header h1 {
   align-items: center;
   min-height: 0;
   gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .panel-header h2 {
