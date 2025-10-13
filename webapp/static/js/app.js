@@ -305,6 +305,7 @@ async function deleteCurrentSong() {
                     // Show the "Lyrics" heading again
                     if (lyricsHeading) {
                         lyricsHeading.style.display = 'block';
+                        lyricsHeading.textContent = 'Lyrics';
                     }
 
                     // Disable buttons
@@ -357,9 +358,15 @@ function renderSong() {
 }
 
 function renderMetadata() {
-    // Hide the "Lyrics" heading when a song is selected
+    // Show the song name in the heading when a song is selected
     if (lyricsHeading) {
-        lyricsHeading.style.display = 'none';
+        lyricsHeading.style.display = 'block';
+        let songName = currentSong.title;
+        // Trim to 32 characters with ellipsis if needed
+        if (songName.length > 32) {
+            songName = songName.substring(0, 32) + '...';
+        }
+        lyricsHeading.textContent = songName;
     }
 
     const metadata = [
@@ -586,6 +593,7 @@ function handleSongChange(e) {
         // No song selected - show the "Lyrics" heading
         if (lyricsHeading) {
             lyricsHeading.style.display = 'block';
+            lyricsHeading.textContent = 'Lyrics';
         }
         // Clear the song metadata
         songMetadata.innerHTML = '';
