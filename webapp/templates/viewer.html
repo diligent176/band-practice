@@ -151,12 +151,25 @@ Lines 45-48: Double time, watch for break"></textarea>
                         <span style="color: #FF9800;">⚠️ Customized</span>
                     </div>
                 </div>
-                <div class="dialog-help">
-                    Editing lyrics will mark this song as <strong>customized</strong>.
-                    Customized songs will not be overwritten during sync or refresh operations.
+                <div class="lyrics-editor-content">
+                    <div class="lyrics-editor-left">
+                        <div class="lyrics-editor-wrapper">
+                            <div id="lyrics-editor-line-numbers" class="lyrics-editor-line-numbers"></div>
+                            <textarea id="lyrics-editor-textarea" class="lyrics-editor-textarea"
+                                      placeholder="Enter lyrics here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="lyrics-editor-right">
+                        <div class="lyrics-editor-notes-header">
+                            <h4>Practice Notes</h4>
+                        </div>
+                        <div id="lyrics-editor-notes" class="lyrics-editor-notes">
+                            <div class="empty-state">
+                                <p>No notes for this song</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <textarea id="lyrics-editor-textarea" class="lyrics-editor-textarea"
-                          placeholder="Enter lyrics here..."></textarea>
                 <div class="dialog-actions">
                     <button id="lyrics-editor-cancel-btn" class="btn btn-secondary">Cancel</button>
                     <button id="lyrics-editor-save-btn" class="btn btn-primary">Save Changes</button>

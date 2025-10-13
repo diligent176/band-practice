@@ -724,9 +724,72 @@ function openLyricsEditor() {
     // Populate textarea with current lyrics (without line numbers)
     lyricsEditorTextarea.value = currentSong.lyrics || '';
 
+    // Update line numbers
+    updateLyricsEditorLineNumbers();
+
+    // Populate notes pane
+    populateLyricsEditorNotes();
+
     // Show the dialog
     lyricsEditorDialog.style.display = 'flex';
     lyricsEditorTextarea.focus();
+
+    // Set up scroll sync and line number updates
+    setupLyricsEditorScrollSync();
+}
+
+function updateLyricsEditorLineNumbers() {
+    const lineNumbersDiv = document.getElementById('lyrics-editor-line-numbers');
+    const lines = lyricsEditorTextarea.value.split('\n');
+    const lineCount = lines.length;
+
+    let lineNumbersText = '';
+    for (let i = 1; i <= lineCount; i++) {
+        lineNumbersText += i + '\n';
+    }
+
+    lineNumbersDiv.textContent = lineNumbersText;
+}
+
+function populateLyricsEditorNotes() {
+    const notesDiv = document.getElementById('lyrics-editor-notes');
+    const notes = currentSong.notes || '';
+
+    if (!notes.trim()) {
+        notesDiv.innerHTML = '<div class="empty-state"><p>No notes for this song</p></div>';
+        return;
+    }
+
+    const noteBlocks = parseNotes(notes);
+    let html = '';
+
+    noteBlocks.forEach(block => {
+        html += `
+            <div class="note-block" style="margin-bottom: 8px;">
+                <div class="note-header">${escapeHtml(block.header)}</div>
+                <div class="note-content">${escapeHtml(block.content)}</div>
+            </div>
+        `;
+    });
+
+    notesDiv.innerHTML = html;
+}
+
+function setupLyricsEditorScrollSync() {
+    // Remove any existing listeners
+    lyricsEditorTextarea.removeEventListener('scroll', syncLyricsEditorScroll);
+    lyricsEditorTextarea.removeEventListener('input', updateLyricsEditorLineNumbers);
+
+    // Add scroll sync
+    lyricsEditorTextarea.addEventListener('scroll', syncLyricsEditorScroll);
+
+    // Add line number update on input
+    lyricsEditorTextarea.addEventListener('input', updateLyricsEditorLineNumbers);
+}
+
+function syncLyricsEditorScroll() {
+    const lineNumbersDiv = document.getElementById('lyrics-editor-line-numbers');
+    lineNumbersDiv.scrollTop = lyricsEditorTextarea.scrollTop;
 }
 
 function closeLyricsEditor() {

@@ -692,34 +692,97 @@ header h1 {
   font-weight: 600;
 }
 
-.dialog-help {
+.lyrics-editor-content {
+  flex: 1;
+  display: flex;
+  gap: 15px;
+  min-height: 0;
+}
+
+.lyrics-editor-left {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lyrics-editor-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-secondary);
-  padding: 12px 15px;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  font-size: 13px;
-  border-left: 3px solid var(--accent-info);
-  color: var(--text-secondary);
+  min-width: 300px;
+  overflow: hidden;
+}
+
+.lyrics-editor-notes-header {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+.lyrics-editor-notes-header h4 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--accent-secondary);
+}
+
+.lyrics-editor-notes {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 15px;
+}
+
+.lyrics-editor-wrapper {
+  flex: 1;
+  display: flex;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.lyrics-editor-wrapper:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.lyrics-editor-line-numbers {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  padding: 15px 8px 15px 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid var(--border-color);
+  overflow: hidden;
+  white-space: pre;
+  min-width: 45px;
 }
 
 .lyrics-editor-textarea {
   flex: 1;
-  width: 100%;
   padding: 15px;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border: none;
   font-family: 'Courier New', monospace;
   font-size: 14px;
   line-height: 1.6;
   resize: none;
   overflow-y: auto;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
 }
 
 .lyrics-editor-textarea:focus {
   outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
 .dialog p {
