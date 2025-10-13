@@ -863,10 +863,27 @@ function highlightLines(noteBlock) {
         if (lineNum >= lineStart && lineNum <= lineEnd) {
             line.classList.add('highlighted');
             if (lineNum === lineStart) {
-                line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Only scroll if the line is not visible in the viewport
+                scrollIntoViewIfNeeded(line);
             }
         }
     });
+}
+
+function scrollIntoViewIfNeeded(element) {
+    const rect = element.getBoundingClientRect();
+    const parent = element.parentElement;
+    const parentRect = parent.getBoundingClientRect();
+    
+    // Check if element is already fully visible within its parent
+    const isVisible = (
+        rect.top >= parentRect.top &&
+        rect.bottom <= parentRect.bottom
+    );
+    
+    if (!isVisible) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 function navigateNotes(direction) {
