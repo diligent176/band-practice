@@ -1185,7 +1185,7 @@ function handleFontSizeChange(e) {
     const mainApp = document.getElementById('main-app');
 
     // Remove all font size classes
-    mainApp.classList.remove('font-size-small', 'font-size-medium', 'font-size-large', 'font-size-xlarge');
+    mainApp.classList.remove('font-size-small', 'font-size-medium', 'font-size-large', 'font-size-xlarge', 'font-size-xxlarge', 'font-size-xxxlarge');
 
     // Add the selected font size class
     mainApp.classList.add(`font-size-${fontSize}`);

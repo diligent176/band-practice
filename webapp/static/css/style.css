@@ -635,6 +635,44 @@ header h1 {
   line-height: 1.55;
 }
 
+/* XX-Large Font Size */
+.font-size-xxlarge .lyrics-line {
+  font-size: 20px;
+  line-height: 1.6;
+}
+
+.font-size-xxlarge .lyrics-line.section-header {
+  font-size: 20px;
+}
+
+.font-size-xxlarge .note-header {
+  font-size: 18px;
+}
+
+.font-size-xxlarge .note-content {
+  font-size: 19px;
+  line-height: 1.6;
+}
+
+/* XXX-Large Font Size */
+.font-size-xxxlarge .lyrics-line {
+  font-size: 24px;
+  line-height: 1.65;
+}
+
+.font-size-xxxlarge .lyrics-line.section-header {
+  font-size: 24px;
+}
+
+.font-size-xxxlarge .note-header {
+  font-size: 22px;
+}
+
+.font-size-xxxlarge .note-content {
+  font-size: 23px;
+  line-height: 1.65;
+}
+
 .lyrics-line {
   font-family: 'Courier New', monospace;
   margin: 0px 0;
