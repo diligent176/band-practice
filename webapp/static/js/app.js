@@ -178,6 +178,21 @@ function handleGlobalKeyboard(e) {
         }
         return;
     }
+
+    // Arrow keys to navigate through notes
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (navigateNotes(e.key === 'ArrowDown' ? 1 : -1)) {
+            e.preventDefault();
+        }
+        return;
+    }
+
+    // T to scroll to top
+    if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        scrollToTop();
+        return;
+    }
 }
 
 // API Functions
@@ -852,6 +867,44 @@ function highlightLines(noteBlock) {
             }
         }
     });
+}
+
+function navigateNotes(direction) {
+    // Get all note blocks
+    const noteBlocks = Array.from(document.querySelectorAll('.note-block'));
+    
+    // No notes to navigate
+    if (noteBlocks.length === 0) {
+        return false;
+    }
+
+    // Find currently active note
+    const activeIndex = noteBlocks.findIndex(block => block.classList.contains('active'));
+
+    let nextIndex;
+    if (activeIndex === -1) {
+        // No active note, select first or last based on direction
+        nextIndex = direction > 0 ? 0 : noteBlocks.length - 1;
+    } else {
+        // Move to next/previous note
+        nextIndex = activeIndex + direction;
+        
+        // Wrap around
+        if (nextIndex < 0) {
+            nextIndex = noteBlocks.length - 1;
+        } else if (nextIndex >= noteBlocks.length) {
+            nextIndex = 0;
+        }
+    }
+
+    // Highlight the selected note
+    const nextNoteBlock = noteBlocks[nextIndex];
+    highlightLines(nextNoteBlock);
+    
+    // Scroll the note block into view in the notes panel
+    nextNoteBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    return true;
 }
 
 // Edit Mode Functions
