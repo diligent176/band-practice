@@ -55,6 +55,7 @@ jobs:
           spotify_client_id       = "${{ secrets.SPOTIFY_CLIENT_ID }}"
           spotify_client_secret   = "${{ secrets.SPOTIFY_CLIENT_SECRET }}"
           spotify_playlist_url    = "${{ secrets.SPOTIFY_PLAYLIST_URL }}"
+          custom_domain           = "${{ vars.TF_VAR_CUSTOM_DOMAIN }}"
           EOF
 
       - name: Terraform Init
