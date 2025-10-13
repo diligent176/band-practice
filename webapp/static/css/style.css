@@ -14,7 +14,8 @@
   --text-primary: #e0e0e0;
   --text-secondary: #aaa;
   --text-muted: #666;
-  --accent-primary: #4CAF50;
+  --accent-primary: #1db954;
+  --accent-primary-dark: #148a3d;
   --accent-secondary: #FF9800;
   --accent-info: #64B5F6;
   --accent-warning: #FFB74D;
@@ -50,10 +51,11 @@ header {
 }
 
 header h1 {
-  font-size: 14px;
+  font-size: 16px;
   color: #fff;
   white-space: nowrap;
   margin: 0;
+  line-height: 1;
 }
 
 .song-selector {
@@ -93,6 +95,7 @@ header h1 {
   align-items: center;
   flex: 1;
   min-width: 0;
+  margin-right: 16px;
 }
 
 .font-size-selector {
@@ -119,7 +122,7 @@ header h1 {
 .font-size-select:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 }
 
 .user-info {
@@ -145,7 +148,7 @@ header h1 {
 .song-select:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 }
 
 /* Status Bar */
@@ -180,14 +183,14 @@ header h1 {
 }
 
 .btn-primary {
-  background: var(--accent-primary);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #45a049;
+  background: linear-gradient(135deg, #1ed760 0%, #169c46 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
 }
 
 .btn-secondary {
@@ -496,7 +499,7 @@ header h1 {
 }
 
 .lyrics-line.highlighted {
-  background: rgba(76, 175, 80, 0.2);
+  background: rgba(29, 185, 84, 0.2);
   border-left: 2px solid var(--accent-primary);
   padding-left: 6px;
 }
@@ -534,7 +537,7 @@ header h1 {
 .note-block.active {
   background: var(--bg-elevated);
   border-left-color: var(--accent-primary);
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 0 8px rgba(29, 185, 84, 0.3);
 }
 
 .note-header {
@@ -589,7 +592,7 @@ header h1 {
 .notes-textarea:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 }
 
 /* Empty State */
@@ -760,7 +763,7 @@ header h1 {
 .dialog .input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 }
 
 .dialog-actions {
@@ -860,7 +863,7 @@ header h1 {
 
 .lyrics-editor-wrapper:focus-within {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 }
 
 .lyrics-editor-line-numbers {
@@ -1069,7 +1072,7 @@ header h1 {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-primary), #66BB6A);
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-dark));
   transition: width 0.3s ease;
   width: 0%;
 }
@@ -1191,7 +1194,7 @@ header h1 {
 .song-search-input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.2);
 }
 
 .song-selector-list {
@@ -1226,7 +1229,7 @@ header h1 {
 .song-selector-item.selected {
   background: var(--bg-elevated);
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 }
 
 .song-selector-item-title {
@@ -1255,9 +1258,9 @@ header h1 {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(76, 175, 80, 0.3);
+  background: rgba(29, 185, 84, 0.3);
   color: var(--text-secondary);
-  border: 1px solid rgba(76, 175, 80, 0.4);
+  border: 1px solid rgba(29, 185, 84, 0.4);
   font-size: 20px;
   cursor: pointer;
   z-index: 1000;
@@ -1270,11 +1273,11 @@ header h1 {
 }
 
 .back-to-top-btn:hover {
-  background: rgba(76, 175, 80, 0.5);
+  background: rgba(29, 185, 84, 0.5);
   color: var(--text-primary);
   opacity: 1;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
 }
 
 .back-to-top-btn:active {
