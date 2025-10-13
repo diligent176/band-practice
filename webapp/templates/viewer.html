@@ -61,13 +61,16 @@
                     <div class="panel-header">
                         <div class="lyrics-header-left">
                             <h2 id="lyrics-heading">Lyrics</h2>
-                            <div class="song-metadata" id="song-metadata"></div>
+                            <div class="customization-badge-main" id="customization-badge-main" style="display: none;">
+                                <span>✏️ Custom Lyric</span>
+                            </div>
                         </div>
+                        <div class="song-metadata" id="song-metadata"></div>
                         <div class="lyrics-header-actions">
-                            <button id="toggle-columns-btn" class="btn btn-icon" title="2 col">
+                            <button id="toggle-columns-btn" class="btn btn-icon" title="Toggle columns (C)">
                                 <span class="icon">⚙️</span>
                             </button>
-                            <button id="edit-lyrics-btn" class="btn btn-icon" disabled title="Edit lyric">
+                            <button id="edit-lyrics-btn" class="btn btn-icon" disabled title="Edit lyric (E)">
                                 <span class="icon">✏️</span>
                             </button>
                             <button id="fetch-bpm-btn" class="btn btn-icon" disabled title="Fetch BPM">
@@ -96,11 +99,13 @@
                 <!-- Notes Panel -->
                 <div class="panel notes-panel" id="notes-panel">
                     <div class="panel-header">
-                        <h2>Practice Notes</h2>
-                        <div class="notes-actions">
-                            <button id="edit-notes-btn" class="btn btn-small btn-secondary" disabled>
-                                <span class="icon">✏️</span> Edit
+                        <div class="notes-header-left">
+                            <h2>Practice Notes</h2>
+                            <button id="edit-notes-btn" class="btn btn-icon" disabled title="Edit notes (N)">
+                                <span class="icon">✏️</span>
                             </button>
+                        </div>
+                        <div class="notes-actions">
                             <button id="save-notes-btn" class="btn btn-small btn-primary" style="display: none;">
                                 <span class="icon">💾</span> Save
                             </button>
@@ -199,7 +204,7 @@ Line 71: thend"></textarea>
                 <div class="dialog-header">
                     <h3 id="lyrics-editor-title">Edit Lyrics</h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <button id="tighten-lyrics-btn" class="btn btn-small btn-secondary" title="Remove blank lines after section headers">
+                        <button id="tighten-lyrics-btn" class="btn btn-small btn-secondary" title="Remove blank lines after section headers (Alt+T)">
                             <span class="icon">📐</span> Tighten
                         </button>
                         <div class="customization-badge" id="customization-badge" style="display: none;">

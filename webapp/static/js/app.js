@@ -47,6 +47,7 @@ const lyricsEditorTextarea = document.getElementById('lyrics-editor-textarea');
 const lyricsEditorSaveBtn = document.getElementById('lyrics-editor-save-btn');
 const lyricsEditorCancelBtn = document.getElementById('lyrics-editor-cancel-btn');
 const customizationBadge = document.getElementById('customization-badge');
+const customizationBadgeMain = document.getElementById('customization-badge-main');
 const tightenLyricsBtn = document.getElementById('tighten-lyrics-btn');
 
 const confirmDialog = document.getElementById('confirm-dialog');
@@ -113,6 +114,12 @@ function setupEventListeners() {
 
 // Global keyboard shortcut handler
 function handleGlobalKeyboard(e) {
+    // Ignore if user is typing in an input field
+    const activeElement = document.activeElement;
+    const isTyping = activeElement.tagName === 'INPUT' || 
+                     activeElement.tagName === 'TEXTAREA' || 
+                     activeElement.isContentEditable;
+
     // Ctrl+O to open song selector
     if (e.ctrlKey && e.key === 'o') {
         e.preventDefault();
@@ -124,6 +131,41 @@ function handleGlobalKeyboard(e) {
     if (e.ctrlKey && e.key === 'i') {
         e.preventDefault();
         openImportDialog();
+        return;
+    }
+
+    // Don't process simple key shortcuts if user is typing
+    if (isTyping) {
+        return;
+    }
+
+    // E to edit lyrics
+    if (e.key === 'e' || e.key === 'E') {
+        const editLyricsBtn = document.getElementById('edit-lyrics-btn');
+        if (editLyricsBtn && !editLyricsBtn.disabled) {
+            e.preventDefault();
+            editLyricsBtn.click();
+        }
+        return;
+    }
+
+    // N to edit notes
+    if (e.key === 'n' || e.key === 'N') {
+        const editNotesBtn = document.getElementById('edit-notes-btn');
+        if (editNotesBtn && !editNotesBtn.disabled) {
+            e.preventDefault();
+            editNotesBtn.click();
+        }
+        return;
+    }
+
+    // C to toggle columns
+    if (e.key === 'c' || e.key === 'C') {
+        const toggleColumnsBtn = document.getElementById('toggle-columns-btn');
+        if (toggleColumnsBtn && !toggleColumnsBtn.disabled) {
+            e.preventDefault();
+            toggleColumnsBtn.click();
+        }
         return;
     }
 }
@@ -624,6 +666,15 @@ function renderMetadata() {
         lyricsHeading.textContent = songName;
     }
 
+    // Show/hide customization badge in main view
+    if (customizationBadgeMain) {
+        if (currentSong.is_customized) {
+            customizationBadgeMain.style.display = 'inline-flex';
+        } else {
+            customizationBadgeMain.style.display = 'none';
+        }
+    }
+
     // Truncate helper function
     const truncate = (text, maxLength = 32) => {
         if (!text) return 'N/A';
@@ -647,11 +698,8 @@ function renderMetadata() {
         `<div class="metadata-item"><span class="metadata-icon">${item.icon}</span> ${item.value}</div>`
     ).join('');
 
-    // Add customization indicator if song has custom lyrics
-    if (currentSong.is_customized) {
-        metadataHtml += '<div class="metadata-item custom-lyrics-badge"><span class="custom-icon">✏️</span>Custom Lyric</div>';
-    }
-
+    // Note: Custom lyric badge is now shown in the header next to song name, not in metadata
+    
     songMetadata.innerHTML = metadataHtml;
 }
 
@@ -687,7 +735,7 @@ function renderNotes() {
     const notes = currentSong.notes || '';
 
     if (!notes.trim()) {
-        notesView.innerHTML = '<div class="empty-state"><p>No notes yet. Click Edit to add drummer notes.</p></div>';
+        notesView.innerHTML = '<div class="empty-state"><p>No notes yet. Click Edit to add practice notes.</p></div>';
         return;
     }
 
@@ -979,8 +1027,10 @@ function openLyricsEditor() {
     // Show customization badge if song is already customized
     if (currentSong.is_customized) {
         customizationBadge.style.display = 'block';
+        if (customizationBadgeMain) customizationBadgeMain.style.display = 'inline-flex';
     } else {
         customizationBadge.style.display = 'none';
+        if (customizationBadgeMain) customizationBadgeMain.style.display = 'none';
     }
 
     // Populate textarea with current lyrics (without line numbers)
@@ -1103,6 +1153,14 @@ function handleLyricsEditorKeyboard(e) {
         e.preventDefault();
         e.stopPropagation();
         saveLyrics();
+        return;
+    }
+
+    // Alt+T to tighten lyrics
+    if (e.altKey && (e.key === 't' || e.key === 'T')) {
+        e.preventDefault();
+        e.stopPropagation();
+        tightenLyrics();
         return;
     }
 }
