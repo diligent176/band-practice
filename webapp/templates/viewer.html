@@ -6,6 +6,7 @@
     <title>Band Practice PRO</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -39,7 +40,7 @@
                     <span id="status-message" class="status-message"></span>
                 </div>
                 <div class="font-size-selector">
-                    <label for="font-size-select" title="Font Size">🔤</label>
+                    <i class="fa-solid fa-text-height" title="Font Size"></i>
                     <select id="font-size-select" class="font-size-select">
                         <option value="small">Small</option>
                         <option value="medium" selected>Medium</option>
@@ -49,12 +50,15 @@
                 </div>
                 <div class="keyboard-shortcuts-help">
                     <button class="btn btn-icon" title="P: Import Playlist&#10;S: Song Selector&#10;E: Edit Lyrics&#10;N: Edit Notes&#10;C: Toggle Columns&#10;T: Panel Resize Mode&#10;↑↓: Navigate Notes&#10;HOME: First Note&#10;END: Last Note&#10;Alt+D: Delete Song">
-                        <span class="icon">⌨️</span>
+                        <i class="fa-solid fa-keyboard"></i>
                     </button>
                 </div>
                 <div class="user-info">
                     <span id="user-email" class="user-email">Loading...</span>
-                    <button id="signout-btn" class="btn btn-small btn-secondary">Sign Out</button>
+                    <button id="signout-btn" class="btn btn-small btn-secondary">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <span>Sign Out</span>
+                    </button>
                 </div>
             </div>
         </header>
