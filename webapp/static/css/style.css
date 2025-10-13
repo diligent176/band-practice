@@ -115,12 +115,18 @@ header h1 {
   border-radius: 6px;
   padding: 5px 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.font-size-selector:hover {
+  background: #323232;
+  border-color: #444;
 }
 
 .font-size-selector i {
   font-size: 16px;
   color: var(--text-secondary);
-  opacity: 0.85;
 }
 
 .font-size-select {
@@ -152,6 +158,13 @@ header h1 {
   border-radius: 6px;
   padding: 5px 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  cursor: help;
+}
+
+.keyboard-shortcuts-help:hover {
+  background: #323232;
+  border-color: #444;
 }
 
 .keyboard-shortcuts-help .btn-icon {
@@ -159,19 +172,18 @@ header h1 {
   background: transparent;
   border: none;
   min-width: auto;
+  transition: none;
 }
 
 .keyboard-shortcuts-help .btn-icon:hover {
   background: transparent;
   transform: none;
   box-shadow: none;
-  opacity: 0.7;
 }
 
 .keyboard-shortcuts-help .btn-icon i {
   font-size: 16px;
   color: var(--text-secondary);
-  opacity: 0.85;
 }
 
 .keyboard-shortcuts-help .btn-icon[title] {
@@ -194,6 +206,13 @@ header h1 {
   border: 1px solid var(--card-border);
   white-space: nowrap;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.user-email:hover {
+  background: #323232;
+  border-color: #444;
 }
 
 #signout-btn {
@@ -205,17 +224,17 @@ header h1 {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 }
 
 #signout-btn i {
   font-size: 13px;
-  opacity: 0.8;
 }
 
 #signout-btn:hover {
-  background: var(--bg-tertiary);
-  border-color: #666;
-  transform: translateY(-1px);
+  background: #323232;
+  border-color: #444;
+  transform: none;
 }
 
 #signout-btn::before {
