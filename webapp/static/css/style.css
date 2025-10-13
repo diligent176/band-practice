@@ -357,6 +357,30 @@ header h1 {
   margin-right: 4px;
 }
 
+/* BPM Loading Indicator */
+.bpm-loading {
+  display: inline-block;
+  font-size: 10px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+#bpm-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* Lyrics Display */
 #lyrics-content-inner.lyrics-columns-1 {
   column-count: 1;

@@ -22,6 +22,7 @@ const editNotesBtn = document.getElementById('edit-notes-btn');
 const saveNotesBtn = document.getElementById('save-notes-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const refreshSongBtn = document.getElementById('refresh-song-btn');
+const fetchBpmBtn = document.getElementById('fetch-bpm-btn');
 const editLyricsBtn = document.getElementById('edit-lyrics-btn');
 const deleteSongBtn = document.getElementById('delete-song-btn');
 const toggleColumnsBtn = document.getElementById('toggle-columns-btn');
@@ -57,6 +58,7 @@ function setupEventListeners() {
     saveNotesBtn.addEventListener('click', saveNotes);
     cancelEditBtn.addEventListener('click', exitEditMode);
     refreshSongBtn.addEventListener('click', refreshCurrentSong);
+    fetchBpmBtn.addEventListener('click', manuallyFetchBpm);
     editLyricsBtn.addEventListener('click', openLyricsEditor);
     deleteSongBtn.addEventListener('click', deleteCurrentSong);
     lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
@@ -126,11 +128,17 @@ async function loadSong(songId) {
             editNotesBtn.disabled = false;
             editLyricsBtn.disabled = false;
             deleteSongBtn.disabled = false;
+            fetchBpmBtn.disabled = false;
             setStatus('Song loaded', 'success');
 
             // Load saved preferences for this song
             loadColumnPreference(currentSong.id);
             loadPanelSplit(currentSong.id);
+
+            // Fetch BPM in background if not available
+            if (!currentSong.bpm || currentSong.bpm === 'N/A') {
+                fetchBpmInBackground(currentSong.id, currentSong.title, currentSong.artist);
+            }
         } else {
             showToast('Failed to load song', 'error');
         }
@@ -140,6 +148,46 @@ async function loadSong(songId) {
         hideLoading();
     }
 }
+
+async function fetchBpmInBackground(songId, title, artist) {
+    try {
+        console.log(`🎵 Fetching BPM for ${title} by ${artist} in background...`);
+        const response = await authenticatedApiCall(`/api/songs/${songId}/bpm`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success && currentSong && currentSong.id === songId) {
+            // Only update if we're still viewing the same song
+            currentSong.bpm = data.bpm;
+            renderMetadata();
+            console.log(`✅ BPM updated: ${data.bpm}`);
+            
+            // Show toast notification if BPM was found
+            if (data.bpm && data.bpm !== 'N/A') {
+                showToast(`BPM updated: ${data.bpm}`, 'success');
+            } else {
+                showToast('BPM not available for this song', 'info');
+            }
+        }
+    } catch (error) {
+        console.error(`Error fetching BPM for ${title}:`, error);
+        // Update UI to remove loading indicator even on error
+        if (currentSong && currentSong.id === songId) {
+            renderMetadata();
+        }
+        // Silently fail - don't show error to user as this is background operation
+    }
+}
+
+async function manuallyFetchBpm() {
+    if (!currentSong) return;
+    
+    showToast('Fetching BPM...', 'info');
+    await fetchBpmInBackground(currentSong.id, currentSong.title, currentSong.artist);
+}
+
 
 async function saveNotes() {
     if (!currentSong) return;
@@ -256,7 +304,9 @@ async function deleteCurrentSong() {
                     // Disable buttons
                     refreshSongBtn.disabled = true;
                     editNotesBtn.disabled = true;
+                    editLyricsBtn.disabled = true;
                     deleteSongBtn.disabled = true;
+                    fetchBpmBtn.disabled = true;
 
                     // Clear displays
                     lyricsContentInner.innerHTML = '<div class="empty-state"><p>Select a song to view lyrics</p></div>';
@@ -304,9 +354,15 @@ function renderMetadata() {
     const metadata = [
         { label: 'Artist', value: currentSong.artist },
         { label: 'Album', value: currentSong.album },
-        { label: 'Year', value: currentSong.year },
-        { label: 'BPM', value: currentSong.bpm || 'N/A' }
+        { label: 'Year', value: currentSong.year }
     ];
+
+    // Add BPM with loading indicator if needed
+    const bpmValue = currentSong.bpm || 'N/A';
+    const bpmDisplay = bpmValue === 'N/A' ? 
+        '<span id="bpm-value">N/A <span class="bpm-loading">⏳</span></span>' : 
+        `<span id="bpm-value">${bpmValue}</span>`;
+    metadata.push({ label: 'BPM', value: bpmDisplay });
 
     let metadataHtml = metadata.map(item =>
         `<div class="metadata-item"><strong>${item.label}:</strong> ${item.value}</div>`
@@ -1240,6 +1296,9 @@ async function startImport() {
 async function finishImport() {
     closeImportDialog();
     await loadSongs(); // Reload song list
+    
+    // Optionally: trigger background BPM fetches for all songs that were just imported
+    // This will happen automatically when users view each song
 }
 
 //=============================================================================

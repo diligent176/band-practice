@@ -109,6 +109,9 @@ class LyricsService:
                 # Get the smallest image
                 album_art = track['album']['images'][-1]['url']
 
+            # Fetch BPM from GetSongBPM
+            bpm = self._fetch_bpm(title, artist)
+
             # Create song ID
             song_id = self._create_song_id(title, artist)
 
@@ -137,6 +140,7 @@ class LyricsService:
                 'year': year,
                 'album_art': album_art,
                 'spotify_uri': track['uri'],
+                'bpm': bpm,
                 'status': status,
                 'has_conflict': has_conflict
             }
@@ -211,7 +215,7 @@ class LyricsService:
                 # Fetch lyrics from Genius
                 lyrics_data = self._fetch_lyrics(title, artist)
 
-                # Prepare song data
+                # Prepare song data (BPM will be fetched in background via separate API call)
                 song_data = {
                     'title': title,
                     'artist': artist,
@@ -220,7 +224,7 @@ class LyricsService:
                     'spotify_uri': track['uri'],
                     'lyrics': lyrics_data['lyrics'],
                     'lyrics_numbered': lyrics_data['lyrics_numbered'],
-                    'bpm': 'N/A'
+                    'bpm': 'N/A'  # Will be updated by background fetch
                 }
 
                 # Save to Firestore
@@ -290,7 +294,7 @@ class LyricsService:
                 # Fetch lyrics from Genius
                 lyrics_data = self._fetch_lyrics(title, artist)
 
-                # Prepare song data
+                # Prepare song data (BPM will be fetched in background via separate API call)
                 song_data = {
                     'title': title,
                     'artist': artist,
@@ -299,7 +303,7 @@ class LyricsService:
                     'spotify_uri': track['uri'],
                     'lyrics': lyrics_data['lyrics'],
                     'lyrics_numbered': lyrics_data['lyrics_numbered'],
-                    'bpm': 'N/A'  # Could add BPM fetching if available
+                    'bpm': 'N/A'  # Will be updated by background fetch
                 }
 
                 # Save to Firestore
@@ -331,6 +335,15 @@ class LyricsService:
 
         self.firestore.create_or_update_song(song_id, song_data)
         return self.firestore.get_song(song_id)
+
+    def fetch_and_update_bpm(self, song_id, title, artist):
+        """Fetch and update BPM for a single song (called asynchronously from frontend)"""
+        bpm = self._fetch_bpm(title, artist)
+        
+        song_data = {'bpm': bpm}
+        self.firestore.create_or_update_song(song_id, song_data)
+        
+        return {'bpm': bpm}
 
     def _search_genius(self, query):
         """Search Genius API for a song"""
@@ -493,6 +506,56 @@ class LyricsService:
                 formatted_lines.append('')
 
         return '\n'.join(formatted_lines)
+
+    def _fetch_bpm(self, title, artist):
+        """
+        Fetch BPM (tempo) from GetSongBPM API
+
+        NOTE: Spotify's audio_features API was deprecated in November 2024
+        and now returns 403 errors for all new applications.
+
+        Args:
+            title: Song title
+            artist: Artist name
+
+        Returns:
+            BPM as integer, or 'N/A' if unavailable
+        """
+        try:
+            # Check if GetSongBPM API key is configured
+            api_key = os.getenv('GETSONGBPM_API_KEY')
+            if not api_key:
+                print("GetSongBPM API key not configured - BPM will be 'N/A'")
+                return 'N/A'
+
+            # Search for the song
+            search_url = 'https://api.getsongbpm.com/search/'
+            params = {
+                'api_key': api_key,
+                'type': 'song',
+                'lookup': f'{artist} {title}'
+            }
+
+            response = requests.get(search_url, params=params, timeout=10)
+
+            if response.status_code == 200:
+                data = response.json()
+                # Check if we got results
+                if data.get('search') and len(data['search']) > 0:
+                    # Get the first result
+                    first_result = data['search'][0]
+                    tempo = first_result.get('tempo')
+                    if tempo:
+                        bpm = int(tempo)
+                        print(f"Fetched BPM from GetSongBPM: {bpm} for '{title}' by {artist}")
+                        return bpm
+
+            print(f"No BPM found for '{title}' by {artist}")
+            return 'N/A'
+
+        except Exception as e:
+            print(f"Error fetching BPM for '{title}' by {artist}: {e}")
+            return 'N/A'
 
     def _create_song_id(self, title, artist):
         """Create a consistent song ID from title and artist"""

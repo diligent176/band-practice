@@ -240,6 +240,31 @@ def refresh_song(song_id):
         return jsonify({'error': str(e), 'success': False}), 500
 
 
+@app.route('/api/songs/<song_id>/bpm', methods=['POST'])
+@require_auth
+def fetch_bpm(song_id):
+    """Fetch BPM for a specific song (called asynchronously from frontend)"""
+    try:
+        song = firestore.get_song(song_id)
+        if not song:
+            return jsonify({'error': 'Song not found', 'success': False}), 404
+
+        logger.info(f"User {g.user.get('email')} fetching BPM for song {song_id}")
+        result = lyrics_service.fetch_and_update_bpm(
+            song_id,
+            song['title'],
+            song['artist']
+        )
+
+        return jsonify({
+            'success': True,
+            'bpm': result['bpm']
+        })
+    except Exception as e:
+        logger.error(f"Error fetching BPM for song {song_id} by user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
 @app.route('/api/songs/<song_id>', methods=['DELETE'])
 @require_auth
 def delete_song(song_id):
