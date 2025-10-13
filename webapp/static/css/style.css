@@ -46,7 +46,7 @@ header {
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow);
-  padding: 2px 8px;
+  padding: 1px 8px;
   z-index: 1000;
 }
 
@@ -55,7 +55,7 @@ header {
   align-items: center;
   gap: 20px;
   width: 100%;
-  min-height: 24px;
+  min-height: 22px;
 }
 
 header h1 {
@@ -297,8 +297,8 @@ header h1 {
 }
 
 .btn-icon {
-  padding: 4px 6px;
-  font-size: 14px;
+  padding: 3px 5px;
+  font-size: 13px;
   min-width: auto;
   border-radius: 4px;
   background: linear-gradient(135deg, #18a049 0%, #128a3d 100%);
@@ -335,12 +335,12 @@ header h1 {
 /* Main Container */
 .container {
   position: fixed;
-  top: 32px;
+  top: 30px;
   left: 0;
   right: 0;
   bottom: 0;
   overflow: hidden;
-  padding: 4px;
+  padding: 6px;
 }
 
 .panels {
@@ -369,12 +369,12 @@ header h1 {
 .notes-panel {
   flex: 1;
   min-width: 150px;
-  margin-left: 8px;
+  margin-left: 4px;
 }
 
 /* Resize Handle */
 .resize-handle {
-  width: 8px;
+  width: 4px;
   cursor: col-resize;
   background: transparent;
   position: relative;
@@ -405,12 +405,12 @@ header h1 {
 }
 
 .panel-header {
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-tertiary);
   display: flex;
   align-items: center;
-  min-height: 0;
+  min-height: 28px;
   gap: 8px;
   position: sticky;
   top: 0;
@@ -418,7 +418,7 @@ header h1 {
 }
 
 .panel-header h2 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
@@ -432,7 +432,7 @@ header h1 {
 
 #song-icon {
   color: var(--accent-primary);
-  font-size: 16px;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -505,7 +505,7 @@ header h1 {
 }
 
 .metadata-item {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -516,7 +516,7 @@ header h1 {
 }
 
 .metadata-icon {
-  font-size: 14px;
+  font-size: 12px;
   flex-shrink: 0;
   color: var(--text-secondary);
 }
