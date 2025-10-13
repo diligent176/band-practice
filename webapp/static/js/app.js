@@ -16,6 +16,7 @@ const notesView = document.getElementById('notes-view');
 const notesEdit = document.getElementById('notes-edit');
 const notesTextarea = document.getElementById('notes-textarea');
 const songMetadata = document.getElementById('song-metadata');
+const lyricsHeading = document.getElementById('lyrics-heading');
 const statusMessage = document.getElementById('status-message');
 
 const editNotesBtn = document.getElementById('edit-notes-btn');
@@ -301,6 +302,11 @@ async function deleteCurrentSong() {
                     // Clear current song
                     currentSong = null;
 
+                    // Show the "Lyrics" heading again
+                    if (lyricsHeading) {
+                        lyricsHeading.style.display = 'block';
+                    }
+
                     // Disable buttons
                     refreshSongBtn.disabled = true;
                     editNotesBtn.disabled = true;
@@ -351,6 +357,11 @@ function renderSong() {
 }
 
 function renderMetadata() {
+    // Hide the "Lyrics" heading when a song is selected
+    if (lyricsHeading) {
+        lyricsHeading.style.display = 'none';
+    }
+
     const metadata = [
         { label: 'Artist', value: currentSong.artist },
         { label: 'Album', value: currentSong.album },
@@ -571,6 +582,15 @@ function handleSongChange(e) {
     const songId = e.target.value;
     if (songId) {
         loadSong(songId);
+    } else {
+        // No song selected - show the "Lyrics" heading
+        if (lyricsHeading) {
+            lyricsHeading.style.display = 'block';
+        }
+        // Clear the song metadata
+        songMetadata.innerHTML = '';
+        // Reset current song
+        currentSong = null;
     }
 }
 
