@@ -978,6 +978,10 @@ function openLyricsEditor() {
     lyricsEditorDialog.style.display = 'flex';
     lyricsEditorTextarea.focus();
 
+    // Set cursor to the beginning of the document
+    lyricsEditorTextarea.setSelectionRange(0, 0);
+    lyricsEditorTextarea.scrollTop = 0;
+
     // Set up scroll sync and line number updates
     setupLyricsEditorScrollSync();
 
