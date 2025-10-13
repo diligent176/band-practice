@@ -369,10 +369,16 @@ function renderMetadata() {
         lyricsHeading.textContent = songName;
     }
 
+    // Truncate helper function
+    const truncate = (text, maxLength = 32) => {
+        if (!text) return 'N/A';
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
+
     const metadata = [
-        { label: 'Artist', value: currentSong.artist },
-        { label: 'Album', value: currentSong.album },
-        { label: 'Year', value: currentSong.year }
+        { icon: '🎤', label: 'Artist', value: truncate(currentSong.artist) },
+        { icon: '💿', label: 'Album', value: truncate(currentSong.album) },
+        { icon: '📅', label: 'Year', value: currentSong.year || 'N/A' }
     ];
 
     // Add BPM with loading indicator if needed
@@ -380,16 +386,15 @@ function renderMetadata() {
     const bpmDisplay = bpmValue === 'N/A' ? 
         '<span id="bpm-value">N/A <span class="bpm-loading">⏳</span></span>' : 
         `<span id="bpm-value">${bpmValue}</span>`;
-    metadata.push({ label: 'BPM', value: bpmDisplay });
+    metadata.push({ icon: '🎵', label: 'BPM', value: bpmDisplay });
 
     let metadataHtml = metadata.map(item =>
-        `<div class="metadata-item"><strong>${item.label}:</strong> ${item.value}</div>`
-    ).join('<div class="metadata-item">|</div>');
+        `<div class="metadata-item"><span class="metadata-icon">${item.icon}</span> ${item.value}</div>`
+    ).join('');
 
     // Add customization indicator if song has custom lyrics
     if (currentSong.is_customized) {
-        metadataHtml += '<div class="metadata-item">|</div>';
-        metadataHtml += '<div class="metadata-item custom-lyrics-badge"><span class="custom-icon">✏️</span> Custom Lyrics</div>';
+        metadataHtml += '<div class="metadata-item custom-lyrics-badge"><span class="custom-icon">✏️</span>Custom Lyric</div>';
     }
 
     songMetadata.innerHTML = metadataHtml;
