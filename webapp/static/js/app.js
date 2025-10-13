@@ -898,11 +898,13 @@ function toggleColumns() {
     if (isColumnMode2) {
         lyricsContentInner.classList.remove('lyrics-columns-1');
         lyricsContentInner.classList.add('lyrics-columns-2');
-        toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 2 Col';
+        toggleColumnsBtn.innerHTML = '<span class="icon">⚙️</span>';
+        toggleColumnsBtn.title = '1 col';
     } else {
         lyricsContentInner.classList.remove('lyrics-columns-2');
         lyricsContentInner.classList.add('lyrics-columns-1');
-        toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 1 Col';
+        toggleColumnsBtn.innerHTML = '<span class="icon">⚙️</span>';
+        toggleColumnsBtn.title = '2 col';
     }
 
     // Save column preference for this song
@@ -926,11 +928,13 @@ function loadColumnPreference(songId) {
     if (isColumnMode2) {
         lyricsContentInner.classList.remove('lyrics-columns-1');
         lyricsContentInner.classList.add('lyrics-columns-2');
-        toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 2 Col';
+        toggleColumnsBtn.innerHTML = '<span class="icon">⚙️</span>';
+        toggleColumnsBtn.title = '1 col';
     } else {
         lyricsContentInner.classList.remove('lyrics-columns-2');
         lyricsContentInner.classList.add('lyrics-columns-1');
-        toggleColumnsBtn.innerHTML = '<span class="icon">⚙</span> 1 Col';
+        toggleColumnsBtn.innerHTML = '<span class="icon">⚙️</span>';
+        toggleColumnsBtn.title = '2 col';
     }
 }
 
