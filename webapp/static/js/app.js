@@ -59,13 +59,7 @@ const confirmDialogCancelBtn = document.getElementById('confirm-dialog-cancel-bt
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
     authenticatedApiCall = apiCallFunction;
-    
-    // Debug: Check if dialog elements exist
-    console.log('🔍 Dialog elements check:');
-    console.log('  - songSelectorDialog:', songSelectorDialog);
-    console.log('  - songSelectorList:', songSelectorList);
-    console.log('  - songSearchInput:', songSearchInput);
-    
+
     loadFontSizePreference();
     loadUserInfo();
     loadSongs();
@@ -148,7 +142,7 @@ async function loadSongs() {
 
         if (data.success) {
             allSongs = data.songs;
-            console.log(`✅ Loaded ${allSongs.length} songs:`, allSongs);
+            console.log(`✅ Loaded ${allSongs.length} songs`);
             updateCurrentSongDisplay();
             // If song selector is open, refresh the list
             if (songSelectorDialog && songSelectorDialog.style.display === 'flex') {
@@ -389,22 +383,19 @@ async function deleteCurrentSong() {
 }
 
 function openSongSelector() {
-    console.log('🚀 Opening song selector. allSongs.length:', allSongs.length);
-    
     songSelectorDialog.style.display = 'flex';
     songSearchInput.value = '';
-    
+
     // Initialize filtered songs with all songs
     filteredSongs = [...allSongs];
-    
+
     // Sort by title initially
     filteredSongs.sort((a, b) => a.title.localeCompare(b.title));
-    
-    console.log('📋 About to render', filteredSongs.length, 'songs');
+
     renderSongList();
-    
+
     songSearchInput.focus();
-    
+
     // Add keyboard handler for song selector
     document.addEventListener('keydown', handleSongSelectorKeyboard);
 }
@@ -426,18 +417,19 @@ function toggleSongSort() {
 function filterSongs() {
     try {
         const searchTerm = songSearchInput.value.toLowerCase();
-        
-        console.log('🔍 filterSongs called. searchTerm:', searchTerm);
-        
+
         // Filter songs
         filteredSongs = allSongs.filter(song => {
             const title = song.title.toLowerCase();
             const artist = song.artist.toLowerCase();
             return title.includes(searchTerm) || artist.includes(searchTerm);
         });
-        
-        console.log('📝 Filtered to', filteredSongs.length, 'songs');
-        
+
+        // Log search info
+        if (searchTerm) {
+            console.log(`🔍 Search: "${searchTerm}" - ${filteredSongs.length} results`);
+        }
+
         // Sort songs
         filteredSongs.sort((a, b) => {
             if (songSelectorSortByArtist) {
@@ -447,7 +439,7 @@ function filterSongs() {
                 return a.title.localeCompare(b.title);
             }
         });
-        
+
         renderSongList();
     } catch (error) {
         console.error('❌ Error in filterSongs:', error);
@@ -457,35 +449,26 @@ function filterSongs() {
 function renderSongList() {
     try {
         const listElement = document.getElementById('song-selector-list');
-        
-        console.log('🎨 renderSongList called');
-        console.log('  - allSongs.length:', allSongs.length);
-        console.log('  - filteredSongs.length:', filteredSongs.length);
-        console.log('  - listElement:', listElement);
-        
+
         if (!listElement) {
             console.error('❌ song-selector-list element not found!');
             return;
         }
-        
+
         if (allSongs.length === 0) {
-            console.log('⚠️ No songs in database');
             listElement.innerHTML = '<div class="empty-state"><p>No songs in database. Import a playlist!</p></div>';
             if (songCountDisplay) songCountDisplay.textContent = '0 songs';
             return;
         }
-        
+
         if (filteredSongs.length === 0) {
-            console.log('⚠️ No filtered songs');
             listElement.innerHTML = '<div class="empty-state"><p>No songs match your search</p></div>';
             if (songCountDisplay) songCountDisplay.textContent = `0 of ${allSongs.length} songs`;
             return;
         }
-        
-        console.log('✅ Building HTML for', filteredSongs.length, 'songs');
-        
+
         if (songCountDisplay) songCountDisplay.textContent = `${filteredSongs.length} song${filteredSongs.length !== 1 ? 's' : ''}`;
-        
+
         let html = '';
         filteredSongs.forEach((song, index) => {
             const selectedClass = index === selectedSongIndex ? 'selected' : '';
@@ -495,26 +478,21 @@ function renderSongList() {
 <div class="song-selector-item-meta">💿 ${escapeHtml(song.album || 'N/A')} • 📅 ${song.year || 'N/A'} • 🎵 ${song.bpm || 'N/A'}</div>
 </div>`;
         });
-        
-        console.log('📝 Generated HTML length:', html.length);
-        console.log('🔄 Setting innerHTML...');
-        
+
         listElement.innerHTML = html;
-        
-        console.log('✅ innerHTML set! Element now has', listElement.children.length, 'children');
-        
+
         // Add click handlers
         document.querySelectorAll('.song-selector-item').forEach(item => {
             item.addEventListener('click', () => {
                 selectSong(item.dataset.songId);
             });
         });
-        
+
         if (selectedSongIndex >= filteredSongs.length) {
             selectedSongIndex = filteredSongs.length - 1;
         }
     } catch (error) {
-        console.error('❌❌❌ FATAL ERROR in renderSongList:', error);
+        console.error('❌ Error in renderSongList:', error);
         console.error('Stack:', error.stack);
     }
 }
