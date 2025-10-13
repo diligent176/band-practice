@@ -716,15 +716,17 @@ function renderSong() {
 }
 
 function renderMetadata() {
-    // Show the song name in the heading when a song is selected
+    const songIcon = document.getElementById('song-icon');
+
+    // Show the song name and icon when a song is selected
     if (lyricsHeading) {
         lyricsHeading.style.display = 'block';
-        let songName = currentSong.title;
-        // Trim to 32 characters with ellipsis if needed
-        if (songName.length > 32) {
-            songName = songName.substring(0, 32) + '...';
+        lyricsHeading.textContent = currentSong.title;
+
+        // Show song icon
+        if (songIcon) {
+            songIcon.style.display = 'inline';
         }
-        lyricsHeading.textContent = songName;
     }
 
     // Show/hide customization badge in main view
@@ -736,31 +738,25 @@ function renderMetadata() {
         }
     }
 
-    // Truncate helper function
-    const truncate = (text, maxLength = 32) => {
-        if (!text) return 'N/A';
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    };
-
     const metadata = [
-        { icon: '🎤', label: 'Artist', value: truncate(currentSong.artist) },
-        { icon: '💿', label: 'Album', value: truncate(currentSong.album) },
-        { icon: '📅', label: 'Year', value: currentSong.year || 'N/A' }
+        { icon: '<i class="fa-solid fa-microphone"></i>', label: 'Artist', value: currentSong.artist || 'N/A' },
+        { icon: '<i class="fa-solid fa-compact-disc"></i>', label: 'Album', value: currentSong.album || 'N/A' },
+        { icon: '<i class="fa-solid fa-calendar"></i>', label: 'Year', value: currentSong.year || 'N/A' }
     ];
 
     // Add BPM with loading indicator if needed
     const bpmValue = currentSong.bpm || 'N/A';
-    const bpmDisplay = bpmValue === 'N/A' ? 
-        '<span id="bpm-value">N/A <span class="bpm-loading">⏳</span></span>' : 
-        `<span id="bpm-value">${bpmValue}</span>`;
-    metadata.push({ icon: '🎵', label: 'BPM', value: bpmDisplay });
+    const bpmDisplay = bpmValue === 'N/A' ?
+        'N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>' :
+        bpmValue;
+    metadata.push({ icon: '<i class="fa-solid fa-drum"></i>', label: 'BPM', value: bpmDisplay });
 
     let metadataHtml = metadata.map(item =>
         `<div class="metadata-item"><span class="metadata-icon">${item.icon}</span> ${item.value}</div>`
     ).join('');
 
     // Note: Custom lyric badge is now shown in the header next to song name, not in metadata
-    
+
     songMetadata.innerHTML = metadataHtml;
 }
 
