@@ -119,6 +119,13 @@ function handleGlobalKeyboard(e) {
         openSongSelector();
         return;
     }
+
+    // Ctrl+I to open playlist import dialog
+    if (e.ctrlKey && e.key === 'i') {
+        e.preventDefault();
+        openImportDialog();
+        return;
+    }
 }
 
 // API Functions
