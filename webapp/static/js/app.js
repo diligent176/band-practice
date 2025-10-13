@@ -592,9 +592,14 @@ function renderSongList() {
             html += `<div class="song-selector-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
 ${albumArtHtml}
 <div class="song-selector-item-info">
+<div class="song-selector-item-main">
 <div class="song-selector-item-title">${escapeHtml(song.title)}</div>
 <div class="song-selector-item-artist">🎤 ${escapeHtml(song.artist)}</div>
-<div class="song-selector-item-meta">💿 ${escapeHtml(song.album || 'N/A')} • 📅 ${song.year || 'N/A'} • 🎵 ${song.bpm || 'N/A'}</div>
+</div>
+<div class="song-selector-item-meta">
+<div class="song-selector-item-meta-row">💿 ${escapeHtml(song.album || 'N/A')}</div>
+<div class="song-selector-item-meta-row">📅 ${song.year || 'N/A'} • 🎵 ${song.bpm || 'N/A'}</div>
+</div>
 </div>
 </div>`;
         });
