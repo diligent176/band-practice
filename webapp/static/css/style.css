@@ -36,10 +36,12 @@ body {
 
 /* Header */
 header {
+  position: sticky;
+  top: 0;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow);
-  padding: 6px 12px;
+  padding: 2px 8px;
   z-index: 100;
 }
 
@@ -48,11 +50,11 @@ header {
   align-items: center;
   gap: 40px;
   width: 100%;
-  min-height: 32px;
+  min-height: 24px;
 }
 
 header h1 {
-  font-size: 20px;
+  font-size: 16px;
   color: #fff;
   white-space: nowrap;
   margin: 0;
@@ -62,32 +64,32 @@ header h1 {
 .song-selector {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
   max-width: 500px;
 }
 
 .song-selector label {
   color: var(--text-secondary);
-  font-size: 10px;
+  font-size: 9px;
   white-space: nowrap;
 }
 
 .song-select {
   flex: 1;
-  padding: 3px 6px;
+  padding: 2px 4px;
   background: var(--bg-elevated);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   border-radius: 3px;
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .header-actions {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
 }
 
@@ -96,22 +98,22 @@ header h1 {
   align-items: center;
   flex: 1;
   min-width: 0;
-  margin-right: 16px;
+  margin-right: 8px;
 }
 
 .font-size-selector {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .font-size-select {
-  padding: 3px 6px;
+  padding: 2px 4px;
   background: var(--bg-elevated);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   border-radius: 3px;
-  font-size: 10px;
+  font-size: 9px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -129,14 +131,14 @@ header h1 {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .user-email {
   background: var(--bg-elevated);
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-size: 8px;
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
   white-space: nowrap;
@@ -166,16 +168,16 @@ header h1 {
 
 /* Buttons */
 .btn {
-  padding: 4px 16px;
+  padding: 2px 10px;
   border: none;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: 3px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .btn:disabled {
@@ -186,7 +188,7 @@ header h1 {
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%);
   color: white;
-  min-width: 100px;
+  min-width: 80px;
   justify-content: center;
 }
 

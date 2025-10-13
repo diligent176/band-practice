@@ -128,7 +128,7 @@ function handleGlobalKeyboard(e) {
     // P for playlist import
     if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
-        openImportDialog();
+        showImportDialog();
         return;
     }
 
