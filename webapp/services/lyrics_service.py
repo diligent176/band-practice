@@ -528,27 +528,51 @@ class LyricsService:
                 print("GetSongBPM API key not configured - BPM will be 'N/A'")
                 return 'N/A'
 
-            # Search for the song
-            search_url = 'https://api.getsongbpm.com/search/'
+            # Search for the song - use CORRECT base URL: api.getsong.co
+            search_url = 'https://api.getsong.co/search/'
+            
+            # Try searching with just the title first (works better than "artist title")
             params = {
                 'api_key': api_key,
                 'type': 'song',
-                'lookup': f'{artist} {title}'
+                'lookup': title
             }
 
             response = requests.get(search_url, params=params, timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
-                # Check if we got results
-                if data.get('search') and len(data['search']) > 0:
-                    # Get the first result
+                # Check if we got results (search is an array when successful)
+                if data.get('search') and isinstance(data['search'], list) and len(data['search']) > 0:
+                    # Try to find a match with the artist name
+                    for result in data['search']:
+                        result_artist = result.get('artist', {})
+                        if isinstance(result_artist, dict):
+                            result_artist_name = result_artist.get('name', '').lower()
+                        else:
+                            result_artist_name = ''
+                        
+                        # Check if artist name matches (case-insensitive partial match)
+                        if artist.lower() in result_artist_name or result_artist_name in artist.lower():
+                            tempo = result.get('tempo')
+                            if tempo:
+                                try:
+                                    bpm = int(float(tempo))
+                                    print(f"Fetched BPM from GetSongBPM: {bpm} for '{title}' by {artist}")
+                                    return bpm
+                                except (ValueError, TypeError):
+                                    pass
+                    
+                    # If no artist match, use first result with valid tempo
                     first_result = data['search'][0]
                     tempo = first_result.get('tempo')
                     if tempo:
-                        bpm = int(tempo)
-                        print(f"Fetched BPM from GetSongBPM: {bpm} for '{title}' by {artist}")
-                        return bpm
+                        try:
+                            bpm = int(float(tempo))
+                            print(f"Fetched BPM from GetSongBPM: {bpm} for '{title}' (used first result)")
+                            return bpm
+                        except (ValueError, TypeError):
+                            pass
 
             print(f"No BPM found for '{title}' by {artist}")
             return 'N/A'
