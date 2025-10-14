@@ -52,6 +52,8 @@ const lyricsEditorSaveBtn = document.getElementById('lyrics-editor-save-btn');
 const lyricsEditorCancelBtn = document.getElementById('lyrics-editor-cancel-btn');
 const customizationBadge = document.getElementById('customization-badge');
 const customizationBadgeMain = document.getElementById('customization-badge-main');
+const insertVerseBtn = document.getElementById('insert-verse-btn');
+const insertChorusBtn = document.getElementById('insert-chorus-btn');
 const tightenLyricsBtn = document.getElementById('tighten-lyrics-btn');
 
 const confirmDialog = document.getElementById('confirm-dialog');
@@ -128,6 +130,8 @@ function setupEventListeners() {
     deleteSongBtn.addEventListener('click', deleteCurrentSong);
     lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
     lyricsEditorCancelBtn.addEventListener('click', closeLyricsEditor);
+    insertVerseBtn.addEventListener('click', insertVerse);
+    insertChorusBtn.addEventListener('click', insertChorus);
     tightenLyricsBtn.addEventListener('click', tightenLyrics);
 
     // BPM dialog handlers
@@ -1561,6 +1565,22 @@ function handleLyricsEditorKeyboard(e) {
         tightenLyrics();
         return;
     }
+
+    // Alt+V to insert [Verse]
+    if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        e.stopPropagation();
+        insertVerse();
+        return;
+    }
+
+    // Alt+C to insert [Chorus]
+    if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        e.stopPropagation();
+        insertChorus();
+        return;
+    }
 }
 
 function tightenLyrics() {
@@ -1598,6 +1618,50 @@ function tightenLyrics() {
 
     // Show feedback
     showToast('Removed blank lines after section headers', 'success');
+}
+
+function insertVerse() {
+    const textarea = lyricsEditorTextarea;
+    const cursorPos = textarea.selectionStart;
+    const textBefore = textarea.value.substring(0, cursorPos);
+    const textAfter = textarea.value.substring(cursorPos);
+    
+    // Insert [Verse] followed by a newline
+    const textToInsert = '[Verse]\n';
+    textarea.value = textBefore + textToInsert + textAfter;
+    
+    // Move cursor to end of inserted text
+    const newCursorPos = cursorPos + textToInsert.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    textarea.focus();
+    
+    // Update line numbers
+    updateLyricsEditorLineNumbers();
+    
+    // Show feedback
+    showToast('[Verse] heading inserted', 'success');
+}
+
+function insertChorus() {
+    const textarea = lyricsEditorTextarea;
+    const cursorPos = textarea.selectionStart;
+    const textBefore = textarea.value.substring(0, cursorPos);
+    const textAfter = textarea.value.substring(cursorPos);
+    
+    // Insert [Chorus] followed by a newline
+    const textToInsert = '[Chorus]\n';
+    textarea.value = textBefore + textToInsert + textAfter;
+    
+    // Move cursor to end of inserted text
+    const newCursorPos = cursorPos + textToInsert.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    textarea.focus();
+    
+    // Update line numbers
+    updateLyricsEditorLineNumbers();
+    
+    // Show feedback
+    showToast('[Chorus] heading inserted', 'success');
 }
 
 async function saveLyrics() {
