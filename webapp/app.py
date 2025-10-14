@@ -585,6 +585,56 @@ def get_default_collection():
         return jsonify({'error': str(e), 'success': False}), 500
 
 
+@app.route('/api/spotify/token', methods=['GET'])
+@require_auth
+def get_spotify_token():
+    """Get Spotify access token for Web Playback SDK"""
+    try:
+        # Get token from the lyrics_service spotify client
+        token_info = lyrics_service.spotify.auth_manager.get_access_token(as_dict=False)
+
+        if token_info:
+            return jsonify({
+                'success': True,
+                'access_token': token_info
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Could not get Spotify token'
+            }), 500
+    except Exception as e:
+        logger.error(f"Error getting Spotify token: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/spotify/preview/<track_id>', methods=['GET'])
+@require_auth
+def get_spotify_preview(track_id):
+    """Get Spotify preview URL for a track"""
+    try:
+        logger.info(f"User {g.user.get('email')} requesting preview for track {track_id}")
+
+        # Use the lyrics_service's spotify client
+        track = lyrics_service.spotify.track(track_id)
+        preview_url = track.get('preview_url')
+
+        if preview_url:
+            return jsonify({
+                'success': True,
+                'preview_url': preview_url
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'No preview available for this track'
+            })
+
+    except Exception as e:
+        logger.error(f"Error getting preview for track {track_id}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
 @app.route('/health')
 def health():
     """Health check endpoint for Cloud Run"""

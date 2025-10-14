@@ -91,6 +91,16 @@ const editCollectionCancelBtn = document.getElementById('edit-collection-cancel-
 // Track the collection being edited
 let editingCollectionId = null;
 
+// Player DOM elements
+const audioPlayer = document.getElementById('audio-player');
+const miniPlayer = document.getElementById('mini-player');
+const miniPlayerArtImg = document.getElementById('mini-player-art-img');
+const miniPlayerTitle = document.getElementById('mini-player-title');
+const miniPlayerArtist = document.getElementById('mini-player-artist');
+const miniPlayerPlayBtn = document.getElementById('mini-player-play-btn');
+const albumArtFloat = document.getElementById('album-art-float');
+const albumArtImage = document.getElementById('album-art-image');
+
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
@@ -160,6 +170,9 @@ function setupEventListeners() {
     // Back to top button
     backToTopBtn.addEventListener('click', scrollToTop);
 
+    // Player controls
+    miniPlayerPlayBtn.addEventListener('click', toggleAudioPlayback);
+
     // Global keyboard shortcuts
     document.addEventListener('keydown', handleGlobalKeyboard);
 }
@@ -175,6 +188,24 @@ function handleGlobalKeyboard(e) {
     // Don't process simple key shortcuts if user is typing
     if (isTyping) {
         return;
+    }
+
+    // Spacebar to toggle play/pause (only when not typing and when dialogs are closed)
+    if (e.key === ' ' || e.code === 'Space') {
+        // Check if any dialog is open - spacebar should not work in dialogs
+        const dialogsOpen = 
+            songSelectorDialog.style.display === 'flex' ||
+            lyricsEditorDialog.style.display === 'flex' ||
+            importDialog.style.display === 'flex' ||
+            collectionDialog.style.display === 'flex' ||
+            confirmDialog.style.display === 'flex' ||
+            bpmDialog.style.display === 'flex';
+        
+        if (currentSong && !isTyping && !dialogsOpen) {
+            e.preventDefault();
+            toggleAudioPlayback();
+            return;
+        }
     }
 
     // X for collection selector
@@ -907,6 +938,7 @@ function renderSong() {
     renderLyrics();
     renderNotes();
     updateCurrentSongDisplay();
+    updatePlayerVisibility();
 }
 
 function renderMetadata() {
@@ -3052,4 +3084,70 @@ function scrollToTop() {
             element.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
+}
+
+//=============================================================================
+// SPOTIFY EMBED PLAYER
+//=============================================================================
+
+// Open Spotify track in new tab (simple solution)
+async function toggleAudioPlayback() {
+    if (!currentSong) {
+        showToast('No song selected', 'info');
+        return;
+    }
+
+    // If song has Spotify URI or ID, open in Spotify
+    const spotifyId = currentSong.spotify_id || currentSong.id;
+    if (spotifyId) {
+        // Open in Spotify app or web player
+        const spotifyUrl = `https://open.spotify.com/track/${spotifyId}`;
+        window.open(spotifyUrl, '_blank');
+        showToast('Opening in Spotify...', 'success');
+    } else {
+        showToast('No Spotify link available', 'warning');
+    }
+}
+
+// Show/hide player and album art based on current song
+async function updatePlayerVisibility() {
+    console.log('🎨 updatePlayerVisibility called');
+
+    if (!currentSong) {
+        miniPlayer.style.display = 'none';
+        albumArtFloat.style.display = 'none';
+        return;
+    }
+
+    // Update player UI
+    miniPlayerTitle.textContent = currentSong.title || 'Unknown';
+    miniPlayerArtist.textContent = currentSong.artist || 'Unknown';
+
+    const artUrlMini = currentSong.album_art || currentSong.album_art_url;
+    if (artUrlMini) {
+        miniPlayerArtImg.src = artUrlMini;
+    }
+
+    // Show mini player
+    miniPlayer.style.display = 'flex';
+
+    // Update play button to show as "Open in Spotify"
+    const icon = miniPlayerPlayBtn.querySelector('i');
+    if (icon) {
+        icon.className = 'fa-brands fa-spotify';
+        miniPlayerPlayBtn.title = 'Open in Spotify (Space)';
+    }
+
+    // ALBUM ART - Force display
+    const artUrl = currentSong.album_art || currentSong.album_art_url;
+
+    if (artUrl && albumArtImage && albumArtFloat) {
+        albumArtImage.src = artUrl;
+        albumArtFloat.style.setProperty('display', 'block', 'important');
+        albumArtFloat.style.opacity = '0.2';
+    } else {
+        if (albumArtFloat) {
+            albumArtFloat.style.display = 'none';
+        }
+    }
 }

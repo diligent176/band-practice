@@ -40,6 +40,24 @@
                     </button>
                     <span id="status-message" class="status-message"></span>
                 </div>
+                <!-- Simple Audio Player (hidden audio element) -->
+                <audio id="audio-player" style="display: none;"></audio>
+
+                <!-- Minimal Player UI -->
+                <div id="mini-player" class="mini-player" style="display: none;">
+                    <div class="mini-player-art">
+                        <img id="mini-player-art-img" src="" alt="">
+                    </div>
+                    <div class="mini-player-info">
+                        <div id="mini-player-title" class="mini-player-title">Song Title</div>
+                        <div id="mini-player-artist" class="mini-player-artist">Artist</div>
+                    </div>
+                    <div class="mini-player-controls">
+                        <button id="mini-player-play-btn" class="mini-player-btn">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="font-size-selector">
                     <i class="fa-solid fa-text-height" title="Font Size"></i>
                     <select id="font-size-select" class="font-size-select">
@@ -59,6 +77,10 @@
                             <span>Keyboard Shortcuts</span>
                         </div>
                         <div class="help-card-content">
+                            <div class="help-item">
+                                <kbd>Space</kbd>
+                                <span>Open in Spotify</span>
+                            </div>
                             <div class="help-item">
                                 <kbd>X</kbd>
                                 <span>Switch Collection</span>
@@ -114,12 +136,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="user-info">
+                <div class="user-info" id="user-info-container">
                     <span id="user-email" class="user-email">Loading...</span>
-                    <button id="signout-btn" class="btn btn-small btn-secondary">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                        <span>Sign Out</span>
-                    </button>
+                    <i class="fa-solid fa-arrow-right-from-bracket signout-icon" id="signout-icon" title="Sign Out"></i>
                 </div>
             </div>
         </header>
@@ -159,6 +178,9 @@
                         </div>
                     </div>
                     <div class="panel-content" id="lyrics-content">
+                        <div id="album-art-float" class="album-art-float" style="display: none;">
+                            <img id="album-art-image" src="" alt="Album Art">
+                        </div>
                         <div id="lyrics-content-inner" class="lyrics-columns-1">
                             <div class="empty-state">
                                 <p>Select a song to view lyrics</p>
@@ -676,7 +698,7 @@ Example:
         console.log('🔥 Step 8: onAuthStateChanged listener registered');
 
         // Sign out handler
-        document.getElementById('signout-btn')?.addEventListener('click', () => {
+        document.getElementById('signout-icon')?.addEventListener('click', () => {
             auth.signOut();
         });
 

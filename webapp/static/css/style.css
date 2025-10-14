@@ -115,18 +115,160 @@ header h1 {
   margin-left: auto;
 }
 
-.header-single-row>.font-size-selector {
+.header-single-row>.player-controls {
   margin-left: auto;
+}
+
+.header-single-row>.font-size-selector {
+  margin-left: 6px;
+}
+
+/* Player Controls */
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  height: 28px;
+}
+
+.player-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  font-size: 11px;
+  height: 24px;
+  min-width: 24px;
+}
+
+.player-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.player-btn-primary {
+  background: rgba(24, 160, 73, 0.15);
+  color: var(--accent-primary);
+}
+
+.player-btn-primary:hover {
+  background: rgba(24, 160, 73, 0.25);
+  color: var(--accent-primary);
+}
+
+.player-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.player-btn i {
+  font-size: 10px;
+}
+
+/* Mini Player */
+.mini-player {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.mini-player-art {
+  width: 56px;
+  height: 56px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-primary);
+  flex-shrink: 0;
+}
+
+.mini-player-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mini-player-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-player-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.mini-player-artist {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-player-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.mini-player-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: none;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.mini-player-btn:hover {
+  background: #1ed760;
+  transform: scale(1.05);
+}
+
+.mini-player-btn i {
+  margin-left: 2px;
 }
 
 .font-size-selector {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 4px;
-  padding: 4px 10px;
+  padding: 4px 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
@@ -140,29 +282,27 @@ header h1 {
 }
 
 .font-size-selector i {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-secondary);
 }
 
 .font-size-select {
-  padding: 2px 6px;
-  background: var(--bg-elevated);
+  padding: 2px 4px;
+  background: transparent;
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 10px;
+  border: none;
+  font-size: 9px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .font-size-select:hover {
-  border-color: #888;
+  color: var(--accent-primary);
 }
 
 .font-size-select:focus {
   outline: none;
-  border-color: #888;
-  box-shadow: 0 0 0 2px rgba(136, 136, 136, 0.2);
+  color: var(--accent-primary);
 }
 
 .keyboard-shortcuts-help {
@@ -173,13 +313,13 @@ header h1 {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 4px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: help;
   flex-shrink: 0;
   height: 28px;
-  margin-left: 8px;
+  margin-left: 4px;
 }
 
 .keyboard-shortcuts-help:hover {
@@ -188,7 +328,7 @@ header h1 {
 }
 
 .keyboard-shortcuts-help i {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
@@ -280,59 +420,53 @@ header h1 {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   flex-shrink: 0;
-  margin-left: 8px;
+  margin-left: 6px;
   height: 28px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.user-info:hover {
+  background: #323232;
+  border-color: #444;
 }
 
 .user-email {
-  background: var(--card-bg);
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 4px 8px;
+  font-size: 10px;
   color: var(--text-primary);
-  border: 1px solid var(--card-border);
   white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
   cursor: default;
-  height: 28px;
+  height: 100%;
   display: flex;
   align-items: center;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
-.user-email:hover {
-  background: #323232;
-  border-color: #444;
-}
-
-#signout-btn {
-  font-size: 10px;
-  padding: 4px 10px;
-  display: inline-flex;
+.signout-icon {
+  padding: 0 8px;
+  height: 100%;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-  height: 28px;
-}
-
-#signout-btn i {
   font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-left: 1px solid var(--card-border);
+  transition: all 0.2s ease;
 }
 
-#signout-btn:hover {
-  background: #323232;
-  border-color: #444;
-  transform: none;
-}
-
-#signout-btn::before {
-  content: none;
+.signout-icon:hover {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--accent-error);
 }
 
 .song-select:hover {
@@ -651,6 +785,35 @@ header h1 {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px 8px 8px 4px;
+  position: relative;
+}
+
+/* Floating Album Art */
+.album-art-float {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 80px;
+  height: 80px;
+  z-index: 100;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  opacity: 0.2;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.album-art-float:hover {
+  opacity: 0.5;
+}
+
+.album-art-float img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* Lyrics Panel Header */
