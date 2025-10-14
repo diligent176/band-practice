@@ -171,7 +171,9 @@ Line 71: thend"></textarea>
                         <label for="import-playlist-url">Spotify Playlist URL:</label>
                         <input type="text" id="import-playlist-url" class="input"
                                placeholder="https://open.spotify.com/playlist/YOUR_PLAYLIST_ID">
-                        <button id="import-load-btn" class="btn btn-primary">Load Playlist</button>
+                        <button id="import-load-btn" class="btn btn-primary">
+                            <i class="fa-solid fa-arrow-right"></i> Load Playlist
+                        </button>
                     </div>
                 </div>
 
@@ -188,8 +190,12 @@ Line 71: thend"></textarea>
                     </div>
                     <div id="import-songs-list" class="import-songs-list"></div>
                     <div class="dialog-actions">
-                        <button id="import-back-btn" class="btn btn-secondary">Back</button>
-                        <button id="import-start-btn" class="btn btn-primary" disabled>Import Selected Songs</button>
+                        <button id="import-back-btn" class="btn btn-secondary">
+                            <i class="fa-solid fa-arrow-left"></i> Back
+                        </button>
+                        <button id="import-start-btn" class="btn btn-primary" disabled>
+                            <i class="fa-solid fa-download"></i> Import Selected Songs
+                        </button>
                     </div>
                 </div>
 
@@ -206,7 +212,9 @@ Line 71: thend"></textarea>
                     </div>
                     <div id="import-progress-list" class="import-progress-list"></div>
                     <div class="dialog-actions">
-                        <button id="import-done-btn" class="btn btn-primary" style="display: none;">Done</button>
+                        <button id="import-done-btn" class="btn btn-primary" style="display: none;">
+                            <i class="fa-solid fa-check"></i> Done
+                        </button>
                     </div>
                 </div>
             </div>
@@ -246,8 +254,12 @@ Line 71: thend"></textarea>
                     </div>
                 </div>
                 <div class="dialog-actions">
-                    <button id="lyrics-editor-cancel-btn" class="btn btn-secondary">Cancel</button>
-                    <button id="lyrics-editor-save-btn" class="btn btn-primary">Save Changes</button>
+                    <button id="lyrics-editor-cancel-btn" class="btn btn-secondary">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                    <button id="lyrics-editor-save-btn" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                    </button>
                 </div>
             </div>
         </div>
@@ -280,8 +292,12 @@ Line 71: thend"></textarea>
                 <h3 id="confirm-dialog-title">Confirm Action</h3>
                 <p id="confirm-dialog-message"></p>
                 <div class="dialog-actions">
-                    <button id="confirm-dialog-cancel-btn" class="btn btn-secondary">Cancel</button>
-                    <button id="confirm-dialog-confirm-btn" class="btn btn-primary">Confirm</button>
+                    <button id="confirm-dialog-cancel-btn" class="btn btn-secondary">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                    <button id="confirm-dialog-confirm-btn" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Confirm
+                    </button>
                 </div>
             </div>
         </div>
