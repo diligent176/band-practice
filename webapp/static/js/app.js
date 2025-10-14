@@ -2510,6 +2510,7 @@ function renderCollectionList() {
         const isActive = currentCollection && collection.id === currentCollection.id;
         const activeClass = isActive ? 'active' : '';
         const canDelete = collection.name !== 'Default';
+        const songCount = collection.song_count || 0;
         
         html += `
             <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
@@ -2517,7 +2518,10 @@ function renderCollectionList() {
                     <i class="fa-solid fa-layer-group"></i>
                 </div>
                 <div class="collection-item-info">
-                    <div class="collection-item-name">${escapeHtml(collection.name)}</div>
+                    <div class="collection-item-header">
+                        <span class="collection-item-name">${escapeHtml(collection.name)}</span>
+                        <span class="collection-item-song-count">${songCount}</span>
+                    </div>
                     ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
                 </div>
                 ${isActive ? '<span class="collection-item-active"><i class="fa-solid fa-check"></i> Active</span>' : ''}

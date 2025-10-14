@@ -424,12 +424,17 @@ def delete_playlist_memory(playlist_id):
 @app.route('/api/collections', methods=['GET'])
 @require_auth
 def get_collections():
-    """Get all collections for the current user"""
+    """Get all collections for the current user with song counts"""
     try:
         user_id = g.user.get('email')
         logger.info(f"User {user_id} requested collections")
 
         collections = firestore.get_user_collections(user_id)
+        
+        # Add song count to each collection
+        for collection in collections:
+            songs = firestore.get_songs_by_collection(collection['id'])
+            collection['song_count'] = len(songs)
 
         return jsonify({
             'success': True,
