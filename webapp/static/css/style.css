@@ -64,6 +64,7 @@ header h1 {
   white-space: nowrap;
   margin: 0;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .song-selector {
@@ -103,9 +104,19 @@ header h1 {
   align-items: center;
   gap: 8px;
   flex: 1;
-  min-width: 0;
-  margin-right: 8px;
   justify-content: center;
+  min-width: 0;
+}
+
+/* Right section container - creates a flex group */
+.header-single-row>.font-size-selector,
+.header-single-row>.keyboard-shortcuts-help,
+.header-single-row>.user-info {
+  margin-left: auto;
+}
+
+.header-single-row>.font-size-selector {
+  margin-left: auto;
 }
 
 .font-size-selector {
@@ -119,6 +130,7 @@ header h1 {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .font-size-selector:hover {
@@ -164,6 +176,7 @@ header h1 {
   transition: all 0.2s ease;
   cursor: help;
   white-space: pre-line;
+  flex-shrink: 0;
 }
 
 .keyboard-shortcuts-help:hover {
@@ -180,6 +193,7 @@ header h1 {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .user-email {
@@ -244,11 +258,16 @@ header h1 {
 }
 
 .status-message {
-  font-size: 14px;
+  font-size: 13px;
   color: #b8860b;
   font-style: italic;
   opacity: 0.85;
   font-weight: 500;
+  min-width: 250px;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Buttons */
@@ -369,6 +388,7 @@ header h1 {
   font-weight: 600;
   background: rgba(24, 160, 73, 0.12);
   border: 1px solid rgba(24, 160, 73, 0.3);
+  flex-shrink: 0;
 }
 
 .status-bar .btn-subtle:hover:not(:disabled) {
