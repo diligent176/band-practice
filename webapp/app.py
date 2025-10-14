@@ -333,7 +333,7 @@ def update_bpm(song_id):
             return jsonify({'error': 'Song not found', 'success': False}), 404
 
         logger.info(f"User {g.user.get('email')} manually updating BPM for song {song_id} to {bpm_value}")
-        firestore.update_bpm(song_id, bpm_value)
+        firestore.update_bpm(song_id, bpm_value, is_manual=True)
 
         # Get updated song
         updated_song = firestore.get_song(song_id)

@@ -617,6 +617,12 @@ function renderSongList() {
                 ? `<img src="${escapeHtml(song.album_art_url)}" alt="Album art" class="song-selector-item-art">`
                 : `<div class="song-selector-item-art-placeholder">🎵</div>`;
 
+            // Format BPM display with manual indicator if applicable
+            let bpmDisplay = song.bpm || 'N/A';
+            if (song.bpm && song.bpm !== 'N/A' && song.bpm !== 'NOT_FOUND' && song.bpm_manual) {
+                bpmDisplay = `${song.bpm}<span class="bpm-manual-badge-small" title="Manually set tempo">✏️</span>`;
+            }
+
             html += `<div class="song-selector-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
 ${albumArtHtml}
 <div class="song-selector-item-info">
@@ -626,7 +632,7 @@ ${albumArtHtml}
 </div>
 <div class="song-selector-item-meta">
 <div class="song-selector-item-meta-row"><i class="fa-solid fa-compact-disc"></i> ${escapeHtml(song.album || 'N/A')}</div>
-<div class="song-selector-item-meta-row"><i class="fa-solid fa-calendar"></i> ${song.year || 'N/A'} • <i class="fa-solid fa-drum"></i> ${song.bpm || 'N/A'}</div>
+<div class="song-selector-item-meta-row"><i class="fa-solid fa-calendar"></i> ${song.year || 'N/A'} • <i class="fa-solid fa-drum"></i> ${bpmDisplay}</div>
 </div>
 </div>
 </div>`;
@@ -779,6 +785,7 @@ function renderMetadata() {
 
     // Add BPM with appropriate display based on status
     const bpmValue = currentSong.bpm || 'N/A';
+    const isManualBpm = currentSong.bpm_manual === true;
     let bpmDisplay;
     
     if (bpmValue === 'NOT_FOUND') {
@@ -788,7 +795,12 @@ function renderMetadata() {
         // Show loading indicator for pending lookup
         bpmDisplay = 'N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>';
     } else {
-        bpmDisplay = bpmValue;
+        // Show BPM value with manual indicator if applicable
+        if (isManualBpm) {
+            bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo">✏️</span>`;
+        } else {
+            bpmDisplay = bpmValue;
+        }
     }
     
     metadata.push({ icon: '<i class="fa-solid fa-drum"></i>', label: 'BPM', value: bpmDisplay });
@@ -1588,7 +1600,16 @@ async function saveBpm() {
 
         if (data.success) {
             currentSong.bpm = bpmNumber;
+            currentSong.bpm_manual = true;
             renderMetadata();
+            
+            // Update the song in the allSongs array so selector shows the badge
+            const songIndex = allSongs.findIndex(s => s.id === currentSong.id);
+            if (songIndex !== -1) {
+                allSongs[songIndex].bpm = bpmNumber;
+                allSongs[songIndex].bpm_manual = true;
+            }
+            
             closeBpmDialog();
             showToast(`BPM set to ${bpmNumber}`, 'success');
             setStatus(`BPM updated to ${bpmNumber}`, 'success');

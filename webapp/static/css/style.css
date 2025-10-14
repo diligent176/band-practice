@@ -640,6 +640,23 @@ header h1 {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
+/* BPM Manual Badge Styles */
+.bpm-manual-badge {
+  display: inline-block;
+  font-size: 12px;
+  margin-left: 4px;
+  opacity: 0.8;
+  vertical-align: middle;
+}
+
+.bpm-manual-badge-small {
+  display: inline-block;
+  font-size: 10px;
+  margin-left: 2px;
+  opacity: 0.7;
+  vertical-align: super;
+}
+
 @keyframes pulse {
 
   0%,

@@ -91,7 +91,7 @@ class FirestoreService:
             'lyrics_updated_at': datetime.utcnow()
         })
 
-    def update_bpm(self, song_id, bpm):
+    def update_bpm(self, song_id, bpm, is_manual=False):
         """Update BPM for a song (manual override or lookup result)"""
         doc_ref = self.db.collection(self.songs_collection).document(song_id)
 
@@ -100,6 +100,7 @@ class FirestoreService:
 
         doc_ref.update({
             'bpm': bpm,
+            'bpm_manual': is_manual,
             'bpm_updated_at': datetime.utcnow()
         })
 
