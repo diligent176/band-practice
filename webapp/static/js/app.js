@@ -346,16 +346,30 @@ async function fetchBpmInBackground(songId, title, artist) {
         if (data.success && currentSong && currentSong.id === songId) {
             // Only update if we're still viewing the same song
             currentSong.bpm = data.bpm;
+            currentSong.bpm_manual = false; // Clear manual flag since this is from API
             renderMetadata();
             console.log(`✅ BPM updated: ${data.bpm}`);
             
-            // Show toast notification based on result
+            // Update the song in the allSongs array so selector reflects the change
+            const songIndex = allSongs.findIndex(s => s.id === songId);
+            if (songIndex !== -1) {
+                allSongs[songIndex].bpm = data.bpm;
+                allSongs[songIndex].bpm_manual = false;
+            }
+            
+            // Update status message based on result (append to existing status)
             if (data.bpm && data.bpm !== 'N/A' && data.bpm !== 'NOT_FOUND') {
-                showToast(`BPM updated: ${data.bpm}`, 'success');
+                const currentStatus = statusMessage.textContent;
+                if (currentStatus) {
+                    setStatus(`${currentStatus} • BPM updated: ${data.bpm}`, 'success');
+                } else {
+                    setStatus(`BPM updated: ${data.bpm}`, 'success');
+                }
             } else if (data.bpm === 'NOT_FOUND') {
-                showToast('BPM not found for this song', 'info');
-            } else {
-                showToast('BPM not available for this song', 'info');
+                const currentStatus = statusMessage.textContent;
+                if (currentStatus) {
+                    setStatus(`${currentStatus} • BPM not found`, 'info');
+                }
             }
         }
     } catch (error) {
@@ -371,7 +385,7 @@ async function fetchBpmInBackground(songId, title, artist) {
 async function manuallyFetchBpm() {
     if (!currentSong) return;
     
-    showToast('Fetching BPM...', 'info');
+    setStatus('Fetching BPM...', 'info');
     await fetchBpmInBackground(currentSong.id, currentSong.title, currentSong.artist);
 }
 
@@ -620,7 +634,7 @@ function renderSongList() {
             // Format BPM display with manual indicator if applicable
             let bpmDisplay = song.bpm || 'N/A';
             if (song.bpm && song.bpm !== 'N/A' && song.bpm !== 'NOT_FOUND' && song.bpm_manual) {
-                bpmDisplay = `${song.bpm}<span class="bpm-manual-badge-small" title="Manually set tempo">✏️</span>`;
+                bpmDisplay = `${song.bpm}<span class="bpm-manual-badge-small" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>`;
             }
 
             html += `<div class="song-selector-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
@@ -797,7 +811,7 @@ function renderMetadata() {
     } else {
         // Show BPM value with manual indicator if applicable
         if (isManualBpm) {
-            bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo">✏️</span>`;
+            bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>`;
         } else {
             bpmDisplay = bpmValue;
         }

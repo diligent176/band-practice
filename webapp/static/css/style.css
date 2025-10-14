@@ -643,18 +643,20 @@ header h1 {
 /* BPM Manual Badge Styles */
 .bpm-manual-badge {
   display: inline-block;
-  font-size: 12px;
-  margin-left: 4px;
-  opacity: 0.8;
+  font-size: 11px;
+  margin-left: 5px;
+  opacity: 0.7;
   vertical-align: middle;
+  color: var(--accent-warning);
 }
 
 .bpm-manual-badge-small {
   display: inline-block;
-  font-size: 10px;
-  margin-left: 2px;
-  opacity: 0.7;
+  font-size: 9px;
+  margin-left: 3px;
+  opacity: 0.65;
   vertical-align: super;
+  color: var(--accent-warning);
 }
 
 @keyframes pulse {

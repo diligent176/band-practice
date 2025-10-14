@@ -507,7 +507,11 @@ class LyricsService:
         if bpm == 'N/A':
             bpm = 'NOT_FOUND'
         
-        song_data = {'bpm': bpm}
+        # Clear the manual flag since this is from API lookup
+        song_data = {
+            'bpm': bpm,
+            'bpm_manual': False
+        }
         self.firestore.create_or_update_song(song_id, song_data)
         
         return {'bpm': bpm}
