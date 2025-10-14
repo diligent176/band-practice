@@ -533,7 +533,7 @@ def update_collection(collection_id):
 @app.route('/api/collections/<collection_id>', methods=['DELETE'])
 @require_auth
 def delete_collection(collection_id):
-    """Delete a collection (does not delete associated songs)"""
+    """Delete a collection and all its associated songs"""
     try:
         user_id = g.user.get('email')
 
@@ -549,13 +549,13 @@ def delete_collection(collection_id):
         if collection.get('name') == 'Default':
             return jsonify({'error': 'Cannot delete Default collection', 'success': False}), 400
 
-        logger.info(f"User {user_id} deleting collection {collection_id}: {collection.get('name')}")
+        logger.info(f"User {user_id} deleting collection {collection_id}: {collection.get('name')} and all its songs")
 
         firestore.delete_collection(collection_id)
 
         return jsonify({
             'success': True,
-            'message': f"Collection '{collection.get('name')}' deleted"
+            'message': f"Collection '{collection.get('name')}' and all its songs deleted"
         })
     except Exception as e:
         logger.error(f"Error deleting collection {collection_id} for user {g.user.get('email')}: {e}")

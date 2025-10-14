@@ -329,11 +329,17 @@ class FirestoreService:
 
     def delete_collection(self, collection_id):
         """
-        Delete a collection (does not delete associated songs)
+        Delete a collection AND all associated songs
         
         Args:
             collection_id: Collection document ID
         """
+        # First, delete all songs in this collection
+        songs = self.get_songs_by_collection(collection_id)
+        for song in songs:
+            self.delete_song(song['id'])
+        
+        # Then delete the collection itself
         self.db.collection(self.collections_collection).document(collection_id).delete()
 
     def get_songs_by_collection(self, collection_id):

@@ -2590,7 +2590,7 @@ async function switchCollection(collectionId) {
 function deleteCollectionWithConfirm(collectionId, collectionName) {
     showConfirmDialog(
         'Delete Collection?',
-        `Are you sure you want to delete "${collectionName}"?\n\nThis will NOT delete the songs in this collection, but they will become inaccessible unless you re-import them into another collection.`,
+        `Are you sure you want to delete "${collectionName}"?\n\nThis will permanently delete the collection AND all songs in it.`,
         async () => {
             await deleteCollection(collectionId, collectionName);
         }
