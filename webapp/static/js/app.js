@@ -56,6 +56,13 @@ const confirmDialogMessage = document.getElementById('confirm-dialog-message');
 const confirmDialogConfirmBtn = document.getElementById('confirm-dialog-confirm-btn');
 const confirmDialogCancelBtn = document.getElementById('confirm-dialog-cancel-btn');
 
+const bpmDialog = document.getElementById('bpm-dialog');
+const bpmDialogTitle = document.getElementById('bpm-dialog-title');
+const bpmDialogSongInfo = document.getElementById('bpm-dialog-song-info');
+const bpmInput = document.getElementById('bpm-input');
+const bpmDialogSaveBtn = document.getElementById('bpm-dialog-save-btn');
+const bpmDialogCancelBtn = document.getElementById('bpm-dialog-cancel-btn');
+
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
@@ -80,11 +87,16 @@ function setupEventListeners() {
     cancelEditBtn.addEventListener('click', exitEditMode);
     refreshSongBtn.addEventListener('click', refreshCurrentSong);
     fetchBpmBtn.addEventListener('click', manuallyFetchBpm);
+    document.getElementById('set-bpm-btn').addEventListener('click', openBpmDialog);
     editLyricsBtn.addEventListener('click', openLyricsEditor);
     deleteSongBtn.addEventListener('click', deleteCurrentSong);
     lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
     lyricsEditorCancelBtn.addEventListener('click', closeLyricsEditor);
     tightenLyricsBtn.addEventListener('click', tightenLyrics);
+
+    // BPM dialog handlers
+    bpmDialogSaveBtn.addEventListener('click', saveBpm);
+    bpmDialogCancelBtn.addEventListener('click', closeBpmDialog);
 
     // Confirmation dialog close buttons
     confirmDialogCancelBtn.addEventListener('click', hideConfirmDialog);
@@ -145,6 +157,16 @@ function handleGlobalKeyboard(e) {
         if (editLyricsBtn && !editLyricsBtn.disabled) {
             e.preventDefault();
             editLyricsBtn.click();
+        }
+        return;
+    }
+
+    // B to set BPM
+    if (e.key === 'b' || e.key === 'B') {
+        const setBpmBtn = document.getElementById('set-bpm-btn');
+        if (setBpmBtn && !setBpmBtn.disabled) {
+            e.preventDefault();
+            setBpmBtn.click();
         }
         return;
     }
@@ -288,15 +310,19 @@ async function loadSong(songId) {
             editLyricsBtn.disabled = false;
             deleteSongBtn.disabled = false;
             fetchBpmBtn.disabled = false;
+            document.getElementById('set-bpm-btn').disabled = false;
             setStatus('Song loaded', 'success');
 
             // Load saved preferences for this song
             loadColumnPreference(currentSong.id);
             loadPanelSplit(currentSong.id);
 
-            // Fetch BPM in background if not available
-            if (!currentSong.bpm || currentSong.bpm === 'N/A') {
-                fetchBpmInBackground(currentSong.id, currentSong.title, currentSong.artist);
+            // Fetch BPM in background if not available or if it was marked as not found
+            if (!currentSong.bpm || currentSong.bpm === 'N/A' || currentSong.bpm === 'NOT_FOUND') {
+                // Only auto-fetch if it's truly missing (N/A), not if it was previously marked NOT_FOUND
+                if (currentSong.bpm !== 'NOT_FOUND') {
+                    fetchBpmInBackground(currentSong.id, currentSong.title, currentSong.artist);
+                }
             }
         } else {
             showToast('Failed to load song', 'error');
@@ -323,9 +349,11 @@ async function fetchBpmInBackground(songId, title, artist) {
             renderMetadata();
             console.log(`✅ BPM updated: ${data.bpm}`);
             
-            // Show toast notification if BPM was found
-            if (data.bpm && data.bpm !== 'N/A') {
+            // Show toast notification based on result
+            if (data.bpm && data.bpm !== 'N/A' && data.bpm !== 'NOT_FOUND') {
                 showToast(`BPM updated: ${data.bpm}`, 'success');
+            } else if (data.bpm === 'NOT_FOUND') {
+                showToast('BPM not found for this song', 'info');
             } else {
                 showToast('BPM not available for this song', 'info');
             }
@@ -749,11 +777,20 @@ function renderMetadata() {
         { icon: '<i class="fa-solid fa-calendar"></i>', label: 'Year', value: currentSong.year || 'N/A' }
     ];
 
-    // Add BPM with loading indicator if needed
+    // Add BPM with appropriate display based on status
     const bpmValue = currentSong.bpm || 'N/A';
-    const bpmDisplay = bpmValue === 'N/A' ?
-        'N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>' :
-        bpmValue;
+    let bpmDisplay;
+    
+    if (bpmValue === 'NOT_FOUND') {
+        // Show special icon for "not found" status
+        bpmDisplay = '<span style="color: var(--text-muted);" title="BPM lookup failed - click Set BPM to enter manually">⊘</span>';
+    } else if (bpmValue === 'N/A') {
+        // Show loading indicator for pending lookup
+        bpmDisplay = 'N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>';
+    } else {
+        bpmDisplay = bpmValue;
+    }
+    
     metadata.push({ icon: '<i class="fa-solid fa-drum"></i>', label: 'BPM', value: bpmDisplay });
 
     let metadataHtml = metadata.map(item =>
@@ -1468,6 +1505,100 @@ function handleConfirmDialogKeyboard(e) {
             hideConfirmDialog();
             currentConfirmCallback();
         }
+    }
+}
+
+//=============================================================================
+// BPM Dialog Functions
+//=============================================================================
+
+function openBpmDialog() {
+    if (!currentSong) return;
+
+    bpmDialogTitle.textContent = 'Set BPM';
+    bpmDialogSongInfo.textContent = `${currentSong.title} - ${currentSong.artist}`;
+    
+    // Pre-fill with current BPM if it's a number
+    if (currentSong.bpm && currentSong.bpm !== 'N/A' && currentSong.bpm !== 'NOT_FOUND') {
+        bpmInput.value = currentSong.bpm;
+    } else {
+        bpmInput.value = '';
+    }
+    
+    bpmDialog.style.display = 'flex';
+    bpmInput.focus();
+    bpmInput.select();
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleBpmDialogKeyboard);
+}
+
+function closeBpmDialog() {
+    bpmDialog.style.display = 'none';
+    bpmInput.value = '';
+
+    // Remove keyboard shortcuts
+    document.removeEventListener('keydown', handleBpmDialogKeyboard);
+}
+
+function handleBpmDialogKeyboard(e) {
+    // Only handle if BPM dialog is visible
+    if (bpmDialog.style.display !== 'flex') return;
+
+    // ESC to cancel
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeBpmDialog();
+        return;
+    }
+
+    // ENTER to save
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        saveBpm();
+        return;
+    }
+}
+
+async function saveBpm() {
+    if (!currentSong) return;
+
+    const bpmValue = bpmInput.value.trim();
+
+    if (!bpmValue) {
+        showToast('Please enter a BPM value', 'error');
+        return;
+    }
+
+    const bpmNumber = parseInt(bpmValue);
+    if (isNaN(bpmNumber) || bpmNumber <= 0 || bpmNumber > 300) {
+        showToast('BPM must be between 1 and 300', 'error');
+        return;
+    }
+
+    try {
+        showLoading('Saving BPM...');
+
+        const response = await authenticatedApiCall(`/api/songs/${currentSong.id}/bpm`, {
+            method: 'PUT',
+            body: JSON.stringify({ bpm: bpmNumber })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            currentSong.bpm = bpmNumber;
+            renderMetadata();
+            closeBpmDialog();
+            showToast(`BPM set to ${bpmNumber}`, 'success');
+            setStatus(`BPM updated to ${bpmNumber}`, 'success');
+        } else {
+            showToast('Failed to save BPM: ' + (data.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        showToast('Error saving BPM: ' + error.message, 'error');
+    } finally {
+        hideLoading();
     }
 }
 

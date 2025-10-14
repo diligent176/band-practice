@@ -495,7 +495,17 @@ class LyricsService:
 
     def fetch_and_update_bpm(self, song_id, title, artist):
         """Fetch and update BPM for a single song (called asynchronously from frontend)"""
+        # Check if BPM was already marked as not found
+        existing_song = self.firestore.get_song(song_id)
+        if existing_song and existing_song.get('bpm') == 'NOT_FOUND':
+            print(f"BPM previously marked as NOT_FOUND for '{title}' by {artist} - skipping lookup")
+            return {'bpm': 'NOT_FOUND'}
+        
         bpm = self._fetch_bpm(title, artist)
+        
+        # If BPM is N/A, mark it as NOT_FOUND to avoid repeated lookups
+        if bpm == 'N/A':
+            bpm = 'NOT_FOUND'
         
         song_data = {'bpm': bpm}
         self.firestore.create_or_update_song(song_id, song_data)

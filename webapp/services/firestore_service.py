@@ -91,6 +91,18 @@ class FirestoreService:
             'lyrics_updated_at': datetime.utcnow()
         })
 
+    def update_bpm(self, song_id, bpm):
+        """Update BPM for a song (manual override or lookup result)"""
+        doc_ref = self.db.collection(self.songs_collection).document(song_id)
+
+        if not doc_ref.get().exists:
+            raise ValueError(f"Song {song_id} not found")
+
+        doc_ref.update({
+            'bpm': bpm,
+            'bpm_updated_at': datetime.utcnow()
+        })
+
     def delete_song(self, song_id):
         """Delete a song"""
         self.db.collection(self.songs_collection).document(song_id).delete()

@@ -304,6 +304,50 @@ def fetch_bpm(song_id):
         return jsonify({'error': str(e), 'success': False}), 500
 
 
+@app.route('/api/songs/<song_id>/bpm', methods=['PUT'])
+@require_auth
+def update_bpm(song_id):
+    """Manually update BPM for a song (user override)"""
+    try:
+        data = request.get_json()
+        bpm_value = data.get('bpm')
+
+        if bpm_value is None:
+            return jsonify({'error': 'BPM value is required', 'success': False}), 400
+
+        # Validate BPM value
+        if isinstance(bpm_value, str):
+            if bpm_value not in ['N/A', 'NOT_FOUND']:
+                return jsonify({'error': 'Invalid BPM value', 'success': False}), 400
+        else:
+            try:
+                bpm_int = int(bpm_value)
+                if bpm_int <= 0 or bpm_int > 300:
+                    return jsonify({'error': 'BPM must be between 1 and 300', 'success': False}), 400
+                bpm_value = bpm_int
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid BPM value', 'success': False}), 400
+
+        song = firestore.get_song(song_id)
+        if not song:
+            return jsonify({'error': 'Song not found', 'success': False}), 404
+
+        logger.info(f"User {g.user.get('email')} manually updating BPM for song {song_id} to {bpm_value}")
+        firestore.update_bpm(song_id, bpm_value)
+
+        # Get updated song
+        updated_song = firestore.get_song(song_id)
+
+        return jsonify({
+            'success': True,
+            'message': f'BPM updated to {bpm_value}',
+            'song': updated_song
+        })
+    except Exception as e:
+        logger.error(f"Error updating BPM for song {song_id} by user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
 @app.route('/api/songs/<song_id>', methods=['DELETE'])
 @require_auth
 def delete_song(song_id):
