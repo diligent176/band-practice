@@ -1851,7 +1851,10 @@ async function loadPlaylistDetails() {
 
         const response = await authenticatedApiCall('/api/playlist/details', {
             method: 'POST',
-            body: JSON.stringify({ playlist_url: playlistUrl })
+            body: JSON.stringify({ 
+                playlist_url: playlistUrl,
+                collection_id: currentCollection ? currentCollection.id : null
+            })
         });
 
         const data = await response.json();

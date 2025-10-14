@@ -76,8 +76,14 @@ class LyricsService:
             'owner': playlist['owner']['display_name']
         }
 
-    def get_playlist_details_with_conflicts(self, playlist_url):
-        """Get detailed playlist information with conflict detection"""
+    def get_playlist_details_with_conflicts(self, playlist_url, collection_id=None):
+        """
+        Get detailed playlist information with conflict detection
+        
+        Args:
+            playlist_url: Spotify playlist URL
+            collection_id: Optional collection ID to check for conflicts within that collection
+        """
         playlist_id = self.extract_playlist_id(playlist_url)
 
         # Get playlist details
@@ -112,8 +118,8 @@ class LyricsService:
             # Don't fetch BPM during playlist details - it will be fetched in background when song is selected
             bpm = 'N/A'
 
-            # Create song ID
-            song_id = self._create_song_id(title, artist)
+            # Create song ID with collection context for conflict detection
+            song_id = self._create_song_id(title, artist, collection_id)
 
             # Check if song exists and has conflicts
             status = 'new'
@@ -317,8 +323,8 @@ class LyricsService:
                 # Get the smallest image
                 album_art_url = track['album']['images'][-1]['url']
 
-            # Create song ID
-            song_id = self._create_song_id(title, artist)
+            # Create song ID with collection context - this ensures unique songs per collection
+            song_id = self._create_song_id(title, artist, collection_id)
 
             # Skip if not in selected list
             if song_id not in selected_song_ids:
@@ -761,10 +767,24 @@ class LyricsService:
             print(f"Error fetching BPM for '{title}' by {artist}: {e}")
             return 'N/A'
 
-    def _create_song_id(self, title, artist):
-        """Create a consistent song ID from title and artist"""
+    def _create_song_id(self, title, artist, collection_id=None):
+        """
+        Create a consistent song ID from title, artist, and optionally collection_id
+        
+        If collection_id is provided, the ID format is: collection_id__artist__title
+        This allows the same song to exist in multiple collections with different notes/lyrics/BPM
+        
+        If collection_id is not provided (legacy), the ID format is: artist__title
+        """
         # Remove special characters and create ID
         clean_title = re.sub(r'[^\w\s]', '', title)
         clean_artist = re.sub(r'[^\w\s]', '', artist)
-        song_id = f"{clean_title}__{clean_artist}".replace(' ', '_')
+        
+        if collection_id:
+            # New format: collection_id__artist__title
+            song_id = f"{collection_id}__{clean_artist}__{clean_title}".replace(' ', '_')
+        else:
+            # Legacy format: artist__title (for backward compatibility)
+            song_id = f"{clean_artist}__{clean_title}".replace(' ', '_')
+        
         return song_id

@@ -139,12 +139,13 @@ def get_playlist_details():
     try:
         data = request.get_json()
         playlist_url = data.get('playlist_url')
+        collection_id = data.get('collection_id')  # Get collection_id for proper conflict detection
 
         if not playlist_url:
             return jsonify({'error': 'No playlist URL provided', 'success': False}), 400
 
-        logger.info(f"User {g.user.get('email')} requested detailed playlist info")
-        details = lyrics_service.get_playlist_details_with_conflicts(playlist_url)
+        logger.info(f"User {g.user.get('email')} requested detailed playlist info for collection {collection_id}")
+        details = lyrics_service.get_playlist_details_with_conflicts(playlist_url, collection_id)
 
         # Save playlist to memory for quick recall
         user_id = g.user.get('email')
