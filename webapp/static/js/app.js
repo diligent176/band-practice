@@ -171,6 +171,16 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
+    // F to fetch BPM from online
+    if (e.key === 'f' || e.key === 'F') {
+        const fetchBpmBtn = document.getElementById('fetch-bpm-btn');
+        if (fetchBpmBtn && !fetchBpmBtn.disabled) {
+            e.preventDefault();
+            fetchBpmBtn.click();
+        }
+        return;
+    }
+
     // N to edit notes
     if (e.key === 'n' || e.key === 'N') {
         const editNotesBtn = document.getElementById('edit-notes-btn');
