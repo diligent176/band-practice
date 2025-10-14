@@ -1682,8 +1682,9 @@ function handleConfirmDialogKeyboard(e) {
         e.preventDefault();
         e.stopPropagation(); // Prevent other dialogs from handling this
         if (currentConfirmCallback) {
+            const callback = currentConfirmCallback; // Save callback before hiding
             hideConfirmDialog();
-            currentConfirmCallback();
+            callback(); // Call it after hiding
         }
         return;
     }
