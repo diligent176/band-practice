@@ -30,6 +30,16 @@ resource "google_cloud_run_service" "band_practice" {
           value = var.project_id
         }
 
+        env {
+          name  = "FLASK_ENV"
+          value = "production"
+        }
+
+        env {
+          name  = "SPOTIFY_REDIRECT_URI"
+          value = var.spotify_redirect_uri
+        }
+
         # Secrets mounted from Secret Manager
         env {
           name = "SPOTIFY_CLIENT_ID"

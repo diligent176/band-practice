@@ -73,3 +73,9 @@ variable "custom_domain" {
   type        = string
   default     = ""
 }
+
+variable "spotify_redirect_uri" {
+  description = "Spotify OAuth redirect URI (localhost for local dev, production URL for prod)"
+  type        = string
+  default     = "http://127.0.0.1:8080/api/spotify/callback"
+}
