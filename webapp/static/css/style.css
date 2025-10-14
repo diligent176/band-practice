@@ -126,11 +126,12 @@ header h1 {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 4px;
-  padding: 2px 8px;
+  padding: 4px 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
   flex-shrink: 0;
+  height: 28px;
 }
 
 .font-size-selector:hover {
@@ -165,18 +166,20 @@ header h1 {
 }
 
 .keyboard-shortcuts-help {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 4px;
-  padding: 2px 8px;
+  padding: 4px 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: help;
-  white-space: pre-line;
   flex-shrink: 0;
+  height: 28px;
+  margin-left: 8px;
 }
 
 .keyboard-shortcuts-help:hover {
@@ -189,16 +192,102 @@ header h1 {
   color: var(--text-secondary);
 }
 
-.user-info {
+.help-card {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(29, 185, 84, 0.15);
+  min-width: 280px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.keyboard-shortcuts-help:hover .help-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.help-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(29, 185, 84, 0.15);
+  border-radius: 7px 7px 0 0;
+  color: var(--accent-primary);
+  font-weight: 600;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(29, 185, 84, 0.2);
+}
+
+.help-card-header i {
+  font-size: 12px;
+  color: var(--accent-primary);
+}
+
+.help-card-content {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.help-item {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.help-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.help-item kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: 0 2px 0 var(--border-color), 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+}
+
+.help-item span {
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
+  margin-left: 8px;
+  height: 28px;
 }
 
 .user-email {
   background: var(--card-bg);
-  padding: 2px 10px;
+  padding: 4px 10px;
   border-radius: 4px;
   font-size: 11px;
   color: var(--text-primary);
@@ -207,6 +296,9 @@ header h1 {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: default;
+  height: 28px;
+  display: flex;
+  align-items: center;
 }
 
 .user-email:hover {
@@ -216,7 +308,7 @@ header h1 {
 
 #signout-btn {
   font-size: 10px;
-  padding: 2px 10px;
+  padding: 4px 10px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -225,6 +317,7 @@ header h1 {
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
+  height: 28px;
 }
 
 #signout-btn i {
