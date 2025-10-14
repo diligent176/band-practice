@@ -499,7 +499,8 @@ class LyricsService:
 
         song_data = {
             'lyrics': lyrics_data['lyrics'],
-            'lyrics_numbered': lyrics_data['lyrics_numbered']
+            'lyrics_numbered': lyrics_data['lyrics_numbered'],
+            'lyrics_fetched': True  # Mark as fetched
         }
 
         # Clear customization flag if requested

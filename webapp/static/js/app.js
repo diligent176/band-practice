@@ -365,6 +365,11 @@ async function loadSong(songId) {
             loadColumnPreference(currentSong.id);
             loadPanelSplit(currentSong.id);
 
+            // Fetch lyrics in background if they haven't been fetched yet
+            if (currentSong.lyrics_fetched === false) {
+                fetchLyricsInBackground(currentSong.id, currentSong.title, currentSong.artist);
+            }
+
             // Fetch BPM in background if not available or if it was marked as not found
             if (!currentSong.bpm || currentSong.bpm === 'N/A' || currentSong.bpm === 'NOT_FOUND') {
                 // Only auto-fetch if it's truly missing (N/A), not if it was previously marked NOT_FOUND
@@ -427,6 +432,64 @@ async function fetchBpmInBackground(songId, title, artist) {
             renderMetadata();
         }
         // Silently fail - don't show error to user as this is background operation
+    }
+}
+
+async function fetchLyricsInBackground(songId, title, artist) {
+    try {
+        console.log(`📜 Fetching lyrics for ${title} by ${artist} in background...`);
+        
+        // Show loading indicator in the lyrics panel
+        if (currentSong && currentSong.id === songId) {
+            setStatus('Loading lyrics...', 'info');
+        }
+
+        const response = await authenticatedApiCall(`/api/songs/${songId}/refresh`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ force_overwrite: false })
+        });
+
+        const data = await response.json();
+
+        if (data.success && currentSong && currentSong.id === songId) {
+            // Only update if we're still viewing the same song
+            currentSong.lyrics = data.song.lyrics || '';
+            currentSong.lyrics_numbered = data.song.lyrics_numbered || '';
+            currentSong.lyrics_fetched = true;
+            currentSong.is_customized = data.song.is_customized || false;
+            
+            // Re-render the song to show the lyrics
+            renderSong();
+            console.log(`✅ Lyrics loaded successfully`);
+            
+            // Update the song in the allSongs array
+            const songIndex = allSongs.findIndex(s => s.id === songId);
+            if (songIndex !== -1) {
+                allSongs[songIndex].lyrics = currentSong.lyrics;
+                allSongs[songIndex].lyrics_numbered = currentSong.lyrics_numbered;
+                allSongs[songIndex].lyrics_fetched = true;
+                allSongs[songIndex].is_customized = currentSong.is_customized;
+            }
+            
+            setStatus('Song loaded • Lyrics updated', 'success');
+        } else if (data.requires_confirmation) {
+            // Song has customized lyrics - this shouldn't happen on first fetch, but handle it
+            console.log(`⚠️ Song already has customized lyrics`);
+        } else {
+            console.error(`Failed to fetch lyrics: ${data.error || 'Unknown error'}`);
+            if (currentSong && currentSong.id === songId) {
+                setStatus('Song loaded • Lyrics not available', 'warning');
+            }
+        }
+    } catch (error) {
+        console.error(`Error fetching lyrics for ${title}:`, error);
+        if (currentSong && currentSong.id === songId) {
+            setStatus('Song loaded • Failed to fetch lyrics', 'error');
+        }
+        // Don't show toast - this is a background operation
     }
 }
 
@@ -877,6 +940,16 @@ function renderMetadata() {
 }
 
 function renderLyrics() {
+    // Check if lyrics are being fetched
+    if (currentSong.lyrics_fetched === false) {
+        lyricsContentInner.innerHTML = `
+            <div class="empty-state">
+                <i class="fa-solid fa-hourglass-half" style="font-size: 2em; color: var(--accent-color); margin-bottom: 1em;"></i>
+                <p>Loading lyrics...</p>
+            </div>`;
+        return;
+    }
+
     const lyrics = currentSong.lyrics_numbered || currentSong.lyrics || '';
     const lines = lyrics.split('\n');
     let html = '';
