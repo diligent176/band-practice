@@ -1131,6 +1131,17 @@ header h1 {
   border-left-color: var(--accent-info);
 }
 
+/* Special styling for Panel Split toast - positioned lower and uses drop-down animation */
+.toast-panel-split {
+  margin-top: 100px;
+  /* Position 100px lower than normal toasts */
+  animation: slideInFromRight 0.3s ease-out, dropDownFadeOut 0.8s ease-in 3s forwards !important;
+}
+
+.toast-panel-split::after {
+  animation: gradientFadeDropDown 0.8s ease-in 3s forwards !important;
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(400px);
@@ -1140,6 +1151,30 @@ header h1 {
   to {
     transform: translateX(0);
     opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes dropDownFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(0) translateY(60px);
   }
 }
 
@@ -1162,6 +1197,16 @@ header h1 {
 
   100% {
     opacity: 0.7;
+  }
+}
+
+@keyframes gradientFadeDropDown {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0.5;
   }
 }
 

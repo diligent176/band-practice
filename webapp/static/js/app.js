@@ -1319,9 +1319,12 @@ function setStatus(message, type = 'info') {
     else statusMessage.style.color = '#FF9800';
 }
 
-function showToast(message, type = 'info') {
+function showToast(message, type = 'info', customClass = null) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    if (customClass) {
+        toast.classList.add(customClass);
+    }
     toast.textContent = message;
 
     document.getElementById('toast-container').appendChild(toast);
@@ -2684,7 +2687,7 @@ function exitResizeMode() {
     if (currentSong) {
         const lyricsPercentage = (lyricsPanel.getBoundingClientRect().width / panelsContainer.getBoundingClientRect().width) * 100;
         savePanelSplit(currentSong.id, lyricsPercentage);
-        showToast('Panel split saved', 'success');
+        showToast('Panel split saved', 'success', 'toast-panel-split');
     }
 }
 
