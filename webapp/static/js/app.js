@@ -1629,20 +1629,23 @@ function showConfirmDialog(title, message, onConfirm) {
     confirmDialog.style.display = 'flex';
     currentConfirmCallback = onConfirm;
 
-    // Remove any existing event listeners and add new one
-    const newConfirmBtn = confirmDialogConfirmBtn.cloneNode(true);
-    confirmDialogConfirmBtn.parentNode.replaceChild(newConfirmBtn, confirmDialogConfirmBtn);
+    // Get the current button (it might have been replaced before)
+    const currentBtn = document.getElementById('confirm-dialog-confirm-btn');
+    if (currentBtn) {
+        // Remove any existing event listeners by cloning
+        const newConfirmBtn = currentBtn.cloneNode(true);
+        currentBtn.parentNode.replaceChild(newConfirmBtn, currentBtn);
 
-    // Update the global reference
-    window.confirmDialogConfirmBtn = newConfirmBtn;
+        newConfirmBtn.addEventListener('click', () => {
+            hideConfirmDialog();
+            onConfirm();
+        });
+    }
 
-    newConfirmBtn.addEventListener('click', () => {
-        hideConfirmDialog();
-        onConfirm();
-    });
-
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', handleConfirmDialogKeyboard);
+    // Remove any existing keyboard listener first to prevent duplicates
+    document.removeEventListener('keydown', handleConfirmDialogKeyboard, true);
+    // Add keyboard shortcuts with capture phase to ensure it runs before other handlers
+    document.addEventListener('keydown', handleConfirmDialogKeyboard, true);
 }
 
 function hideConfirmDialog() {
@@ -1650,7 +1653,7 @@ function hideConfirmDialog() {
     currentConfirmCallback = null;
 
     // Remove keyboard shortcuts
-    document.removeEventListener('keydown', handleConfirmDialogKeyboard);
+    document.removeEventListener('keydown', handleConfirmDialogKeyboard, true);
 }
 
 function handleConfirmDialogKeyboard(e) {
@@ -1660,15 +1663,19 @@ function handleConfirmDialogKeyboard(e) {
     // ESC to cancel
     if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation(); // Prevent other dialogs from handling this
         hideConfirmDialog();
+        return;
     }
     // ENTER to confirm
     if (e.key === 'Enter') {
         e.preventDefault();
+        e.stopPropagation(); // Prevent other dialogs from handling this
         if (currentConfirmCallback) {
             hideConfirmDialog();
             currentConfirmCallback();
         }
+        return;
     }
 }
 
@@ -2422,6 +2429,8 @@ async function showCollectionDialog() {
         hideLoading();
     }
     
+    // Remove any existing keyboard listener first to prevent duplicates
+    document.removeEventListener('keydown', handleCollectionDialogKeyboard);
     // Add keyboard shortcuts
     document.addEventListener('keydown', handleCollectionDialogKeyboard);
 }
@@ -2435,6 +2444,9 @@ let selectedCollectionIndex = 0;
 
 function handleCollectionDialogKeyboard(e) {
     if (collectionDialog.style.display !== 'flex') return;
+    
+    // If confirm dialog is open, don't handle keyboard shortcuts
+    if (confirmDialog && confirmDialog.style.display === 'flex') return;
     
     // Don't intercept keyboard shortcuts when typing in an input field
     const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
