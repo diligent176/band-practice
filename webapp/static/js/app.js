@@ -18,7 +18,7 @@ const songSelectorClose = document.getElementById('song-selector-close');
 const songSearchInput = document.getElementById('song-search-input');
 const songSelectorList = document.getElementById('song-selector-list');
 const toggleSortBtn = document.getElementById('toggle-sort-btn');
-const sortModeDisplay = document.getElementById('sort-mode');
+const sortModeLabel = document.getElementById('sort-mode-label');
 const songCountDisplay = document.getElementById('song-count-display');
 const backToTopBtn = document.getElementById('back-to-top-btn');
 
@@ -523,7 +523,7 @@ function closeSongSelector() {
 
 function toggleSongSort() {
     songSelectorSortByArtist = !songSelectorSortByArtist;
-    sortModeDisplay.textContent = songSelectorSortByArtist ? 'Artist' : 'Song';
+    sortModeLabel.textContent = songSelectorSortByArtist ? 'Sort: Artist (Alt+T)' : 'Sort: Song (Alt+T)';
     filterSongs();
 }
 
