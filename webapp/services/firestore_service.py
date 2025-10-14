@@ -368,7 +368,7 @@ class FirestoreService:
 
     def count_songs_by_collection(self, collection_id):
         """
-        Count songs in a specific collection (more efficient than fetching all)
+        Count songs in a specific collection (more efficient than fetching all data)
         
         Args:
             collection_id: Collection document ID
@@ -376,15 +376,14 @@ class FirestoreService:
         Returns:
             Integer count of songs
         """
-        # Use count aggregation query for efficiency (available in newer Firestore SDK)
-        from google.cloud.firestore_v1.aggregation import Count
-        
+        # Simple count - fetch document IDs only (minimal data transfer)
         query = (self.db.collection(self.songs_collection)
-                .where('collection_id', '==', collection_id))
+                .where('collection_id', '==', collection_id)
+                .select([]))  # Empty select = only document IDs, no field data
         
-        # Use aggregation query to count without fetching documents
-        aggregation_query = query.count(alias='song_count')
-        results = aggregation_query.get()
+        # Count the results
+        count = 0
+        for _ in query.stream():
+            count += 1
         
-        # Extract count from results
-        return results[0][0].value if results else 0
+        return count
