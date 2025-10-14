@@ -1265,6 +1265,11 @@ header h1 {
   gap: 15px;
 }
 
+/* Import dialog should be narrower than lyrics editor */
+.dialog-import {
+  width: 900px;
+}
+
 .dialog-header {
   display: flex;
   justify-content: space-between;
@@ -1450,12 +1455,12 @@ header h1 {
 .import-song-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 6px;
+  gap: 10px;
+  padding: 8px 10px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  margin-bottom: 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
   transition: all 0.2s;
 }
 
@@ -1464,23 +1469,38 @@ header h1 {
 }
 
 .import-song-item.has-conflict {
-  border-color: var(--accent-warning);
-  background: rgba(255, 152, 0, 0.05);
+  /* Remove the yellow border - just use normal border */
+  border-color: var(--border-color);
+  background: var(--bg-tertiary);
 }
 
 .import-song-checkbox {
   width: 18px;
   height: 18px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .import-song-art {
-  width: 70px;
-  height: 70px;
+  width: 50px;
+  height: 50px;
   border-radius: 4px;
   object-fit: cover;
   background: var(--bg-primary);
   flex-shrink: 0;
+}
+
+.import-song-art-placeholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  background: var(--bg-primary);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: 20px;
 }
 
 .import-song-info {
@@ -1489,29 +1509,51 @@ header h1 {
 }
 
 .import-song-title {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 14px;
+  margin-bottom: 2px;
 }
 
 .import-song-artist {
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.import-song-artist i {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.import-song-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
 }
 
 .import-song-status {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 4px;
+  font-size: 10px;
   padding: 3px 8px;
   border-radius: 3px;
+  white-space: nowrap;
+}
+
+.import-song-status i {
+  font-size: 9px;
 }
 
 .import-song-status.status-existing {

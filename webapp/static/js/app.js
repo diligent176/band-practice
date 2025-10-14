@@ -2085,13 +2085,17 @@ function renderImportSongList() {
         const isSelected = importDialogState.selectedSongIds.has(song.id);
         const conflictClass = song.has_conflict ? 'has-conflict' : '';
 
-        let statusBadge = '';
-        if (song.status === 'conflict') {
-            statusBadge = '<span class="import-song-status status-conflict">⚠️ Has custom lyrics/notes</span>';
-        } else if (song.status === 'existing') {
-            statusBadge = '<span class="import-song-status status-existing">✓ In database</span>';
-        } else {
-            statusBadge = '<span class="import-song-status status-new">New</span>';
+        // Build status badges - can show multiple
+        let statusBadges = '';
+        if (song.status === 'existing') {
+            statusBadges += '<span class="import-song-status status-existing"><i class="fa-solid fa-check"></i> In Collection</span>';
+        } else if (song.status === 'new') {
+            statusBadges += '<span class="import-song-status status-new"><i class="fa-solid fa-star"></i> New</span>';
+        }
+        
+        // Add custom lyrics badge if applicable (can appear with existing or new)
+        if (song.status === 'conflict' || song.has_conflict) {
+            statusBadges += '<span class="import-song-status status-conflict"><i class="fa-solid fa-triangle-exclamation"></i> Custom Lyrics</span>';
         }
 
         html += `
@@ -2102,13 +2106,18 @@ function renderImportSongList() {
                        onchange="toggleSongSelection('${song.id}')">
                 ${song.album_art ?
                     `<img src="${song.album_art}" class="import-song-art" alt="Album art">` :
-                    `<div class="import-song-art"></div>`
+                    `<div class="import-song-art-placeholder"><i class="fa-solid fa-music"></i></div>`
                 }
                 <div class="import-song-info">
                     <div class="import-song-title">${escapeHtml(song.title)}</div>
-                    <div class="import-song-artist">${escapeHtml(song.artist)} • ${escapeHtml(song.album)}</div>
+                    <div class="import-song-artist">
+                        <i class="fa-solid fa-user"></i> ${escapeHtml(song.artist)} 
+                        <i class="fa-solid fa-compact-disc"></i> ${escapeHtml(song.album)}
+                    </div>
                 </div>
-                ${statusBadge}
+                <div class="import-song-badges">
+                    ${statusBadges}
+                </div>
             </div>
         `;
     });
