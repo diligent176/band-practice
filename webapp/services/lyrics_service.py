@@ -89,7 +89,7 @@ class LyricsService:
         # Get playlist details
         playlist = self.spotify.playlist(playlist_id)
 
-        # Get playlist tracks
+        # Get playlist tracks - ALL DATA including album art comes from this ONE API call!
         results = self.spotify.playlist_tracks(playlist_id)
         tracks = results['items']
 
@@ -97,6 +97,15 @@ class LyricsService:
         while results['next']:
             results = self.spotify.next(results)
             tracks.extend(results['items'])
+
+        # OPTIMIZATION: Batch fetch all existing songs in this collection to avoid N individual Firestore reads
+        existing_songs_map = {}
+        if collection_id:
+            # Get all songs in this collection with ONE Firestore query
+            existing_songs = self.firestore.get_all_songs(collection_id=collection_id)
+            # Build a lookup dictionary for O(1) access
+            existing_songs_map = {song['id']: song for song in existing_songs}
+            print(f"✅ Optimized: Loaded {len(existing_songs_map)} existing songs in ONE query (instead of {len(tracks)} individual reads)")
 
         songs_list = []
         for item in tracks:
@@ -109,7 +118,7 @@ class LyricsService:
             album = track['album']['name']
             year = track['album']['release_date'][:4] if track['album'].get('release_date') else 'Unknown'
 
-            # Get album art (smallest available)
+            # Get album art (smallest available) - already in the tracks response!
             album_art = None
             if track['album'].get('images'):
                 # Get the smallest image
@@ -121,13 +130,12 @@ class LyricsService:
             # Create song ID with collection context for conflict detection
             song_id = self._create_song_id(title, artist, collection_id)
 
-            # Check if song exists and has conflicts
+            # Check if song exists and has conflicts (using in-memory lookup instead of Firestore calls)
             status = 'new'
             has_conflict = False
-            existing_song = None
+            existing_song = existing_songs_map.get(song_id)
 
-            if self.firestore.song_exists(song_id):
-                existing_song = self.firestore.get_song(song_id)
+            if existing_song:
                 status = 'existing'
 
                 # Check for conflicts (customized lyrics or notes)
