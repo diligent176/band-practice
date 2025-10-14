@@ -2468,6 +2468,13 @@ function handleCollectionDialogKeyboard(e) {
         return;
     }
     
+    // N key to create new collection
+    if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        showNewCollectionDialog();
+        return;
+    }
+    
     // Delete key to delete collection
     if (e.key === 'Delete' || (e.altKey && (e.key === 'd' || e.key === 'D'))) {
         e.preventDefault();
@@ -2511,6 +2518,7 @@ function renderCollectionList() {
         const activeClass = isActive ? 'active' : '';
         const canDelete = collection.name !== 'Default';
         const songCount = collection.song_count || 0;
+        const songCountText = songCount === 1 ? '1 song' : `${songCount} songs`;
         
         html += `
             <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
@@ -2520,7 +2528,7 @@ function renderCollectionList() {
                 <div class="collection-item-info">
                     <div class="collection-item-header">
                         <span class="collection-item-name">${escapeHtml(collection.name)}</span>
-                        <span class="collection-item-song-count">${songCount}</span>
+                        <span class="collection-item-song-count">${songCountText}</span>
                     </div>
                     ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
                 </div>

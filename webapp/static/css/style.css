@@ -2035,16 +2035,14 @@ header h1 {
 .collection-item-header {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 2px;
+  gap: 6px;
+  margin-bottom: 3px;
 }
 
 .collection-item-name {
   font-weight: 500;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-primary);
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2052,20 +2050,21 @@ header h1 {
 
 .collection-item-song-count {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   flex-shrink: 0;
   opacity: 0.7;
+  white-space: nowrap;
 }
 
 .collection-item-description {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: 0.6;
-  line-height: 1.3;
+  opacity: 0.7;
+  line-height: 1.4;
 }
 
 .collection-item-active {
@@ -2084,30 +2083,30 @@ header h1 {
 }
 
 .collection-item-delete {
-  padding: 4px 8px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  color: var(--text-muted);
+  padding: 5px 10px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 4px;
+  color: #dc2626;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   flex-shrink: 0;
-  opacity: 0.5;
+  opacity: 0.8;
 }
 
 .collection-item-delete:hover {
-  background: rgba(220, 38, 38, 0.1);
-  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(220, 38, 38, 0.4);
   color: #dc2626;
   opacity: 1;
 }
 
 .collection-item-delete i {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .collection-selector-content {
