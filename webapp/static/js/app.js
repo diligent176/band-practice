@@ -2406,6 +2406,12 @@ async function showCollectionDialog() {
         if (data.success) {
             allCollections = data.collections;
             renderCollectionList();
+            
+            // Set initial selection to current collection or first item
+            if (allCollections.length > 0) {
+                const currentIndex = allCollections.findIndex(c => currentCollection && c.id === currentCollection.id);
+                highlightCollectionItem(currentIndex >= 0 ? currentIndex : 0);
+            }
         } else {
             showToast('Failed to load collections', 'error');
         }
@@ -2425,12 +2431,71 @@ function closeCollectionDialog() {
     document.removeEventListener('keydown', handleCollectionDialogKeyboard);
 }
 
+let selectedCollectionIndex = 0;
+
 function handleCollectionDialogKeyboard(e) {
     if (collectionDialog.style.display !== 'flex') return;
     
     if (e.key === 'Escape') {
         e.preventDefault();
         closeCollectionDialog();
+        return;
+    }
+    
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (allCollections.length > 0) {
+            selectedCollectionIndex = (selectedCollectionIndex + 1) % allCollections.length;
+            highlightCollectionItem(selectedCollectionIndex);
+        }
+        return;
+    }
+    
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (allCollections.length > 0) {
+            selectedCollectionIndex = (selectedCollectionIndex - 1 + allCollections.length) % allCollections.length;
+            highlightCollectionItem(selectedCollectionIndex);
+        }
+        return;
+    }
+    
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (allCollections.length > 0 && allCollections[selectedCollectionIndex]) {
+            switchCollection(allCollections[selectedCollectionIndex].id);
+        }
+        return;
+    }
+    
+    // Delete key to delete collection
+    if (e.key === 'Delete' || (e.altKey && (e.key === 'd' || e.key === 'D'))) {
+        e.preventDefault();
+        if (allCollections.length > 0 && allCollections[selectedCollectionIndex]) {
+            const collection = allCollections[selectedCollectionIndex];
+            if (collection.name !== 'Default') {
+                deleteCollectionWithConfirm(collection.id, collection.name);
+            } else {
+                showToast('Cannot delete Default collection', 'error');
+            }
+        }
+        return;
+    }
+}
+
+function highlightCollectionItem(index) {
+    selectedCollectionIndex = index;
+    
+    // Remove highlight from all items
+    document.querySelectorAll('.collection-item').forEach(item => {
+        item.classList.remove('highlighted');
+    });
+    
+    // Add highlight to selected item
+    const items = document.querySelectorAll('.collection-item');
+    if (items[index]) {
+        items[index].classList.add('highlighted');
+        items[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
@@ -2441,12 +2506,13 @@ function renderCollectionList() {
     }
     
     let html = '';
-    allCollections.forEach(collection => {
+    allCollections.forEach((collection, index) => {
         const isActive = currentCollection && collection.id === currentCollection.id;
         const activeClass = isActive ? 'active' : '';
+        const canDelete = collection.name !== 'Default';
         
         html += `
-            <div class="collection-item ${activeClass}" data-collection-id="${collection.id}">
+            <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
                 <div class="collection-item-icon">
                     <i class="fa-solid fa-layer-group"></i>
                 </div>
@@ -2455,16 +2521,36 @@ function renderCollectionList() {
                     ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
                 </div>
                 ${isActive ? '<span class="collection-item-active"><i class="fa-solid fa-check"></i> Active</span>' : ''}
+                ${canDelete ? `<button class="collection-item-delete" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Alt+D)"><i class="fa-solid fa-trash"></i></button>` : ''}
             </div>
         `;
     });
     
     collectionList.innerHTML = html;
     
-    // Add click handlers
+    // Add click handlers for collection items
     document.querySelectorAll('.collection-item').forEach(item => {
-        item.addEventListener('click', () => {
-            switchCollection(item.dataset.collectionId);
+        // Mouse hover to update selection index
+        item.addEventListener('mouseenter', () => {
+            const index = parseInt(item.dataset.collectionIndex);
+            highlightCollectionItem(index);
+        });
+        
+        // Click to select (but not on delete button)
+        item.addEventListener('click', (e) => {
+            if (!e.target.closest('.collection-item-delete')) {
+                switchCollection(item.dataset.collectionId);
+            }
+        });
+    });
+    
+    // Add click handlers for delete buttons
+    document.querySelectorAll('.collection-item-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const collectionId = btn.dataset.collectionId;
+            const collectionName = btn.dataset.collectionName;
+            deleteCollectionWithConfirm(collectionId, collectionName);
         });
     });
 }
@@ -2496,6 +2582,50 @@ async function switchCollection(collectionId) {
     } catch (error) {
         console.error('Error switching collection:', error);
         showToast('Error switching collection: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function deleteCollectionWithConfirm(collectionId, collectionName) {
+    showConfirmDialog(
+        'Delete Collection?',
+        `Are you sure you want to delete "${collectionName}"?\n\nThis will NOT delete the songs in this collection, but they will become inaccessible unless you re-import them into another collection.`,
+        async () => {
+            await deleteCollection(collectionId, collectionName);
+        }
+    );
+}
+
+async function deleteCollection(collectionId, collectionName) {
+    try {
+        showLoading('Deleting collection...');
+        
+        const response = await authenticatedApiCall(`/api/collections/${collectionId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast(data.message, 'success');
+            
+            // If we deleted the current collection, switch to Default
+            if (currentCollection && currentCollection.id === collectionId) {
+                const defaultCollection = allCollections.find(c => c.name === 'Default');
+                if (defaultCollection) {
+                    await switchCollection(defaultCollection.id);
+                }
+            } else {
+                // Just refresh the collection list
+                await showCollectionDialog();
+            }
+        } else {
+            showToast('Failed to delete collection: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting collection:', error);
+        showToast('Error deleting collection: ' + error.message, 'error');
     } finally {
         hideLoading();
     }
