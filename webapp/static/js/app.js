@@ -496,6 +496,20 @@ async function fetchLyricsInBackground(songId, title, artist) {
 async function manuallyFetchBpm() {
     if (!currentSong) return;
     
+    // If BPM is manually set, show confirmation dialog
+    if (currentSong.bpm_manual === true) {
+        showConfirmDialog(
+            'Overwrite Manual BPM?',
+            `This song has a manually set BPM (${currentSong.bpm}). Fetching will replace it with the automatic lookup.\n\nAre you sure you want to continue?`,
+            async () => {
+                setStatus('Fetching BPM...', 'info');
+                await fetchBpmInBackground(currentSong.id, currentSong.title, currentSong.artist);
+            }
+        );
+        return;
+    }
+    
+    // If not manual, just fetch directly
     setStatus('Fetching BPM...', 'info');
     await fetchBpmInBackground(currentSong.id, currentSong.title, currentSong.artist);
 }
