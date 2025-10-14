@@ -69,10 +69,12 @@ class SpotifyAuthService:
             dict: Token info with user_id if successful, None otherwise
         """
         # Verify state token
+        logger.info(f"Verifying state token: {state[:10]}...")
         user_id = self.firestore.verify_oauth_state(state)
         if not user_id:
-            logger.error(f"Invalid or expired state token: {state}")
+            logger.error(f"❌ FAILED: Invalid or expired state token: {state[:20]}...")
             return None
+        logger.info(f"✅ State verified for user: {user_id}")
         
         sp_oauth = SpotifyOAuth(
             client_id=os.getenv('SPOTIFY_CLIENT_ID'),
@@ -83,20 +85,22 @@ class SpotifyAuthService:
         
         try:
             # Exchange code for token
+            logger.info(f"Exchanging code for token (code: {code[:20]}...)")
+            logger.info(f"Using redirect_uri: {self.redirect_uri}")
             token_info = sp_oauth.get_access_token(code, as_dict=True, check_cache=False)
             
             if not token_info:
-                logger.error("Failed to get token from Spotify")
+                logger.error("❌ FAILED: Spotify returned no token")
                 return None
             
             # Save token to Firestore
             self.save_user_token(user_id, token_info)
             
-            logger.info(f"Successfully authenticated Spotify for user {user_id}")
+            logger.info(f"✅ Successfully authenticated Spotify for user {user_id}")
             return {'user_id': user_id, 'token_info': token_info}
             
         except Exception as e:
-            logger.error(f"Error exchanging code for token: {e}")
+            logger.error(f"❌ FAILED: Error exchanging code for token: {e}", exc_info=True)
             return None
     
     def save_user_token(self, user_id, token_info):
@@ -107,11 +111,12 @@ class SpotifyAuthService:
             user_id: User email
             token_info: Token dictionary from Spotify
         """
+        from google.cloud import firestore as fs
         token_data = {
             'access_token': token_info['access_token'],
             'refresh_token': token_info['refresh_token'],
             'expires_at': token_info['expires_at'],
-            'updated_at': datetime.utcnow(),
+            'updated_at': fs.SERVER_TIMESTAMP,
             'scope': token_info.get('scope', self.scopes)
         }
         

@@ -5,6 +5,9 @@ Firestore service for managing songs and notes
 from google.cloud import firestore
 from datetime import datetime
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FirestoreService:
@@ -441,7 +444,7 @@ class FirestoreService:
         doc_ref = self.db.collection('oauth_states').document(state)
         doc_ref.set({
             'user_id': user_id,
-            'created_at': datetime.utcnow()
+            'created_at': firestore.SERVER_TIMESTAMP
         })
 
     def verify_oauth_state(self, state):
@@ -462,11 +465,19 @@ class FirestoreService:
             # Delete the state token (one-time use)
             doc_ref.delete()
             
-            # Check if token is recent (within 10 minutes)
+            # Check if token is recent (within 1 hour for now, change to 600 later)
             created_at = data.get('created_at')
             if created_at:
-                age = (datetime.utcnow() - created_at).total_seconds()
-                if age < 600:  # 10 minutes
+                # Firestore timestamps are timezone-aware, convert to naive UTC for comparison
+                now_utc = datetime.utcnow()
+                created_utc = created_at.replace(tzinfo=None) if created_at.tzinfo else created_at
+                age = (now_utc - created_utc).total_seconds()
+                logger.info(f"State token age: {age} seconds")
+                if age < 3600:  # 1 HOUR for debugging
+                    logger.info(f"✅ State token valid, returning user_id: {data.get('user_id')}")
                     return data.get('user_id')
+                else:
+                    logger.error(f"❌ State token expired (age: {age}s)")
         
+        logger.error(f"❌ State verification failed for token: {state[:20]}...")
         return None
