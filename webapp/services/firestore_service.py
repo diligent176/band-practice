@@ -14,10 +14,24 @@ class FirestoreService:
         self.db = firestore.Client(project=project_id) if project_id else firestore.Client()
         self.songs_collection = 'songs'
         self.playlist_memory_collection = 'playlist_memory'
+        self.collections_collection = 'collections'
 
-    def get_all_songs(self):
-        """Get all songs sorted by artist and title"""
-        docs = self.db.collection(self.songs_collection).stream()
+    def get_all_songs(self, collection_id=None):
+        """
+        Get all songs, optionally filtered by collection_id, sorted by artist and title
+        
+        Args:
+            collection_id: Optional collection ID to filter by
+            
+        Returns:
+            List of song documents
+        """
+        if collection_id:
+            docs = (self.db.collection(self.songs_collection)
+                    .where('collection_id', '==', collection_id)
+                    .stream())
+        else:
+            docs = self.db.collection(self.songs_collection).stream()
 
         songs = []
         for doc in docs:
@@ -52,11 +66,16 @@ class FirestoreService:
             existing_data = existing.to_dict()
             if 'notes' not in song_data and 'notes' in existing_data:
                 song_data['notes'] = existing_data['notes']
+            # Preserve existing collection_id if not in new data
+            if 'collection_id' not in song_data and 'collection_id' in existing_data:
+                song_data['collection_id'] = existing_data['collection_id']
         else:
             song_data['created_at'] = datetime.utcnow()
             song_data['updated_at'] = datetime.utcnow()
             if 'notes' not in song_data:
                 song_data['notes'] = ''
+            # If no collection_id is provided for a new song, it should be set by the caller
+            # (we don't set a default here to avoid issues)
 
         doc_ref.set(song_data, merge=True)
         return song_id
@@ -175,3 +194,168 @@ class FirestoreService:
     def delete_playlist_memory(self, playlist_id):
         """Delete a playlist from memory"""
         self.db.collection(self.playlist_memory_collection).document(playlist_id).delete()
+
+    # Collection Management Methods
+
+    def get_or_create_default_collection(self, user_id):
+        """
+        Get or create the Default collection for a user
+        
+        Args:
+            user_id: User's email or ID
+            
+        Returns:
+            Dict containing collection data with 'id' field
+        """
+        # Query for existing default collection
+        query = (self.db.collection(self.collections_collection)
+                .where('user_id', '==', user_id)
+                .where('name', '==', 'Default')
+                .limit(1))
+        
+        docs = list(query.stream())
+        
+        if docs:
+            # Default collection exists
+            collection_data = docs[0].to_dict()
+            collection_data['id'] = docs[0].id
+            return collection_data
+        else:
+            # Create default collection
+            collection_data = {
+                'user_id': user_id,
+                'name': 'Default',
+                'description': 'Your default song collection',
+                'created_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }
+            
+            doc_ref = self.db.collection(self.collections_collection).document()
+            doc_ref.set(collection_data)
+            
+            collection_data['id'] = doc_ref.id
+            return collection_data
+
+    def get_user_collections(self, user_id):
+        """
+        Get all collections for a user, sorted by name
+        
+        Args:
+            user_id: User's email or ID
+            
+        Returns:
+            List of collection documents
+        """
+        docs = (self.db.collection(self.collections_collection)
+                .where('user_id', '==', user_id)
+                .order_by('name', direction=firestore.Query.ASCENDING)
+                .stream())
+        
+        collections = []
+        for doc in docs:
+            collection_data = doc.to_dict()
+            collection_data['id'] = doc.id
+            collections.append(collection_data)
+        
+        return collections
+
+    def get_collection(self, collection_id):
+        """
+        Get a specific collection by ID
+        
+        Args:
+            collection_id: Collection document ID
+            
+        Returns:
+            Dict containing collection data with 'id' field, or None if not found
+        """
+        doc = self.db.collection(self.collections_collection).document(collection_id).get()
+        
+        if not doc.exists:
+            return None
+        
+        collection_data = doc.to_dict()
+        collection_data['id'] = doc.id
+        return collection_data
+
+    def create_collection(self, user_id, name, description=''):
+        """
+        Create a new collection for a user
+        
+        Args:
+            user_id: User's email or ID
+            name: Name of the collection
+            description: Optional description
+            
+        Returns:
+            Dict containing the created collection data with 'id' field
+        """
+        collection_data = {
+            'user_id': user_id,
+            'name': name,
+            'description': description,
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }
+        
+        doc_ref = self.db.collection(self.collections_collection).document()
+        doc_ref.set(collection_data)
+        
+        collection_data['id'] = doc_ref.id
+        return collection_data
+
+    def update_collection(self, collection_id, name=None, description=None):
+        """
+        Update a collection's name and/or description
+        
+        Args:
+            collection_id: Collection document ID
+            name: New name (optional)
+            description: New description (optional)
+        """
+        doc_ref = self.db.collection(self.collections_collection).document(collection_id)
+        
+        if not doc_ref.get().exists:
+            raise ValueError(f"Collection {collection_id} not found")
+        
+        update_data = {'updated_at': datetime.utcnow()}
+        
+        if name is not None:
+            update_data['name'] = name
+        if description is not None:
+            update_data['description'] = description
+        
+        doc_ref.update(update_data)
+
+    def delete_collection(self, collection_id):
+        """
+        Delete a collection (does not delete associated songs)
+        
+        Args:
+            collection_id: Collection document ID
+        """
+        self.db.collection(self.collections_collection).document(collection_id).delete()
+
+    def get_songs_by_collection(self, collection_id):
+        """
+        Get all songs in a specific collection, sorted by artist and title
+        
+        Args:
+            collection_id: Collection document ID
+            
+        Returns:
+            List of song documents
+        """
+        docs = (self.db.collection(self.songs_collection)
+                .where('collection_id', '==', collection_id)
+                .order_by('artist', direction=firestore.Query.ASCENDING)
+                .order_by('title', direction=firestore.Query.ASCENDING)
+                .stream())
+        
+        songs = []
+        for doc in docs:
+            song_data = doc.to_dict()
+            song_data['id'] = doc.id
+            songs.append(song_data)
+        
+        return songs

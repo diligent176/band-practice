@@ -29,6 +29,9 @@
             <div class="header-single-row">
                 <h1><i class="fa-solid fa-guitar"></i> Band Practice Pro</h1>
                 <div class="status-bar">
+                    <button id="collection-btn" class="btn btn-subtle" title="Switch Collection (Alt+C)">
+                        <i class="fa-solid fa-layer-group"></i> <span id="current-collection-name">Collection...</span>
+                    </button>
                     <button id="import-playlist-btn" class="btn btn-subtle" title="Import songs from Spotify playlist (P)">
                         <i class="fa-solid fa-list"></i> Playlist...
                     </button>
@@ -56,6 +59,10 @@
                             <span>Keyboard Shortcuts</span>
                         </div>
                         <div class="help-card-content">
+                            <div class="help-item">
+                                <kbd>Alt</kbd><kbd>C</kbd>
+                                <span>Switch Collection</span>
+                            </div>
                             <div class="help-item">
                                 <kbd>P</kbd>
                                 <span>Import Playlist</span>
@@ -207,6 +214,51 @@ Example:
                 </div>
             </div>
         </main>
+
+        <!-- Collection Selector Dialog -->
+        <div id="collection-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog-medium">
+                <div class="dialog-header">
+                    <h3>Select Collection</h3>
+                    <button id="collection-dialog-close" class="btn btn-small btn-secondary">✕</button>
+                </div>
+                <div class="collection-selector-content">
+                    <div id="collection-list" class="collection-list">
+                        <div class="empty-state"><p>Loading collections...</p></div>
+                    </div>
+                    <div class="dialog-actions">
+                        <button id="new-collection-btn" class="btn btn-primary">
+                            <i class="fa-solid fa-plus"></i> New Collection
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Collection Dialog -->
+        <div id="new-collection-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog">
+                <h3>Create New Collection</h3>
+                <div style="margin-bottom: 20px;">
+                    <label for="collection-name-input" style="display: block; margin-bottom: 8px; color: var(--text-primary);">Collection Name:</label>
+                    <input type="text" id="collection-name-input" class="input" 
+                           placeholder="e.g., Reggae Band, Rock Band" 
+                           style="width: 100%; padding: 8px; font-size: 16px; margin-bottom: 10px;">
+                    <label for="collection-description-input" style="display: block; margin-bottom: 8px; color: var(--text-primary);">Description (optional):</label>
+                    <input type="text" id="collection-description-input" class="input" 
+                           placeholder="e.g., Songs for my weekend gigs" 
+                           style="width: 100%; padding: 8px; font-size: 14px;">
+                </div>
+                <div class="dialog-actions">
+                    <button id="new-collection-cancel-btn" class="btn btn-secondary">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                    <button id="new-collection-save-btn" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Create
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Import Playlist Dialog -->
         <div id="import-dialog" class="dialog-overlay" style="display: none;">

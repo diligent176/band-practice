@@ -7,6 +7,10 @@ let songSelectorSortByArtist = false;
 let filteredSongs = [];
 let selectedSongIndex = -1;
 
+// Collection management
+let currentCollection = null;
+let allCollections = [];
+
 // Reference to the apiCall function from viewer.html
 // This will be passed in when initializeApp is called
 let authenticatedApiCall = null;
@@ -63,6 +67,19 @@ const bpmInput = document.getElementById('bpm-input');
 const bpmDialogSaveBtn = document.getElementById('bpm-dialog-save-btn');
 const bpmDialogCancelBtn = document.getElementById('bpm-dialog-cancel-btn');
 
+// Collection DOM elements
+const collectionBtn = document.getElementById('collection-btn');
+const currentCollectionName = document.getElementById('current-collection-name');
+const collectionDialog = document.getElementById('collection-dialog');
+const collectionDialogClose = document.getElementById('collection-dialog-close');
+const collectionList = document.getElementById('collection-list');
+const newCollectionBtn = document.getElementById('new-collection-btn');
+const newCollectionDialog = document.getElementById('new-collection-dialog');
+const collectionNameInput = document.getElementById('collection-name-input');
+const collectionDescriptionInput = document.getElementById('collection-description-input');
+const newCollectionSaveBtn = document.getElementById('new-collection-save-btn');
+const newCollectionCancelBtn = document.getElementById('new-collection-cancel-btn');
+
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
@@ -70,11 +87,18 @@ window.initializeApp = function(apiCallFunction) {
 
     loadFontSizePreference();
     loadUserInfo();
-    loadSongs();
+    loadCurrentCollection();  // Load collection first, then songs
     setupEventListeners();
 };
 
 function setupEventListeners() {
+    // Collection management
+    collectionBtn.addEventListener('click', showCollectionDialog);
+    collectionDialogClose.addEventListener('click', closeCollectionDialog);
+    newCollectionBtn.addEventListener('click', showNewCollectionDialog);
+    newCollectionSaveBtn.addEventListener('click', createNewCollection);
+    newCollectionCancelBtn.addEventListener('click', closeNewCollectionDialog);
+    
     // Song selector
     openSongSelectorBtn.addEventListener('click', openSongSelector);
     songSelectorClose.addEventListener('click', closeSongSelector);
@@ -134,6 +158,13 @@ function handleGlobalKeyboard(e) {
 
     // Don't process simple key shortcuts if user is typing
     if (isTyping) {
+        return;
+    }
+
+    // Alt+C for collection selector
+    if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        showCollectionDialog();
         return;
     }
 
@@ -282,12 +313,19 @@ async function loadUserInfo() {
 async function loadSongs() {
     try {
         showLoading('Loading songs...');
-        const response = await authenticatedApiCall('/api/songs');
+        
+        // Build query with collection filter
+        let url = '/api/songs';
+        if (currentCollection && currentCollection.id) {
+            url += `?collection_id=${encodeURIComponent(currentCollection.id)}`;
+        }
+        
+        const response = await authenticatedApiCall(url);
         const data = await response.json();
 
         if (data.success) {
             allSongs = data.songs;
-            console.log(`✅ Loaded ${allSongs.length} songs`);
+            console.log(`✅ Loaded ${allSongs.length} songs from collection ${currentCollection?.name}`);
             updateCurrentSongDisplay();
             // If song selector is open, refresh the list
             if (songSelectorDialog && songSelectorDialog.style.display === 'flex') {
@@ -1999,7 +2037,8 @@ async function startImport() {
                         method: 'POST',
                         body: JSON.stringify({
                             playlist_url: importDialogState.playlistUrl,
-                            selected_songs: selectedIds
+                            selected_songs: selectedIds,
+                            collection_id: currentCollection ? currentCollection.id : null
                         })
                     });
 
@@ -2209,6 +2248,228 @@ async function finishImport() {
 
     // Optionally: trigger background BPM fetches for all songs that were just imported
     // This will happen automatically when users view each song
+}
+
+//=============================================================================
+// Collection Management Functions
+//=============================================================================
+
+async function loadCurrentCollection() {
+    try {
+        // Check localStorage for current collection ID
+        const savedCollectionId = localStorage.getItem('bandPracticeCurrentCollection');
+        
+        if (savedCollectionId) {
+            // Try to load the saved collection
+            const response = await authenticatedApiCall(`/api/collections/${savedCollectionId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                currentCollection = data.collection;
+                updateCollectionDisplay();
+                await loadSongs();
+                return;
+            }
+        }
+        
+        // If no saved collection or failed to load, get/create default collection
+        const response = await authenticatedApiCall('/api/collections/default');
+        const data = await response.json();
+        
+        if (data.success) {
+            currentCollection = data.collection;
+            saveCurrentCollection(currentCollection.id);
+            updateCollectionDisplay();
+            await loadSongs();
+        } else {
+            showToast('Failed to load collection', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading current collection:', error);
+        showToast('Error loading collection: ' + error.message, 'error');
+    }
+}
+
+function saveCurrentCollection(collectionId) {
+    localStorage.setItem('bandPracticeCurrentCollection', collectionId);
+}
+
+function updateCollectionDisplay() {
+    if (currentCollection) {
+        currentCollectionName.textContent = currentCollection.name;
+    } else {
+        currentCollectionName.textContent = 'Collection...';
+    }
+}
+
+async function showCollectionDialog() {
+    collectionDialog.style.display = 'flex';
+    
+    try {
+        showLoading('Loading collections...');
+        const response = await authenticatedApiCall('/api/collections');
+        const data = await response.json();
+        
+        if (data.success) {
+            allCollections = data.collections;
+            renderCollectionList();
+        } else {
+            showToast('Failed to load collections', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading collections:', error);
+        showToast('Error loading collections: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleCollectionDialogKeyboard);
+}
+
+function closeCollectionDialog() {
+    collectionDialog.style.display = 'none';
+    document.removeEventListener('keydown', handleCollectionDialogKeyboard);
+}
+
+function handleCollectionDialogKeyboard(e) {
+    if (collectionDialog.style.display !== 'flex') return;
+    
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeCollectionDialog();
+    }
+}
+
+function renderCollectionList() {
+    if (!allCollections || allCollections.length === 0) {
+        collectionList.innerHTML = '<div class="empty-state"><p>No collections found</p></div>';
+        return;
+    }
+    
+    let html = '';
+    allCollections.forEach(collection => {
+        const isActive = currentCollection && collection.id === currentCollection.id;
+        const activeClass = isActive ? 'active' : '';
+        
+        html += `
+            <div class="collection-item ${activeClass}" data-collection-id="${collection.id}">
+                <div class="collection-item-icon">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="collection-item-info">
+                    <div class="collection-item-name">${escapeHtml(collection.name)}</div>
+                    ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
+                </div>
+                ${isActive ? '<span class="collection-item-active"><i class="fa-solid fa-check"></i> Active</span>' : ''}
+            </div>
+        `;
+    });
+    
+    collectionList.innerHTML = html;
+    
+    // Add click handlers
+    document.querySelectorAll('.collection-item').forEach(item => {
+        item.addEventListener('click', () => {
+            switchCollection(item.dataset.collectionId);
+        });
+    });
+}
+
+async function switchCollection(collectionId) {
+    try {
+        showLoading('Switching collection...');
+        
+        const response = await authenticatedApiCall(`/api/collections/${collectionId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            currentCollection = data.collection;
+            saveCurrentCollection(collectionId);
+            updateCollectionDisplay();
+            closeCollectionDialog();
+            
+            // Clear current song and reload songs for new collection
+            currentSong = null;
+            lyricsContentInner.innerHTML = '<div class="empty-state"><p>Select a song to view lyrics</p></div>';
+            notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
+            songMetadata.innerHTML = '';
+            
+            await loadSongs();
+            showToast(`Switched to collection: ${currentCollection.name}`, 'success');
+        } else {
+            showToast('Failed to switch collection', 'error');
+        }
+    } catch (error) {
+        console.error('Error switching collection:', error);
+        showToast('Error switching collection: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function showNewCollectionDialog() {
+    newCollectionDialog.style.display = 'flex';
+    collectionNameInput.value = '';
+    collectionDescriptionInput.value = '';
+    collectionNameInput.focus();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleNewCollectionDialogKeyboard);
+}
+
+function closeNewCollectionDialog() {
+    newCollectionDialog.style.display = 'none';
+    document.removeEventListener('keydown', handleNewCollectionDialogKeyboard);
+}
+
+function handleNewCollectionDialogKeyboard(e) {
+    if (newCollectionDialog.style.display !== 'flex') return;
+    
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeNewCollectionDialog();
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        createNewCollection();
+    }
+}
+
+async function createNewCollection() {
+    const name = collectionNameInput.value.trim();
+    const description = collectionDescriptionInput.value.trim();
+    
+    if (!name) {
+        showToast('Collection name is required', 'error');
+        collectionNameInput.focus();
+        return;
+    }
+    
+    try {
+        showLoading('Creating collection...');
+        
+        const response = await authenticatedApiCall('/api/collections', {
+            method: 'POST',
+            body: JSON.stringify({ name, description })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            closeNewCollectionDialog();
+            showToast(`Collection '${name}' created!`, 'success');
+            
+            // Reload collection list
+            showCollectionDialog();
+        } else {
+            showToast('Failed to create collection: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error creating collection:', error);
+        showToast('Error creating collection: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
 }
 
 //=============================================================================

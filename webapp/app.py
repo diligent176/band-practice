@@ -42,10 +42,11 @@ def index():
 @app.route('/api/songs', methods=['GET'])
 @require_auth
 def get_songs():
-    """Get all songs from Firestore"""
+    """Get all songs from Firestore, optionally filtered by collection_id"""
     try:
-        logger.info(f"User {g.user.get('email')} requested all songs")
-        songs = firestore.get_all_songs()
+        collection_id = request.args.get('collection_id')
+        logger.info(f"User {g.user.get('email')} requested songs (collection_id={collection_id})")
+        songs = firestore.get_all_songs(collection_id=collection_id)
         return jsonify({'songs': songs, 'success': True})
     except Exception as e:
         logger.error(f"Error getting songs for user {g.user.get('email')}: {e}")
@@ -183,17 +184,18 @@ def import_selected_songs():
         data = request.get_json()
         playlist_url = data.get('playlist_url')
         selected_songs = data.get('selected_songs', [])
+        collection_id = data.get('collection_id')  # Get collection_id from request
 
         if not playlist_url or not selected_songs:
             return jsonify({'error': 'Invalid request', 'success': False}), 400
 
-        logger.info(f"User {g.user.get('email')} importing {len(selected_songs)} songs")
+        logger.info(f"User {g.user.get('email')} importing {len(selected_songs)} songs to collection {collection_id}")
         
         def generate():
             """Generator function that yields progress updates"""
             try:
-                # Call the generator-based import method
-                for update in lyrics_service.import_selected_songs_stream(playlist_url, selected_songs):
+                # Call the generator-based import method with collection_id
+                for update in lyrics_service.import_selected_songs_stream(playlist_url, selected_songs, collection_id):
                     # Send progress update as Server-Sent Event
                     yield f"data: {json.dumps(update)}\n\n"
                     
@@ -415,6 +417,166 @@ def delete_playlist_memory(playlist_id):
         })
     except Exception as e:
         logger.error(f"Error deleting playlist memory for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/collections', methods=['GET'])
+@require_auth
+def get_collections():
+    """Get all collections for the current user"""
+    try:
+        user_id = g.user.get('email')
+        logger.info(f"User {user_id} requested collections")
+
+        collections = firestore.get_user_collections(user_id)
+
+        return jsonify({
+            'success': True,
+            'collections': collections
+        })
+    except Exception as e:
+        logger.error(f"Error getting collections for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/collections', methods=['POST'])
+@require_auth
+def create_collection():
+    """Create a new collection"""
+    try:
+        user_id = g.user.get('email')
+        data = request.get_json()
+
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip()
+
+        if not name:
+            return jsonify({'error': 'Collection name is required', 'success': False}), 400
+
+        logger.info(f"User {user_id} creating collection: {name}")
+
+        collection = firestore.create_collection(user_id, name, description)
+
+        return jsonify({
+            'success': True,
+            'collection': collection,
+            'message': f"Collection '{name}' created"
+        })
+    except Exception as e:
+        logger.error(f"Error creating collection for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/collections/<collection_id>', methods=['GET'])
+@require_auth
+def get_collection(collection_id):
+    """Get a specific collection"""
+    try:
+        user_id = g.user.get('email')
+        logger.info(f"User {user_id} requested collection {collection_id}")
+
+        collection = firestore.get_collection(collection_id)
+
+        if not collection:
+            return jsonify({'error': 'Collection not found', 'success': False}), 404
+
+        # Verify the collection belongs to this user
+        if collection.get('user_id') != user_id:
+            return jsonify({'error': 'Unauthorized', 'success': False}), 403
+
+        return jsonify({
+            'success': True,
+            'collection': collection
+        })
+    except Exception as e:
+        logger.error(f"Error getting collection {collection_id} for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/collections/<collection_id>', methods=['PUT'])
+@require_auth
+def update_collection(collection_id):
+    """Update a collection's name and/or description"""
+    try:
+        user_id = g.user.get('email')
+        data = request.get_json()
+
+        # Verify the collection belongs to this user
+        collection = firestore.get_collection(collection_id)
+        if not collection:
+            return jsonify({'error': 'Collection not found', 'success': False}), 404
+
+        if collection.get('user_id') != user_id:
+            return jsonify({'error': 'Unauthorized', 'success': False}), 403
+
+        name = data.get('name')
+        description = data.get('description')
+
+        logger.info(f"User {user_id} updating collection {collection_id}")
+
+        firestore.update_collection(collection_id, name=name, description=description)
+
+        # Get updated collection
+        updated_collection = firestore.get_collection(collection_id)
+
+        return jsonify({
+            'success': True,
+            'collection': updated_collection,
+            'message': 'Collection updated'
+        })
+    except Exception as e:
+        logger.error(f"Error updating collection {collection_id} for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/collections/<collection_id>', methods=['DELETE'])
+@require_auth
+def delete_collection(collection_id):
+    """Delete a collection (does not delete associated songs)"""
+    try:
+        user_id = g.user.get('email')
+
+        # Verify the collection belongs to this user
+        collection = firestore.get_collection(collection_id)
+        if not collection:
+            return jsonify({'error': 'Collection not found', 'success': False}), 404
+
+        if collection.get('user_id') != user_id:
+            return jsonify({'error': 'Unauthorized', 'success': False}), 403
+
+        # Prevent deletion of Default collection
+        if collection.get('name') == 'Default':
+            return jsonify({'error': 'Cannot delete Default collection', 'success': False}), 400
+
+        logger.info(f"User {user_id} deleting collection {collection_id}: {collection.get('name')}")
+
+        firestore.delete_collection(collection_id)
+
+        return jsonify({
+            'success': True,
+            'message': f"Collection '{collection.get('name')}' deleted"
+        })
+    except Exception as e:
+        logger.error(f"Error deleting collection {collection_id} for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/collections/default', methods=['GET'])
+@require_auth
+def get_default_collection():
+    """Get or create the Default collection for the current user"""
+    try:
+        user_id = g.user.get('email')
+        logger.info(f"User {user_id} requested default collection")
+
+        collection = firestore.get_or_create_default_collection(user_id)
+
+        return jsonify({
+            'success': True,
+            'collection': collection
+        })
+    except Exception as e:
+        logger.error(f"Error getting default collection for user {g.user.get('email')}: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
 
 

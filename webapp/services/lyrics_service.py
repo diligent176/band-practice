@@ -267,10 +267,15 @@ class LyricsService:
             'results': results_list
         }
 
-    def import_selected_songs_stream(self, playlist_url, selected_song_ids):
+    def import_selected_songs_stream(self, playlist_url, selected_song_ids, collection_id=None):
         """
         Import selected songs from playlist with real-time progress updates.
         This is a generator function that yields progress updates as songs are processed.
+        
+        Args:
+            playlist_url: Spotify playlist URL
+            selected_song_ids: List of song IDs to import
+            collection_id: Collection ID to assign songs to (optional)
         
         Yields:
             dict: Progress updates with format:
@@ -365,6 +370,10 @@ class LyricsService:
                     'lyrics_numbered': lyrics_data['lyrics_numbered'],
                     'bpm': 'N/A'  # Will be updated by background fetch
                 }
+                
+                # Add collection_id if provided
+                if collection_id:
+                    song_data['collection_id'] = collection_id
 
                 # Save to Firestore
                 self.firestore.create_or_update_song(song_id, song_data)
