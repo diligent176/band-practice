@@ -3087,25 +3087,346 @@ function scrollToTop() {
 }
 
 //=============================================================================
-// SPOTIFY EMBED PLAYER
+// SPOTIFY WEB PLAYBACK SDK WITH OAUTH
 //=============================================================================
 
-// Open Spotify track in new tab (simple solution)
+let spotifyPlayer = null;
+let spotifyDeviceId = null;
+let spotifyAccessToken = null;
+let spotifyPlayerReady = false;
+let spotifyAuthWindow = null;
+let isCheckingSpotifyStatus = false;
+
+// Spotify SDK ready callback (called by SDK after loading)
+window.onSpotifyWebPlaybackSDKReady = () => {
+    console.log('🎵 Spotify SDK loaded');
+    // Don't auto-initialize - wait for token check
+};
+
+// Check Spotify connection status on app load
+async function checkSpotifyStatus() {
+    if (isCheckingSpotifyStatus) return;
+    isCheckingSpotifyStatus = true;
+
+    try {
+        const response = await authenticatedApiCall('/api/spotify/status');
+        const data = await response.json();
+
+        if (data.success && data.connected) {
+            console.log('✅ User has Spotify connected, initializing player...');
+            await initializeSpotifyPlayer();
+        } else {
+            console.log('ℹ️ User not connected to Spotify');
+            showSpotifyConnectPrompt();
+        }
+    } catch (error) {
+        console.error('Error checking Spotify status:', error);
+    } finally {
+        isCheckingSpotifyStatus = false;
+    }
+}
+
+// Show "Connect Spotify" prompt in mini player
+function showSpotifyConnectPrompt() {
+    if (!miniPlayer) return;
+
+    miniPlayer.innerHTML = `
+        <button class="btn btn-primary spotify-connect-btn" onclick="connectSpotify()" style="margin: auto;">
+            <i class="fa-brands fa-spotify"></i> Connect Spotify for Playback
+        </button>
+    `;
+    miniPlayer.style.display = 'flex';
+}
+
+// Connect Spotify button handler
+async function connectSpotify() {
+    try {
+        console.log('🔗 Initiating Spotify connection...');
+        
+        // Get auth URL
+        const response = await authenticatedApiCall('/api/spotify/auth/url');
+        const data = await response.json();
+        
+        if (data.success && data.auth_url) {
+            console.log('✅ Got auth URL, opening popup...');
+            
+            // Open OAuth popup (centered on screen)
+            const width = 600;
+            const height = 800;
+            const left = window.screenX + (window.outerWidth - width) / 2;
+            const top = window.screenY + (window.outerHeight - height) / 2;
+            
+            spotifyAuthWindow = window.open(
+                data.auth_url,
+                'Spotify Login',
+                `width=${width},height=${height},left=${left},top=${top}`
+            );
+            
+            // Listen for auth completion message from popup
+            window.addEventListener('message', handleSpotifyAuthMessage);
+            
+            showToast('Opening Spotify authorization...', 'info');
+        } else {
+            showToast('Failed to get authorization URL', 'error');
+        }
+    } catch (error) {
+        console.error('Error connecting Spotify:', error);
+        showToast('Failed to connect Spotify', 'error');
+    }
+}
+
+// Make connectSpotify global so onclick can call it
+window.connectSpotify = connectSpotify;
+
+// Handle messages from OAuth popup
+function handleSpotifyAuthMessage(event) {
+    // Security: verify origin if needed
+    // if (event.origin !== window.location.origin) return;
+    
+    if (event.data.type === 'spotify-auth-success') {
+        console.log('✅✅✅ Spotify auth success message received!');
+        window.removeEventListener('message', handleSpotifyAuthMessage);
+        showToast('Connected to Spotify!', 'success');
+        
+        // Initialize player with new token
+        setTimeout(() => {
+            initializeSpotifyPlayer();
+        }, 500);
+        
+    } else if (event.data.type === 'spotify-auth-error') {
+        console.error('❌ Spotify auth error:', event.data.error);
+        window.removeEventListener('message', handleSpotifyAuthMessage);
+        showToast(`Spotify auth failed: ${event.data.error || 'Unknown error'}`, 'error');
+    }
+}
+
+// Initialize Spotify Web Playback SDK with user token
+async function initializeSpotifyPlayer() {
+    try {
+        console.log('🎵 Initializing Spotify Web Playback SDK...');
+        
+        // Get access token
+        const response = await authenticatedApiCall('/api/spotify/token');
+        const data = await response.json();
+
+        console.log('Token response:', data);
+
+        if (!data.success) {
+            if (data.needs_auth) {
+                console.log('ℹ️ User needs to connect Spotify');
+                showSpotifyConnectPrompt();
+            } else {
+                console.error('Failed to get Spotify token:', data);
+            }
+            return;
+        }
+
+        spotifyAccessToken = data.access_token;
+        console.log('✅ Got Spotify access token (first 30 chars):', spotifyAccessToken.substring(0, 30));
+
+        // Check if SDK is loaded
+        if (typeof Spotify === 'undefined') {
+            console.error('❌ Spotify SDK not loaded!');
+            showToast('Spotify SDK not available', 'error');
+            return;
+        }
+
+        // Create player
+        console.log('Creating Spotify.Player...');
+        spotifyPlayer = new Spotify.Player({
+            name: 'Band Practice Pro',
+            getOAuthToken: cb => { 
+                console.log('SDK requesting OAuth token...');
+                cb(spotifyAccessToken); 
+            },
+            volume: 0.7
+        });
+
+        // Error handling
+        spotifyPlayer.addListener('initialization_error', ({ message }) => {
+            console.error('🚨 Spotify init error:', message);
+            showToast('Spotify initialization failed', 'error');
+        });
+
+        spotifyPlayer.addListener('authentication_error', ({ message }) => {
+            console.error('🚨 Spotify auth error:', message);
+            showToast('Spotify auth error - try reconnecting', 'error');
+            showSpotifyConnectPrompt();
+        });
+
+        spotifyPlayer.addListener('account_error', ({ message }) => {
+            console.error('🚨 Spotify account error:', message);
+            showToast('Spotify Premium required for playback', 'error');
+        });
+
+        spotifyPlayer.addListener('playback_error', ({ message }) => {
+            console.error('🚨 Playback error:', message);
+            showToast('Playback error: ' + message, 'error');
+        });
+
+        // Ready
+        spotifyPlayer.addListener('ready', ({ device_id }) => {
+            console.log('✅✅✅ Spotify player ready! Device ID:', device_id);
+            spotifyDeviceId = device_id;
+            spotifyPlayerReady = true;
+            updateSpotifyConnectionUI(true);
+            showToast('Spotify player ready!', 'success');
+        });
+
+        // Not ready
+        spotifyPlayer.addListener('not_ready', ({ device_id }) => {
+            console.log('⚠️ Device has gone offline:', device_id);
+        });
+
+        // Player state changed
+        spotifyPlayer.addListener('player_state_changed', state => {
+            console.log('Player state changed:', state);
+            if (!state) return;
+            updatePlayerUI(state);
+        });
+
+        // Connect to Spotify
+        console.log('Connecting to Spotify...');
+        const connected = await spotifyPlayer.connect();
+        
+        if (connected) {
+            console.log('✅ Connected to Spotify successfully');
+        } else {
+            console.error('❌ Failed to connect to Spotify');
+            showToast('Failed to connect to Spotify', 'error');
+        }
+
+    } catch (error) {
+        console.error('💥 Error initializing Spotify player:', error);
+        showToast('Error initializing Spotify: ' + error.message, 'error');
+    }
+}
+
+// Update UI after successful connection
+function updateSpotifyConnectionUI(isConnected) {
+    if (isConnected && miniPlayer) {
+        // Replace connect button with actual player
+        renderMiniPlayer();
+    }
+}
+
+// Render the mini player with controls
+function renderMiniPlayer() {
+    if (!miniPlayer || !currentSong) return;
+
+    const artUrl = currentSong.album_art || currentSong.album_art_url || '';
+    
+    miniPlayer.innerHTML = `
+        <div class="mini-player-art">
+            ${artUrl ? `<img src="${artUrl}" alt="Album art">` : '<i class="fa-solid fa-music"></i>'}
+        </div>
+        <div class="mini-player-info">
+            <div class="mini-player-title">${currentSong.title || 'Unknown'}</div>
+            <div class="mini-player-artist">${currentSong.artist || 'Unknown'}</div>
+        </div>
+        <div class="mini-player-controls">
+            <button class="mini-player-btn" onclick="toggleAudioPlayback()">
+                <i class="fa-solid fa-play"></i>
+            </button>
+        </div>
+    `;
+    miniPlayer.style.display = 'flex';
+}
+
+// Toggle play/pause with spacebar or button click
 async function toggleAudioPlayback() {
     if (!currentSong) {
         showToast('No song selected', 'info');
         return;
     }
 
-    // If song has Spotify URI or ID, open in Spotify
-    const spotifyId = currentSong.spotify_id || currentSong.id;
-    if (spotifyId) {
-        // Open in Spotify app or web player
-        const spotifyUrl = `https://open.spotify.com/track/${spotifyId}`;
-        window.open(spotifyUrl, '_blank');
-        showToast('Opening in Spotify...', 'success');
+    if (!spotifyPlayerReady) {
+        // Prompt to connect Spotify
+        showToast('Connect Spotify to play music', 'info');
+        await connectSpotify();
+        return;
+    }
+
+    try {
+        const state = await spotifyPlayer.getCurrentState();
+
+        if (!state) {
+            // Not playing anything, start the current song
+            console.log('No current playback, starting song...');
+            const spotifyUri = currentSong.spotify_uri;
+            if (spotifyUri) {
+                await playSpotifyTrack(spotifyUri);
+            } else {
+                showToast('No Spotify link for this song', 'warning');
+            }
+        } else if (state.paused) {
+            // Resume playback
+            console.log('Resuming playback...');
+            await spotifyPlayer.resume();
+            showToast('▶ Playing', 'success');
+        } else {
+            // Pause playback
+            console.log('Pausing playback...');
+            await spotifyPlayer.pause();
+            showToast('⏸ Paused', 'success');
+        }
+    } catch (error) {
+        console.error('Error toggling playback:', error);
+        showToast('Playback error', 'error');
+    }
+}
+
+// Play a specific Spotify track
+async function playSpotifyTrack(uri) {
+    if (!spotifyDeviceId || !spotifyAccessToken) {
+        showToast('Player not ready', 'error');
+        return;
+    }
+
+    try {
+        console.log(`🎵 Playing track: ${uri} on device: ${spotifyDeviceId}`);
+        
+        const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ uris: [uri] }),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${spotifyAccessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Play request failed:', response.status, errorText);
+            
+            // Handle specific errors
+            if (response.status === 403) {
+                showToast('Spotify Premium required', 'error');
+            } else if (response.status === 404) {
+                showToast('Device not found - try reconnecting', 'error');
+            } else {
+                showToast('Failed to play track', 'error');
+            }
+        } else {
+            console.log('✅ Play request successful');
+        }
+    } catch (error) {
+        console.error('Error playing track:', error);
+        showToast('Failed to play', 'error');
+    }
+}
+
+// Update player UI based on state
+function updatePlayerUI(state) {
+    if (!miniPlayer) return;
+
+    const playBtn = miniPlayer.querySelector('.mini-player-btn i');
+    if (!playBtn) return;
+    
+    if (state.paused) {
+        playBtn.className = 'fa-solid fa-play';
     } else {
-        showToast('No Spotify link available', 'warning');
+        playBtn.className = 'fa-solid fa-pause';
     }
 }
 
@@ -3114,31 +3435,20 @@ async function updatePlayerVisibility() {
     console.log('🎨 updatePlayerVisibility called');
 
     if (!currentSong) {
-        miniPlayer.style.display = 'none';
-        albumArtFloat.style.display = 'none';
+        if (miniPlayer) miniPlayer.style.display = 'none';
+        if (albumArtFloat) albumArtFloat.style.display = 'none';
         return;
     }
 
-    // Update player UI
-    miniPlayerTitle.textContent = currentSong.title || 'Unknown';
-    miniPlayerArtist.textContent = currentSong.artist || 'Unknown';
-
-    const artUrlMini = currentSong.album_art || currentSong.album_art_url;
-    if (artUrlMini) {
-        miniPlayerArtImg.src = artUrlMini;
+    // If player is ready, render mini player with controls
+    if (spotifyPlayerReady) {
+        renderMiniPlayer();
+    } else {
+        // Show connect prompt if not connected
+        showSpotifyConnectPrompt();
     }
 
-    // Show mini player
-    miniPlayer.style.display = 'flex';
-
-    // Update play button to show as "Open in Spotify"
-    const icon = miniPlayerPlayBtn.querySelector('i');
-    if (icon) {
-        icon.className = 'fa-brands fa-spotify';
-        miniPlayerPlayBtn.title = 'Open in Spotify (Space)';
-    }
-
-    // ALBUM ART - Force display
+    // Update album art floating background
     const artUrl = currentSong.album_art || currentSong.album_art_url;
 
     if (artUrl && albumArtImage && albumArtFloat) {
@@ -3151,3 +3461,16 @@ async function updatePlayerVisibility() {
         }
     }
 }
+
+// Auto-check Spotify status on app initialization
+// Called after Firebase auth completes and initializeApp runs
+setTimeout(() => {
+    if (typeof Spotify !== 'undefined') {
+        console.log('🎵 Auto-checking Spotify status...');
+        checkSpotifyStatus();
+    } else {
+        console.warn('⚠️ Spotify SDK not loaded yet, will retry...');
+        setTimeout(checkSpotifyStatus, 2000);
+    }
+}, 1000);
+

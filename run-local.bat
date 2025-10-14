@@ -26,7 +26,7 @@ pip install -q -r requirements.txt
 REM Run Flask app
 echo.
 echo 🚀 Starting Flask development server...
-echo 📍 App will be available at: http://localhost:8080
+echo 📍 App will be available at: http://127.0.0.1:8080
 echo.
 echo Press Ctrl+C to stop
 echo.

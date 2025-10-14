@@ -35,7 +35,7 @@ run-local.bat
 # python webapp/app.py
 ```
 
-Access at: http://localhost:8080
+Access at: http://127.0.0.1:8080
 
 ### Cloud Deployment
 

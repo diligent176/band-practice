@@ -54,7 +54,7 @@ cd webapp
 python app.py
 ```
 
-**Debug endpoint**: Flask runs on `http://localhost:8080`. Browser must load `viewer.html` first to initialize Firebase Auth.
+**Debug endpoint**: Flask runs on `http://127.0.0.1:8080`. Browser must load `viewer.html` first to initialize Firebase Auth.
 
 ### Environment Variables
 

@@ -16,6 +16,7 @@ from flask import Flask, render_template, request, jsonify, g
 from services.firestore_service import FirestoreService
 from services.lyrics_service import LyricsService
 from services.auth_service import require_auth, optional_auth
+from services.spotify_auth_service import SpotifyAuthService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +31,7 @@ app.config['FIREBASE_PROJECT_ID'] = os.getenv('FIREBASE_PROJECT_ID', os.getenv('
 # Initialize services
 firestore = FirestoreService()
 lyrics_service = LyricsService(firestore)
+spotify_auth = SpotifyAuthService(firestore)
 
 
 @app.route('/')
@@ -585,26 +587,150 @@ def get_default_collection():
         return jsonify({'error': str(e), 'success': False}), 500
 
 
+@app.route('/api/spotify/auth/url', methods=['GET'])
+@require_auth
+def get_spotify_auth_url():
+    """Get Spotify OAuth authorization URL"""
+    try:
+        user_id = g.user.get('email')
+        logger.info(f"User {user_id} requesting Spotify auth URL")
+        auth_url = spotify_auth.get_auth_url(user_id)
+        
+        return jsonify({
+            'success': True,
+            'auth_url': auth_url
+        })
+    except Exception as e:
+        logger.error(f"Error generating Spotify auth URL: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/spotify/callback', methods=['GET'])
+def spotify_callback():
+    """Handle Spotify OAuth callback"""
+    try:
+        code = request.args.get('code')
+        state = request.args.get('state')
+        error = request.args.get('error')
+        
+        logger.info(f"Spotify callback received - code: {bool(code)}, state: {bool(state)}, error: {error}")
+        
+        if error:
+            logger.error(f"Spotify OAuth error: {error}")
+            return f"""
+            <html>
+                <body>
+                    <script>
+                        window.opener.postMessage({{type: 'spotify-auth-error', error: '{error}'}}, '*');
+                        window.close();
+                    </script>
+                </body>
+            </html>
+            """
+        
+        if not code or not state:
+            return "Invalid callback - missing code or state", 400
+        
+        # Exchange code for token
+        result = spotify_auth.handle_callback(code, state)
+        
+        if not result:
+            return """
+            <html>
+                <body>
+                    <script>
+                        window.opener.postMessage({type: 'spotify-auth-error', error: 'Authentication failed'}, '*');
+                        window.close();
+                    </script>
+                </body>
+            </html>
+            """
+        
+        logger.info(f"Spotify OAuth successful for user {result['user_id']}")
+        
+        # Close popup and notify parent window
+        return """
+        <html>
+            <body>
+                <h2>✅ Connected to Spotify!</h2>
+                <p>You can close this window.</p>
+                <script>
+                    window.opener.postMessage({type: 'spotify-auth-success'}, '*');
+                    setTimeout(function() { window.close(); }, 2000);
+                </script>
+            </body>
+        </html>
+        """
+    except Exception as e:
+        logger.error(f"Error in Spotify callback: {e}")
+        return f"""
+        <html>
+            <body>
+                <script>
+                    window.opener.postMessage({{type: 'spotify-auth-error', error: 'Authentication failed'}}, '*');
+                    window.close();
+                </script>
+            </body>
+        </html>
+        """
+
+
 @app.route('/api/spotify/token', methods=['GET'])
 @require_auth
-def get_spotify_token():
-    """Get Spotify access token for Web Playback SDK"""
+def get_spotify_user_token():
+    """Get Spotify access token for authenticated user"""
     try:
-        # Get token from the lyrics_service spotify client
-        token_info = lyrics_service.spotify.auth_manager.get_access_token(as_dict=False)
-
-        if token_info:
+        user_id = g.user.get('email')
+        access_token = spotify_auth.get_user_token(user_id)
+        
+        if access_token:
             return jsonify({
                 'success': True,
-                'access_token': token_info
+                'access_token': access_token
             })
         else:
             return jsonify({
                 'success': False,
-                'error': 'Could not get Spotify token'
-            }), 500
+                'error': 'Not authenticated with Spotify',
+                'needs_auth': True
+            }), 401
     except Exception as e:
-        logger.error(f"Error getting Spotify token: {e}")
+        logger.error(f"Error getting Spotify token for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/spotify/disconnect', methods=['POST'])
+@require_auth
+def disconnect_spotify():
+    """Disconnect Spotify account"""
+    try:
+        user_id = g.user.get('email')
+        logger.info(f"User {user_id} disconnecting Spotify")
+        spotify_auth.disconnect_user(user_id)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Spotify disconnected'
+        })
+    except Exception as e:
+        logger.error(f"Error disconnecting Spotify for user {g.user.get('email')}: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/spotify/status', methods=['GET'])
+@require_auth
+def get_spotify_status():
+    """Check if user has connected Spotify"""
+    try:
+        user_id = g.user.get('email')
+        token_data = firestore.get_spotify_token(user_id)
+        
+        return jsonify({
+            'success': True,
+            'connected': bool(token_data)
+        })
+    except Exception as e:
+        logger.error(f"Error checking Spotify status: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
 
 

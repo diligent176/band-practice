@@ -5,6 +5,7 @@ This document explains how the Band Practice App integrates with the Genius API 
 ## Overview
 
 The app uses a hybrid approach to fetch lyrics:
+
 1. **Genius Search API** - to find the song URL
 2. **Web Scraping** - to extract lyrics from the Genius webpage
 3. **ScraperAPI (optional)** - to bypass IP blocking when scraping
@@ -22,6 +23,7 @@ The official Genius API provides search functionality:
 **Authentication**: Bearer token (from `GENIUS_ACCESS_TOKEN` env var)
 
 **Example Request**:
+
 ```python
 search_url = 'https://api.genius.com/search'
 headers = {'Authorization': f'Bearer {self.genius_token}'}
@@ -31,6 +33,7 @@ response = requests.get(search_url, headers=headers, params=params)
 ```
 
 **Response** (simplified):
+
 ```json
 {
   "response": {
@@ -54,6 +57,7 @@ response = requests.get(search_url, headers=headers, params=params)
 The Genius API **does not provide lyrics content** - only metadata and URLs. To get the actual lyrics, we scrape the webpage.
 
 **Why Scraping is Necessary**:
+
 - Genius removed the lyrics endpoint from their API
 - Lyrics are only available on the HTML page
 - Scraping is the only way to get lyrics programmatically
@@ -67,6 +71,7 @@ The Genius API **does not provide lyrics content** - only metadata and URLs. To 
 5. Add line numbers for practice notes
 
 **Lyrics Container Detection**:
+
 ```python
 # Primary method: data attribute
 lyrics_divs = soup.find_all('div', {'data-lyrics-container': 'true'})
@@ -148,6 +153,7 @@ The scraper has multiple fallback mechanisms:
 3. **Error handling**: If scraping fails, returns error message instead of crashing
 
 **Example Error Response**:
+
 ```python
 {
     'lyrics': 'Could not retrieve lyrics for Song by Artist',
@@ -167,7 +173,7 @@ SCRAPER_API_KEY=your_key  # Optional
 # Run the app
 run-local.bat
 
-# Open browser to http://localhost:8080
+# Open browser to http://127.0.0.1:8080
 # Try syncing a playlist or refreshing a song's lyrics
 ```
 
@@ -192,11 +198,14 @@ print(f"Error scraping lyrics from {url}: {e}")
 **Cause**: Genius is blocking your IP address
 
 **Solutions**:
+
 1. **Use ScraperAPI** (recommended for Cloud Run)
+
    - See [SCRAPERAPI_SETUP.md](SCRAPERAPI_SETUP.md)
    - Free tier: 1,000 requests/month
 
 2. **Use a VPN** (for local testing)
+
    - Some IPs are blocked, others aren't
    - Try connecting through different locations
 
@@ -209,11 +218,13 @@ print(f"Error scraping lyrics from {url}: {e}")
 **Symptom**: Lyrics field is empty or shows "Could not retrieve lyrics"
 
 **Possible Causes**:
+
 1. Song not found on Genius
 2. Lyrics container structure changed
 3. Scraping failed silently
 
 **Debug Steps**:
+
 ```bash
 # Check Cloud Run logs
 gcloud logs read "resource.type=cloud_run_revision" --limit=50 --project=your-project-id
@@ -231,6 +242,7 @@ gcloud logs read "resource.type=cloud_run_revision" --limit=50 --project=your-pr
 **Cause**: Genius search returned different song (similar title/artist)
 
 **Solutions**:
+
 1. Check the song title/artist in Firestore
 2. Manually update if needed
 3. Refresh lyrics for that specific song
@@ -243,11 +255,13 @@ gcloud logs read "resource.type=cloud_run_revision" --limit=50 --project=your-pr
 **Cause**: Hit Genius API rate limit or ScraperAPI limit
 
 **Genius API Limits**:
+
 - Not officially documented
 - Generally generous for personal use
 - If hitting limits, space out sync operations
 
 **ScraperAPI Limits**:
+
 - Free tier: 1,000 requests/month
 - Paid tiers: Higher limits
 - Check dashboard at https://www.scraperapi.com/dashboard
@@ -256,16 +270,16 @@ gcloud logs read "resource.type=cloud_run_revision" --limit=50 --project=your-pr
 
 ### LyricsService Class Methods
 
-| Method | Purpose |
-|--------|---------|
-| `sync_playlist(playlist_url)` | Sync all songs from Spotify playlist |
-| `fetch_and_update_song(song_id, title, artist)` | Refresh lyrics for one song |
-| `_fetch_lyrics(title, artist)` | Main lyrics fetching logic |
-| `_search_genius(query)` | Search Genius API |
-| `_scrape_lyrics_from_page(url)` | Scrape lyrics from webpage |
-| `_scrape_with_scraperapi(url)` | Use ScraperAPI to fetch URL |
-| `_add_line_numbers(lyrics)` | Add line numbers to lyrics |
-| `_create_song_id(title, artist)` | Generate consistent song IDs |
+| Method                                          | Purpose                              |
+| ----------------------------------------------- | ------------------------------------ |
+| `sync_playlist(playlist_url)`                   | Sync all songs from Spotify playlist |
+| `fetch_and_update_song(song_id, title, artist)` | Refresh lyrics for one song          |
+| `_fetch_lyrics(title, artist)`                  | Main lyrics fetching logic           |
+| `_search_genius(query)`                         | Search Genius API                    |
+| `_scrape_lyrics_from_page(url)`                 | Scrape lyrics from webpage           |
+| `_scrape_with_scraperapi(url)`                  | Use ScraperAPI to fetch URL          |
+| `_add_line_numbers(lyrics)`                     | Add line numbers to lyrics           |
+| `_create_song_id(title, artist)`                | Generate consistent song IDs         |
 
 ### Key Dependencies
 

@@ -409,9 +409,10 @@ run-local.bat
 ```
 
 This script will:
+
 1. Load environment variables from `.env`
 2. Start the Flask development server
-3. Make the app available at http://localhost:8080
+3. Make the app available at http://127.0.0.1:8080
 
 **Manual method (if needed):**
 
@@ -430,7 +431,7 @@ set SPOTIFY_CLIENT_ID=xxx
 python app.py
 ```
 
-Access at: http://localhost:8080
+Access at: http://127.0.0.1:8080
 
 ### Test Docker Build
 

@@ -48,7 +48,7 @@ run-local.bat
 
 **Note:** Only `run-local.bat` exists for Windows. There is no Mac/Linux version (`run-local.sh` does not exist).
 
-Access at: http://localhost:8080
+Access at: http://127.0.0.1:8080
 
 ### Deploy to Cloud
 

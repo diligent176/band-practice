@@ -387,3 +387,86 @@ class FirestoreService:
             count += 1
         
         return count
+
+    # =========================================================================
+    # Spotify OAuth Token Management
+    # =========================================================================
+
+    def save_spotify_token(self, user_id, token_data):
+        """
+        Save Spotify OAuth token for user
+        
+        Args:
+            user_id: User email
+            token_data: Dict containing access_token, refresh_token, expires_at, etc.
+        """
+        doc_ref = self.db.collection('spotify_tokens').document(user_id)
+        doc_ref.set(token_data)
+
+    def get_spotify_token(self, user_id):
+        """
+        Get Spotify OAuth token for user
+        
+        Args:
+            user_id: User email
+            
+        Returns:
+            Dict containing token data or None if not found
+        """
+        doc_ref = self.db.collection('spotify_tokens').document(user_id)
+        doc = doc_ref.get()
+        
+        if doc.exists:
+            return doc.to_dict()
+        return None
+
+    def delete_spotify_token(self, user_id):
+        """
+        Delete Spotify OAuth token (disconnect)
+        
+        Args:
+            user_id: User email
+        """
+        doc_ref = self.db.collection('spotify_tokens').document(user_id)
+        doc_ref.delete()
+
+    def save_oauth_state(self, user_id, state):
+        """
+        Save OAuth state token for CSRF protection
+        
+        Args:
+            user_id: User email
+            state: Random state token
+        """
+        doc_ref = self.db.collection('oauth_states').document(state)
+        doc_ref.set({
+            'user_id': user_id,
+            'created_at': datetime.utcnow()
+        })
+
+    def verify_oauth_state(self, state):
+        """
+        Verify OAuth state token and return associated user_id
+        
+        Args:
+            state: State token to verify
+            
+        Returns:
+            str: User ID if valid, None otherwise
+        """
+        doc_ref = self.db.collection('oauth_states').document(state)
+        doc = doc_ref.get()
+        
+        if doc.exists:
+            data = doc.to_dict()
+            # Delete the state token (one-time use)
+            doc_ref.delete()
+            
+            # Check if token is recent (within 10 minutes)
+            created_at = data.get('created_at')
+            if created_at:
+                age = (datetime.utcnow() - created_at).total_seconds()
+                if age < 600:  # 10 minutes
+                    return data.get('user_id')
+        
+        return None

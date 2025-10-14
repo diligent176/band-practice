@@ -24,6 +24,7 @@ The web interface (`webapp/templates/viewer.html`) includes:
 - **Session Persistence**: User stays logged in across browser sessions
 
 Configuration from environment:
+
 - `FIREBASE_API_KEY` - Your Firebase project API key
 - `FIREBASE_AUTH_DOMAIN` - Your Firebase auth domain (e.g., `your-project.firebaseapp.com`)
 - `FIREBASE_PROJECT_ID` - Your Firebase/GCP project ID
@@ -53,6 +54,7 @@ def get_songs():
 ```
 
 Protected endpoints:
+
 - `/api/songs` - Get all songs
 - `/api/songs/<song_id>` - Get specific song
 - `/api/songs/<song_id>/notes` - Update notes
@@ -61,6 +63,7 @@ Protected endpoints:
 - `/api/user` - Get user info
 
 Public endpoints (no auth required):
+
 - `/` - Home page (serves login interface)
 - `/health` - Health check
 - `/health2` - Health check
@@ -72,6 +75,7 @@ Public endpoints (no auth required):
 See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for detailed Firebase project setup.
 
 Quick summary:
+
 1. Create Firebase project (or use existing GCP project)
 2. Enable Google authentication provider
 3. Add authorized domain (your Cloud Run URL)
@@ -229,9 +233,9 @@ To test with real Firebase authentication locally:
    FIREBASE_PROJECT_ID=your-project-id
    ALLOWED_USERS=your-email@gmail.com
    ```
-3. Add `localhost:8080` to Firebase authorized domains
+3. Add `127.0.0.1:8080` to Firebase authorized domains
 4. Run `run-local.bat`
-5. Navigate to `http://localhost:8080` and sign in
+5. Navigate to `http://127.0.0.1:8080` and sign in
 
 ### Testing Authentication Flow
 
@@ -277,6 +281,7 @@ This approach is simpler than Cloud Run IAM authentication and provides better U
 **Symptoms**: User can sign in but API requests fail with 401
 
 **Causes & Solutions**:
+
 - User email not in `ALLOWED_USERS` list → Add user to allowed list
 - Secret Manager secret not updated → Check secret version and update Cloud Run
 - Token not being sent → Check browser console for errors
@@ -297,6 +302,7 @@ gcloud run services describe band-practice-pro \
 **Symptoms**: Requests failing before user check
 
 **Causes & Solutions**:
+
 - Frontend not sending Firebase token → Check `viewer.html` authentication code
 - Token expired → Refresh the page
 - Browser cache issue → Clear cache and try again
@@ -306,6 +312,7 @@ gcloud run services describe band-practice-pro \
 **Symptoms**: Error on page load, can't sign in
 
 **Causes & Solutions**:
+
 - Missing Firebase config in Cloud Run → Check environment variables
 - Wrong Firebase project ID → Verify `FIREBASE_PROJECT_ID`
 - Unauthorized domain → Add Cloud Run URL to Firebase authorized domains
@@ -323,6 +330,7 @@ gcloud run services describe band-practice-pro \
 **Symptoms**: Still requiring auth in local development
 
 **Causes & Solutions**:
+
 - `FLASK_ENV` not set to `development` → Check `.env` file
 - Wrong variable name → Use `FLASK_ENV=development` or `DEVELOPMENT=true`
 
@@ -401,15 +409,15 @@ gcloud firebase projects list
 
 This app uses **Firebase Authentication**, not Google IAP (Identity-Aware Proxy).
 
-| Feature | Firebase Auth (Current) | Google IAP |
-|---------|------------------------|------------|
-| **Setup Complexity** | Simple | Complex |
-| **User Management** | Application-level whitelist | GCP IAM roles |
-| **Sign-In UI** | FirebaseUI (customizable) | Google-hosted page |
-| **Cost** | Free (Firebase Auth) | Free (Cloud Run IAP) |
-| **Token Type** | Firebase ID tokens | IAP JWT tokens |
-| **Development Mode** | Easy bypass | Harder to test locally |
-| **User Experience** | Embedded in app | Redirects to Google |
+| Feature              | Firebase Auth (Current)     | Google IAP             |
+| -------------------- | --------------------------- | ---------------------- |
+| **Setup Complexity** | Simple                      | Complex                |
+| **User Management**  | Application-level whitelist | GCP IAM roles          |
+| **Sign-In UI**       | FirebaseUI (customizable)   | Google-hosted page     |
+| **Cost**             | Free (Firebase Auth)        | Free (Cloud Run IAP)   |
+| **Token Type**       | Firebase ID tokens          | IAP JWT tokens         |
+| **Development Mode** | Easy bypass                 | Harder to test locally |
+| **User Experience**  | Embedded in app             | Redirects to Google    |
 
 Firebase Auth was chosen for its simplicity and better developer experience.
 

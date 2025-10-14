@@ -47,7 +47,7 @@ SpotifyOAuth(
 2. Select your app
 3. Click "Edit Settings"
 4. Add Redirect URI:
-   - For local dev: `http://localhost:8080/callback`
+   - For local dev: `http://127.0.0.1:8080/callback`
    - For production: `https://your-app-domain.com/callback`
 5. Save settings
 
@@ -55,7 +55,7 @@ SpotifyOAuth(
 
 ```bash
 # Add to .env
-SPOTIFY_REDIRECT_URI=http://localhost:8080/callback  # For local dev
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:8080/callback  # For local dev
 SPOTIFY_SCOPES=streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state
 ```
 
