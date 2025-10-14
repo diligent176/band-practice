@@ -2436,12 +2436,16 @@ let selectedCollectionIndex = 0;
 function handleCollectionDialogKeyboard(e) {
     if (collectionDialog.style.display !== 'flex') return;
     
+    // Don't intercept keyboard shortcuts when typing in an input field
+    const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+    
     if (e.key === 'Escape') {
         e.preventDefault();
         closeCollectionDialog();
         return;
     }
     
+    // Arrow keys and navigation - always work
     if (e.key === 'ArrowDown') {
         e.preventDefault();
         if (allCollections.length > 0) {
@@ -2467,6 +2471,9 @@ function handleCollectionDialogKeyboard(e) {
         }
         return;
     }
+    
+    // Only handle these shortcuts when NOT typing in an input field
+    if (isTyping) return;
     
     // N key to create new collection
     if (e.key === 'n' || e.key === 'N') {
