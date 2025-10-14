@@ -161,8 +161,8 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
-    // Alt+C for collection selector
-    if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+    // X for collection selector
+    if (e.key === 'x' || e.key === 'X') {
         e.preventDefault();
         showCollectionDialog();
         return;
@@ -202,7 +202,7 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
-    // F to fetch BPM from online
+    // F to fetch BPM online
     if (e.key === 'f' || e.key === 'F') {
         const fetchBpmBtn = document.getElementById('fetch-bpm-btn');
         if (fetchBpmBtn && !fetchBpmBtn.disabled) {

@@ -29,7 +29,7 @@
             <div class="header-single-row">
                 <h1><i class="fa-solid fa-guitar"></i> Band Practice Pro</h1>
                 <div class="status-bar">
-                    <button id="collection-btn" class="btn btn-subtle" title="Switch Collection (Alt+C)">
+                    <button id="collection-btn" class="btn btn-subtle" title="Switch Collection (X)">
                         <i class="fa-solid fa-layer-group"></i> <span id="current-collection-name">Collection...</span>
                     </button>
                     <button id="import-playlist-btn" class="btn btn-subtle" title="Import songs from Spotify playlist (P)">
@@ -60,6 +60,10 @@
                         </div>
                         <div class="help-card-content">
                             <div class="help-item">
+                                <kbd>X</kbd>
+                                <span>Switch Collection</span>
+                            </div>
+                            <div class="help-item">
                                 <kbd>P</kbd>
                                 <span>Import Playlist</span>
                             </div>
@@ -81,7 +85,7 @@
                             </div>
                             <div class="help-item">
                                 <kbd>F</kbd>
-                                <span>Fetch BPM from Online</span>
+                                <span>Fetch BPM online</span>
                             </div>
                             <div class="help-item">
                                 <kbd>C</kbd>
@@ -106,10 +110,6 @@
                             <div class="help-item">
                                 <kbd>Alt</kbd><kbd>D</kbd>
                                 <span>Delete Song</span>
-                            </div>
-                            <div class="help-item">
-                                <kbd>Alt</kbd><kbd>C</kbd>
-                                <span>Switch Collection</span>
                             </div>
                         </div>
                     </div>
@@ -147,7 +147,7 @@
                             <button id="set-bpm-btn" class="btn btn-icon" disabled title="Set BPM manually (B)">
                                 <i class="fa-solid fa-hashtag"></i>
                             </button>
-                            <button id="fetch-bpm-btn" class="btn btn-icon" disabled title="Fetch BPM from online (F)">
+                            <button id="fetch-bpm-btn" class="btn btn-icon" disabled title="Fetch BPM online (F)">
                                 <i class="fa-solid fa-music"></i>
                             </button>
                             <button id="refresh-song-btn" class="btn btn-icon" disabled title="Fetch lyrics">
