@@ -1521,6 +1521,9 @@ async function showImportDialog() {
     importStepSelect.style.display = 'none';
     importStepProgress.style.display = 'none';
 
+    // Clear the URL input field
+    importPlaylistUrl.value = '';
+
     // Load playlist memory
     await loadPlaylistMemory();
 
@@ -1557,31 +1560,30 @@ function handleImportDialogKeyboard(e) {
 
     // Step 1: Navigate cached playlists with arrow keys
     if (importStepUrl.style.display === 'flex' && importDialogState.cachedPlaylists.length > 0) {
-        // Don't handle arrow keys if user is typing in the input
-        const activeElement = document.activeElement;
-        const isTyping = activeElement === importPlaylistUrl;
-
-        if (!isTyping) {
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (importDialogState.selectedPlaylistIndex < importDialogState.cachedPlaylists.length - 1) {
-                    importDialogState.selectedPlaylistIndex++;
-                    updatePlaylistMemorySelection();
-                }
-                return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (importDialogState.selectedPlaylistIndex < importDialogState.cachedPlaylists.length - 1) {
+                importDialogState.selectedPlaylistIndex++;
+                updatePlaylistMemorySelection();
+            } else if (importDialogState.selectedPlaylistIndex === -1 && importDialogState.cachedPlaylists.length > 0) {
+                // If nothing selected, select first item
+                importDialogState.selectedPlaylistIndex = 0;
+                updatePlaylistMemorySelection();
             }
+            return;
+        }
 
-            if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (importDialogState.selectedPlaylistIndex > 0) {
-                    importDialogState.selectedPlaylistIndex--;
-                    updatePlaylistMemorySelection();
-                } else if (importDialogState.selectedPlaylistIndex === -1 && importDialogState.cachedPlaylists.length > 0) {
-                    importDialogState.selectedPlaylistIndex = 0;
-                    updatePlaylistMemorySelection();
-                }
-                return;
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (importDialogState.selectedPlaylistIndex > 0) {
+                importDialogState.selectedPlaylistIndex--;
+                updatePlaylistMemorySelection();
+            } else if (importDialogState.selectedPlaylistIndex === -1 && importDialogState.cachedPlaylists.length > 0) {
+                // If nothing selected, select last item
+                importDialogState.selectedPlaylistIndex = importDialogState.cachedPlaylists.length - 1;
+                updatePlaylistMemorySelection();
             }
+            return;
         }
     }
 
