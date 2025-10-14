@@ -361,10 +361,10 @@ class LyricsService:
                         }
                         continue
 
-                # Fetch lyrics from Genius
-                lyrics_data = self._fetch_lyrics(title, artist)
-
-                # Prepare song data (BPM will be fetched in background via separate API call)
+                # Skip lyrics fetching during import for speed - will be loaded on-demand
+                print(f"⚡ Importing {artist} - {title} (lyrics will load on-demand)...")
+                
+                # Prepare song data WITHOUT lyrics for fast import
                 song_data = {
                     'title': title,
                     'artist': artist,
@@ -372,8 +372,9 @@ class LyricsService:
                     'year': year,
                     'album_art_url': album_art_url,
                     'spotify_uri': track['uri'],
-                    'lyrics': lyrics_data['lyrics'],
-                    'lyrics_numbered': lyrics_data['lyrics_numbered'],
+                    'lyrics': '',  # Empty - will be fetched on first view
+                    'lyrics_numbered': '',  # Empty - will be fetched on first view
+                    'lyrics_fetched': False,  # Flag to know lyrics haven't been fetched yet
                     'bpm': 'N/A'  # Will be updated by background fetch
                 }
                 
@@ -581,7 +582,7 @@ class LyricsService:
                     'Sec-Fetch-Site': 'none',
                     'Cache-Control': 'max-age=0',
                 }
-                response = requests.get(url, headers=headers, timeout=10)
+                response = requests.get(url, headers=headers, timeout=5)  # Reduced from 10 to 5 seconds
                 response.raise_for_status()
                 html_content = response.text
 
