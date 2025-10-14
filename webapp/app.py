@@ -431,10 +431,9 @@ def get_collections():
 
         collections = firestore.get_user_collections(user_id)
         
-        # Add song count to each collection
+        # Use efficient count aggregation instead of fetching all songs
         for collection in collections:
-            songs = firestore.get_songs_by_collection(collection['id'])
-            collection['song_count'] = len(songs)
+            collection['song_count'] = firestore.count_songs_by_collection(collection['id'])
 
         return jsonify({
             'success': True,
