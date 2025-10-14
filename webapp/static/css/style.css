@@ -1085,7 +1085,7 @@ header h1 {
 /* Toast Notifications */
 .toast-container {
   position: fixed;
-  top: 80px;
+  top: 280px;
   right: 20px;
   z-index: 10000;
   display: flex;
@@ -1101,7 +1101,8 @@ header h1 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border-left: 4px solid var(--accent-primary);
   min-width: 300px;
-  animation: slideIn 0.3s ease-out, fadeOut 0.5s ease-in 3.3s forwards;
+  /* All toasts: slide in from right, then drop down while fading */
+  animation: slideInFromRight 0.3s ease-out, dropDownFadeOut 0.8s ease-in 3s forwards;
   position: relative;
   overflow: hidden;
 }
@@ -1115,7 +1116,7 @@ header h1 {
   left: 0;
   background: linear-gradient(90deg, transparent 0%, var(--bg-primary) 100%);
   opacity: 0;
-  animation: gradientFade 0.5s ease-in 3.3s forwards;
+  animation: gradientFadeDropDown 0.8s ease-in 3s forwards;
   pointer-events: none;
 }
 
@@ -1129,29 +1130,6 @@ header h1 {
 
 .toast.info {
   border-left-color: var(--accent-info);
-}
-
-/* Special styling for Panel Split toast - positioned lower and uses drop-down animation */
-.toast-panel-split {
-  margin-top: 100px;
-  /* Position 100px lower than normal toasts */
-  animation: slideInFromRight 0.3s ease-out, dropDownFadeOut 0.8s ease-in 3s forwards !important;
-}
-
-.toast-panel-split::after {
-  animation: gradientFadeDropDown 0.8s ease-in 3s forwards !important;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(400px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
 }
 
 @keyframes slideInFromRight {
@@ -1175,28 +1153,6 @@ header h1 {
   100% {
     opacity: 0;
     transform: translateX(0) translateY(60px);
-  }
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-}
-
-@keyframes gradientFade {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 0.7;
   }
 }
 

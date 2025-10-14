@@ -1331,19 +1331,17 @@ function setStatus(message, type = 'info') {
     else statusMessage.style.color = '#FF9800';
 }
 
-function showToast(message, type = 'info', customClass = null) {
+function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    if (customClass) {
-        toast.classList.add(customClass);
-    }
     toast.textContent = message;
 
     document.getElementById('toast-container').appendChild(toast);
 
+    // Remove toast after animation completes (3s wait + 0.8s animation)
     setTimeout(() => {
         toast.remove();
-    }, 4000);
+    }, 3800);
 }
 
 function escapeHtml(text) {
