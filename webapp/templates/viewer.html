@@ -161,7 +161,7 @@ Example:
                 <div id="import-step-url" class="import-step">
                     <!-- Recently Accessed Playlists -->
                     <div id="playlist-memory-section" class="playlist-memory-section" style="display: none;">
-                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary);">Recently Accessed</h4>
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary);">Recent:</h4>
                         <div id="playlist-memory-list" class="playlist-memory-list"></div>
                     </div>
 
@@ -324,28 +324,8 @@ Example:
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
 
     <script>
-        // Check if we're in development mode
-        const isDevelopmentMode = {{ 'true' if config.get('FLASK_ENV') == 'development' else 'false' }};
-
-        if (isDevelopmentMode) {
-            console.log('🔧 DEVELOPMENT MODE - Bypassing Firebase Auth');
-            // Skip all Firebase auth, show main app immediately
-            document.getElementById('auth-gate').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            document.getElementById('user-email').textContent = 'dev@localhost.com (Dev Mode)';
-
-            // Mock apiCall function for development
-            window.apiCall = async function(url, options = {}) {
-                return fetch(url, options);
-            };
-
-            // Initialize the main app
-            if (window.initializeApp) {
-                window.initializeApp(window.apiCall);
-            }
-        } else {
-            // Production mode - use Firebase Auth
-            console.log('🔥 PRODUCTION MODE - Using Firebase Auth');
+        // Always use Firebase Auth (both local and production)
+        console.log('🔥 Using Firebase Auth');
 
         // Firebase configuration - replace with your project's config
         const firebaseConfig = {
@@ -551,7 +531,6 @@ Example:
             // Load your existing app.js functionality here or include it separately
         }
 
-        } // End of production mode else block
     </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

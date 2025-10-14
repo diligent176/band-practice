@@ -95,15 +95,6 @@ def require_auth(f):
     def decorated_function(*args, **kwargs):
         logger.info(f"🔐 require_auth decorator called for {request.path}")
 
-        # Skip authentication in development mode
-        if auth_service.is_development_mode():
-            logger.info("✅ Running in dev mode - using mock user")
-            g.user = {
-                'email': 'dev@localhost.com',
-                'verified': True
-            }
-            return f(*args, **kwargs)
-
         # Get token from Authorization header
         auth_header = request.headers.get('Authorization', '')
         logger.info(f"📋 Auth header present: {bool(auth_header)}")
@@ -141,18 +132,12 @@ def optional_auth(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if auth_service.is_development_mode():
-            g.user = {
-                'email': 'dev@localhost.com',
-                'verified': True
-            }
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split('Bearer ')[1]
+            g.user = auth_service.verify_token(token)
         else:
-            auth_header = request.headers.get('Authorization', '')
-            if auth_header.startswith('Bearer '):
-                token = auth_header.split('Bearer ')[1]
-                g.user = auth_service.verify_token(token)
-            else:
-                g.user = None
+            g.user = None
 
         return f(*args, **kwargs)
 
