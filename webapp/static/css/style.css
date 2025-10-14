@@ -858,19 +858,27 @@ header h1 {
 
 .edit-help {
   background: var(--bg-tertiary);
-  padding: 6px 8px;
-  border-radius: 3px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  border-left: 3px solid var(--accent-info);
+}
+
+.edit-help strong {
+  display: block;
   margin-bottom: 6px;
-  font-size: 10px;
-  border-left: 2px solid var(--accent-info);
+  color: var(--accent-info);
 }
 
 .edit-help code {
   background: var(--bg-secondary);
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 3px;
   font-family: 'Courier New', monospace;
   color: var(--accent-info);
+  font-size: 11px;
 }
 
 .notes-textarea {
