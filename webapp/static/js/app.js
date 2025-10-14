@@ -2682,8 +2682,9 @@ async function createNewCollection() {
             closeNewCollectionDialog();
             showToast(`Collection '${name}' created!`, 'success');
             
-            // Reload collection list
-            showCollectionDialog();
+            // Switch to the newly created collection
+            const newCollectionId = data.collection.id;
+            await switchCollection(newCollectionId);
         } else {
             showToast('Failed to create collection: ' + data.error, 'error');
         }

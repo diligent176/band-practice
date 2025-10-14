@@ -1963,6 +1963,8 @@ header h1 {
   overflow-y: auto;
   margin-bottom: 20px;
   padding-right: 8px;
+  padding-left: 2px;
+  /* Prevent left border clipping */
 }
 
 /* Custom scrollbar for collection list */
@@ -1999,20 +2001,18 @@ header h1 {
 
 .collection-item:hover {
   background: var(--bg-tertiary);
-  border-color: var(--accent-primary);
+  border-color: rgba(24, 160, 73, 0.3);
 }
 
 .collection-item.active {
   background: var(--bg-tertiary);
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 1px var(--accent-primary);
+  /* No special border for active - keep it subtle */
 }
 
 .collection-item.highlighted {
   background: var(--bg-tertiary);
   border-color: rgba(24, 160, 73, 0.5);
   box-shadow: 0 0 8px rgba(24, 160, 73, 0.15);
-  transform: scale(1.005);
 }
 
 .collection-item-icon {
@@ -2049,10 +2049,17 @@ header h1 {
 }
 
 .collection-item-active {
-  font-size: 12px;
-  color: var(--accent-primary);
+  padding: 4px 10px;
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 4px;
+  font-size: 11px;
+  color: #ff9800;
   font-weight: 600;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .collection-item-delete {
