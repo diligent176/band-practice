@@ -227,6 +227,9 @@ Example:
                         <div class="empty-state"><p>Loading collections...</p></div>
                     </div>
                     <div class="dialog-actions">
+                        <button id="edit-collection-btn" class="btn btn-secondary" disabled>
+                            <i class="fa-solid fa-pen"></i> Edit Collection
+                        </button>
                         <button id="new-collection-btn" class="btn btn-primary">
                             <i class="fa-solid fa-plus"></i> New Collection
                         </button>
@@ -255,6 +258,31 @@ Example:
                     </button>
                     <button id="new-collection-save-btn" class="btn btn-primary">
                         <i class="fa-solid fa-check"></i> Create
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Collection Dialog -->
+        <div id="edit-collection-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog">
+                <h3>Edit Collection</h3>
+                <div style="margin-bottom: 20px;">
+                    <label for="edit-collection-name-input" style="display: block; margin-bottom: 8px; color: var(--text-primary);">Collection Name:</label>
+                    <input type="text" id="edit-collection-name-input" class="input" 
+                           placeholder="e.g., Reggae Band, Rock Band" 
+                           style="width: 100%; padding: 8px; font-size: 16px; margin-bottom: 10px;">
+                    <label for="edit-collection-description-input" style="display: block; margin-bottom: 8px; color: var(--text-primary);">Description (optional):</label>
+                    <input type="text" id="edit-collection-description-input" class="input" 
+                           placeholder="e.g., Songs for my weekend gigs" 
+                           style="width: 100%; padding: 8px; font-size: 14px;">
+                </div>
+                <div class="dialog-actions">
+                    <button id="edit-collection-cancel-btn" class="btn btn-secondary">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                    <button id="edit-collection-save-btn" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Save
                     </button>
                 </div>
             </div>

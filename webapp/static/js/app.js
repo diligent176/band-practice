@@ -74,11 +74,20 @@ const collectionDialog = document.getElementById('collection-dialog');
 const collectionDialogClose = document.getElementById('collection-dialog-close');
 const collectionList = document.getElementById('collection-list');
 const newCollectionBtn = document.getElementById('new-collection-btn');
+const editCollectionBtn = document.getElementById('edit-collection-btn');
 const newCollectionDialog = document.getElementById('new-collection-dialog');
+const editCollectionDialog = document.getElementById('edit-collection-dialog');
 const collectionNameInput = document.getElementById('collection-name-input');
 const collectionDescriptionInput = document.getElementById('collection-description-input');
+const editCollectionNameInput = document.getElementById('edit-collection-name-input');
+const editCollectionDescriptionInput = document.getElementById('edit-collection-description-input');
 const newCollectionSaveBtn = document.getElementById('new-collection-save-btn');
 const newCollectionCancelBtn = document.getElementById('new-collection-cancel-btn');
+const editCollectionSaveBtn = document.getElementById('edit-collection-save-btn');
+const editCollectionCancelBtn = document.getElementById('edit-collection-cancel-btn');
+
+// Track the collection being edited
+let editingCollectionId = null;
 
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
@@ -96,8 +105,11 @@ function setupEventListeners() {
     collectionBtn.addEventListener('click', showCollectionDialog);
     collectionDialogClose.addEventListener('click', closeCollectionDialog);
     newCollectionBtn.addEventListener('click', showNewCollectionDialog);
+    editCollectionBtn.addEventListener('click', showEditCollectionDialog);
     newCollectionSaveBtn.addEventListener('click', createNewCollection);
     newCollectionCancelBtn.addEventListener('click', closeNewCollectionDialog);
+    editCollectionSaveBtn.addEventListener('click', saveEditedCollection);
+    editCollectionCancelBtn.addEventListener('click', closeEditCollectionDialog);
     
     // Song selector
     openSongSelectorBtn.addEventListener('click', openSongSelector);
@@ -2487,6 +2499,20 @@ function handleCollectionDialogKeyboard(e) {
     // Only handle these shortcuts when NOT typing in an input field
     if (isTyping) return;
     
+    // E key to edit collection
+    if (e.key === 'e' || e.key === 'E') {
+        e.preventDefault();
+        if (allCollections.length > 0 && allCollections[selectedCollectionIndex]) {
+            const collection = allCollections[selectedCollectionIndex];
+            if (collection.name !== 'Default') {
+                showEditCollectionDialog();
+            } else {
+                showToast('Cannot edit Default collection', 'error');
+            }
+        }
+        return;
+    }
+    
     // N key to create new collection
     if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
@@ -2522,6 +2548,12 @@ function highlightCollectionItem(index) {
     if (items[index]) {
         items[index].classList.add('highlighted');
         items[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // Enable/disable edit button based on whether Default collection is selected
+    if (allCollections[index]) {
+        const isDefault = allCollections[index].name === 'Default';
+        editCollectionBtn.disabled = isDefault;
     }
 }
 
@@ -2722,6 +2754,88 @@ async function createNewCollection() {
     } catch (error) {
         console.error('Error creating collection:', error);
         showToast('Error creating collection: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function showEditCollectionDialog() {
+    const collection = allCollections[selectedCollectionIndex];
+    if (!collection) return;
+    
+    editingCollectionId = collection.id;
+    editCollectionDialog.style.display = 'flex';
+    editCollectionNameInput.value = collection.name || '';
+    editCollectionDescriptionInput.value = collection.description || '';
+    editCollectionNameInput.focus();
+    editCollectionNameInput.select();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleEditCollectionDialogKeyboard);
+}
+
+function closeEditCollectionDialog() {
+    editCollectionDialog.style.display = 'none';
+    editingCollectionId = null;
+    document.removeEventListener('keydown', handleEditCollectionDialogKeyboard);
+}
+
+function handleEditCollectionDialogKeyboard(e) {
+    if (editCollectionDialog.style.display !== 'flex') return;
+    
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeEditCollectionDialog();
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        saveEditedCollection();
+    }
+}
+
+async function saveEditedCollection() {
+    const name = editCollectionNameInput.value.trim();
+    const description = editCollectionDescriptionInput.value.trim();
+    
+    if (!name) {
+        showToast('Collection name is required', 'error');
+        editCollectionNameInput.focus();
+        return;
+    }
+    
+    if (!editingCollectionId) {
+        showToast('No collection selected', 'error');
+        return;
+    }
+    
+    try {
+        showLoading('Updating collection...');
+        
+        const response = await authenticatedApiCall(`/api/collections/${editingCollectionId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ name, description })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            closeEditCollectionDialog();
+            showToast(`Collection '${name}' updated!`, 'success');
+            
+            // Update the current collection display if we edited the active one
+            if (currentCollection && currentCollection.id === editingCollectionId) {
+                currentCollection.name = name;
+                currentCollection.description = description;
+                updateCollectionDisplay();
+            }
+            
+            // Refresh the collection list
+            await showCollectionDialog();
+        } else {
+            showToast('Failed to update collection: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error updating collection:', error);
+        showToast('Error updating collection: ' + error.message, 'error');
     } finally {
         hideLoading();
     }
