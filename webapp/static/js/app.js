@@ -3443,6 +3443,14 @@ async function updatePlayerVisibility() {
     // If player is ready, render mini player with controls
     if (spotifyPlayerReady) {
         renderMiniPlayer();
+        
+        // Automatically start playing the newly selected song
+        if (currentSong.spotify_uri) {
+            console.log('🎵 Auto-playing newly selected song:', currentSong.title);
+            await playSpotifyTrack(currentSong.spotify_uri);
+        } else {
+            console.warn('⚠️ No Spotify URI for this song');
+        }
     } else {
         // Show connect prompt if not connected
         showSpotifyConnectPrompt();
