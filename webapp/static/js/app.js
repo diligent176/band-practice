@@ -259,6 +259,15 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
+    // T to restart track (rewind to beginning)
+    if (e.key === 't' || e.key === 'T') {
+        if (currentSong && spotifyPlayerReady) {
+            e.preventDefault();
+            restartTrack();
+        }
+        return;
+    }
+
     // N to edit notes
     if (e.key === 'n' || e.key === 'N') {
         const editNotesBtn = document.getElementById('edit-notes-btn');
