@@ -182,14 +182,14 @@ header h1 {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  width: 320px;
+  width: 360px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   z-index: 10000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 12px;
 }
@@ -207,6 +207,14 @@ header h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.mini-player-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
 }
 
 .mini-player-info {
@@ -235,30 +243,106 @@ header h1 {
 .mini-player-controls {
   display: flex;
   gap: 8px;
+  align-items: center;
+  justify-content: center;
 }
 
 .mini-player-btn {
-  width: 40px;
-  height: 40px;
   border-radius: 50%;
-  background: var(--accent-primary);
+  background: var(--bg-elevated);
   border: none;
-  color: #000;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.mini-player-btn-small {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.mini-player-btn-play {
+  width: 40px;
+  height: 40px;
+  background: var(--accent-primary);
+  color: #000;
   font-size: 14px;
 }
 
 .mini-player-btn:hover {
-  background: #1ed760;
   transform: scale(1.05);
 }
 
+.mini-player-btn-play:hover {
+  background: #1ed760;
+}
+
+.mini-player-btn-small:hover {
+  background: var(--bg-primary);
+}
+
 .mini-player-btn i {
-  margin-left: 2px;
+  margin-left: 1px;
+}
+
+.mini-player-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.mini-player-time {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+}
+
+.mini-player-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-primary);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.mini-player-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mini-player-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.mini-player-slider::-webkit-slider-thumb:hover {
+  background: #1ed760;
+  transform: scale(1.2);
+}
+
+.mini-player-slider::-moz-range-thumb:hover {
+  background: #1ed760;
+  transform: scale(1.2);
 }
 
 .font-size-selector {

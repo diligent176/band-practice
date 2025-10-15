@@ -3320,14 +3320,27 @@ function renderMiniPlayer() {
         <div class="mini-player-art">
             ${artUrl ? `<img src="${artUrl}" alt="Album art">` : '<i class="fa-solid fa-music"></i>'}
         </div>
-        <div class="mini-player-info">
-            <div class="mini-player-title">${currentSong.title || 'Unknown'}</div>
-            <div class="mini-player-artist">${currentSong.artist || 'Unknown'}</div>
-        </div>
-        <div class="mini-player-controls">
-            <button class="mini-player-btn" onclick="toggleAudioPlayback()">
-                <i class="fa-solid fa-play"></i>
-            </button>
+        <div class="mini-player-main">
+            <div class="mini-player-info">
+                <div class="mini-player-title">${currentSong.title || 'Unknown'}</div>
+                <div class="mini-player-artist">${currentSong.artist || 'Unknown'}</div>
+            </div>
+            <div class="mini-player-controls">
+                <button class="mini-player-btn mini-player-btn-small" onclick="restartTrack()" title="Restart">
+                    <i class="fa-solid fa-backward-step"></i>
+                </button>
+                <button class="mini-player-btn mini-player-btn-play" onclick="toggleAudioPlayback()" title="Play/Pause">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+                <button class="mini-player-btn mini-player-btn-small" onclick="skipTrack()" title="Skip">
+                    <i class="fa-solid fa-forward-step"></i>
+                </button>
+            </div>
+            <div class="mini-player-progress">
+                <span class="mini-player-time" id="current-time">0:00</span>
+                <input type="range" class="mini-player-slider" id="progress-slider" min="0" max="100" value="0" onchange="seekToPosition(this.value)">
+                <span class="mini-player-time" id="total-time">0:00</span>
+            </div>
         </div>
     `;
     miniPlayer.style.display = 'flex';
@@ -3420,13 +3433,78 @@ async function playSpotifyTrack(uri) {
 function updatePlayerUI(state) {
     if (!miniPlayer) return;
 
-    const playBtn = miniPlayer.querySelector('.mini-player-btn i');
-    if (!playBtn) return;
+    const playBtn = miniPlayer.querySelector('.mini-player-btn-play i');
+    if (playBtn) {
+        if (state.paused) {
+            playBtn.className = 'fa-solid fa-play';
+        } else {
+            playBtn.className = 'fa-solid fa-pause';
+        }
+    }
+
+    // Update progress bar and time display
+    const position = state.position;
+    const duration = state.duration;
     
-    if (state.paused) {
-        playBtn.className = 'fa-solid fa-play';
-    } else {
-        playBtn.className = 'fa-solid fa-pause';
+    const progressSlider = document.getElementById('progress-slider');
+    const currentTimeEl = document.getElementById('current-time');
+    const totalTimeEl = document.getElementById('total-time');
+    
+    if (progressSlider && duration > 0) {
+        const percentage = (position / duration) * 100;
+        progressSlider.value = percentage;
+    }
+    
+    if (currentTimeEl) {
+        currentTimeEl.textContent = formatTime(position);
+    }
+    
+    if (totalTimeEl) {
+        totalTimeEl.textContent = formatTime(duration);
+    }
+}
+
+// Format milliseconds to MM:SS
+function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Restart the current track
+async function restartTrack() {
+    if (!spotifyPlayer) return;
+    
+    try {
+        await spotifyPlayer.seek(0);
+        showToast('⏮ Restarted', 'success');
+    } catch (error) {
+        console.error('Error restarting track:', error);
+        showToast('Failed to restart', 'error');
+    }
+}
+
+// Skip to next track (currently just restarts since we're playing single tracks)
+async function skipTrack() {
+    // For now, just restart since we're not using playlists
+    // In the future, this could advance to the next song in the collection
+    showToast('Skip not implemented yet', 'info');
+}
+
+// Seek to a specific position in the track
+async function seekToPosition(percentage) {
+    if (!spotifyPlayer) return;
+    
+    try {
+        const state = await spotifyPlayer.getCurrentState();
+        if (state && state.duration) {
+            const position = (percentage / 100) * state.duration;
+            await spotifyPlayer.seek(position);
+        }
+    } catch (error) {
+        console.error('Error seeking:', error);
+        showToast('Failed to seek', 'error');
     }
 }
 
