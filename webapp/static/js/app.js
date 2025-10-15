@@ -3335,10 +3335,10 @@ function renderMiniPlayer() {
                 <div class="mini-player-artist">${currentSong.artist || 'Unknown'}</div>
             </div>
             <div class="mini-player-controls">
-                <button class="mini-player-btn mini-player-btn-small" onclick="restartTrack()" title="Restart">
+                <button class="mini-player-btn mini-player-btn-small" onclick="restartTrack()" title="Restart (T)">
                     <i class="fa-solid fa-backward-step"></i>
                 </button>
-                <button class="mini-player-btn mini-player-btn-play" onclick="toggleAudioPlayback()" title="Play/Pause">
+                <button class="mini-player-btn mini-player-btn-play" onclick="toggleAudioPlayback()" title="Play/Pause (SPACE)">
                     <i class="fa-solid fa-play"></i>
                 </button>
                 <button class="mini-player-btn mini-player-btn-small" onclick="skipTrack()" title="Skip">
