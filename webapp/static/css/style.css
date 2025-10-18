@@ -386,6 +386,29 @@ header h1 {
   border-color: rgba(24, 160, 73, 0.75);
 }
 
+/* CSS-based button pulse animation for rock-solid timing */
+.bpm-indicator-toggle-btn.animating {
+  animation-name: bpm-button-pulse;
+  animation-timing-function: steps(2, jump-both);
+  animation-iteration-count: infinite;
+  /* Duration set dynamically via inline style based on BPM */
+}
+
+@keyframes bpm-button-pulse {
+  0% {
+    background: rgba(24, 160, 73, 0.45);
+    border-color: rgba(24, 160, 73, 0.75);
+  }
+  50% {
+    background: rgba(24, 160, 73, 0.25);
+    border-color: rgba(24, 160, 73, 0.5);
+  }
+  100% {
+    background: rgba(24, 160, 73, 0.45);
+    border-color: rgba(24, 160, 73, 0.75);
+  }
+}
+
 .bpm-indicator-toggle-btn i {
   font-size: 11px;
   color: var(--accent-primary);
@@ -1116,7 +1139,6 @@ header h1 {
   color: var(--text-secondary);
   opacity: 0;
   width: 11px;
-  transition: transform 0.1s ease-out, opacity 0.2s ease;
   transform-origin: center;
 }
 
@@ -1124,14 +1146,27 @@ header h1 {
   opacity: 0.3;
 }
 
-.bpm-indicator.tick {
-  transform: scaleX(-1);
-  opacity: 0.7;
+/* CSS-based tick-tock animation for rock-solid timing */
+.bpm-indicator.animating {
+  animation-name: bpm-tick-tock;
+  animation-timing-function: steps(2, jump-both);
+  animation-iteration-count: infinite;
+  /* Duration set dynamically via inline style based on BPM */
 }
 
-.bpm-indicator.tock {
-  transform: scaleX(1);
-  opacity: 0.7;
+@keyframes bpm-tick-tock {
+  0% {
+    transform: scaleX(-1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scaleX(-1);
+    opacity: 0.7;
+  }
 }
 
 .bpm-manual-badge-small {

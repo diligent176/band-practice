@@ -4071,79 +4071,51 @@ function updateBpmIndicator() {
 }
 
 function stopBpmIndicatorPulsing() {
-    // ALWAYS clear any existing interval first
+    // ALWAYS clear any existing interval first (for backwards compatibility)
     if (bpmIndicatorInterval) {
         clearInterval(bpmIndicatorInterval);
         bpmIndicatorInterval = null;
     }
 
-    // Remove pulse from button (but keep toggle state)
+    // Remove CSS animations from button
     if (bpmIndicatorToggleBtn) {
-        bpmIndicatorToggleBtn.classList.remove('pulse');
+        bpmIndicatorToggleBtn.classList.remove('pulse', 'animating');
+        bpmIndicatorToggleBtn.style.animationDuration = '';
     }
 
-    // Remove all animation classes
+    // Remove CSS animations from indicator
     if (bpmIndicatorElement) {
-        bpmIndicatorElement.classList.remove('tick', 'tock');
+        bpmIndicatorElement.classList.remove('tick', 'tock', 'animating');
+        bpmIndicatorElement.style.animationDuration = '';
     }
 }
 
 function startBpmIndicator(bpm) {
     if (!bpmIndicatorElement || !bpmIndicatorEnabled) return;
 
-    // CRITICAL: Stop any existing animation first to prevent multiple intervals
+    // CRITICAL: Stop any existing animation first
     stopBpmIndicatorPulsing();
 
     // Show the indicator
     bpmIndicatorElement.classList.add('active');
 
-    // Calculate interval in milliseconds (60000ms per minute / BPM)
-    const interval = 60000 / bpm;
+    // Calculate beat duration in seconds (60 seconds per minute / BPM)
+    // We want one full cycle (tick-tock) per beat
+    const beatDuration = 60 / bpm;
 
-    // Start with tick
-    let isTick = true;
-    tickTockMetronome(isTick);
+    // Apply CSS animation with precise timing
+    bpmIndicatorElement.style.animationDuration = `${beatDuration}s`;
+    bpmIndicatorElement.classList.add('animating');
 
-    // Set up interval for continuous tick-tock
-    bpmIndicatorInterval = setInterval(() => {
-        isTick = !isTick;
-        tickTockMetronome(isTick);
-    }, interval);
-}
-
-function tickTockMetronome(isTick) {
-    // Stop if indicator is disabled or element doesn't exist
-    if (!bpmIndicatorElement || !bpmIndicatorEnabled) return;
-
-    // Remove both classes
-    bpmIndicatorElement.classList.remove('tick', 'tock');
-
-    // Force reflow to ensure transition happens
-    void bpmIndicatorElement.offsetWidth;
-
-    // Add the appropriate class
-    if (isTick) {
-        bpmIndicatorElement.classList.add('tick');
-        // Pulse button on tick (the beat)
-        pulseBpmButton(true);
-    } else {
-        bpmIndicatorElement.classList.add('tock');
-        // Unpulse button on tock (between beats)
-        pulseBpmButton(false);
+    // Also animate the button
+    if (bpmIndicatorToggleBtn) {
+        bpmIndicatorToggleBtn.style.animationDuration = `${beatDuration}s`;
+        bpmIndicatorToggleBtn.classList.add('animating');
     }
 }
 
-function pulseBpmButton(pulse) {
-    if (!bpmIndicatorToggleBtn || !bpmIndicatorEnabled) return;
-
-    if (pulse) {
-        // Add pulse class for brighter green
-        bpmIndicatorToggleBtn.classList.add('pulse');
-    } else {
-        // Remove pulse class to return to normal
-        bpmIndicatorToggleBtn.classList.remove('pulse');
-    }
-}
+// Old JavaScript-based timing functions removed - now using pure CSS animations
+// This ensures rock-solid timing that won't drift based on browser activity
 
 async function checkIfPlaying() {
     if (!spotifyPlayer || !spotifyPlayerReady) {
