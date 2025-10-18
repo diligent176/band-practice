@@ -1088,7 +1088,36 @@ function renderNotes() {
         `;
     });
 
+    // Add song structure if available
+    const structure = extractSongStructure();
+    if (structure.length > 0) {
+        html += '<div class="song-structure-section">';
+        html += '<div class="song-structure-title">Song Structure</div>';
+        html += '<div class="song-structure-blocks">';
+        structure.forEach(section => {
+            html += `<div class="song-structure-block">${escapeHtml(section)}</div>`;
+        });
+        html += '</div>';
+        html += '</div>';
+    }
+
     notesView.innerHTML = html;
+}
+
+// Extract song structure from lyrics (section headers in square brackets)
+function extractSongStructure() {
+    if (!currentSong || !currentSong.lyrics) return [];
+
+    const lyrics = currentSong.lyrics;
+    const structure = [];
+    const regex = /\[([^\]]+)\]/g;
+    let match;
+
+    while ((match = regex.exec(lyrics)) !== null) {
+        structure.push(match[1]);
+    }
+
+    return structure;
 }
 
 function parseNotes(notesText) {
