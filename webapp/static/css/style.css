@@ -1159,6 +1159,7 @@ header h1 {
   animation-timing-function: steps(1, jump-none);
   animation-iteration-count: infinite;
   animation-fill-mode: both;
+  will-change: background, border-color;
   /* Duration set dynamically via inline style based on BPM */
 }
 
@@ -1199,6 +1200,7 @@ header h1 {
   animation-iteration-count: infinite;
   animation-fill-mode: both;
   opacity: 0.8;
+  will-change: transform;
   /* Duration set dynamically via inline style based on BPM */
 }
 

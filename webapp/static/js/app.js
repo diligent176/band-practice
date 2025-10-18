@@ -109,6 +109,13 @@ let bpmIndicatorElement = null;
 let isMuted = false;
 let volumeBeforeMute = 1.0; // Default volume (0.0 to 1.0)
 
+// BPM animation state tracking (to prevent unnecessary restarts)
+let lastBpmAnimationState = {
+    isAnimating: false,
+    bpm: null,
+    isPaused: null
+};
+
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
@@ -964,6 +971,13 @@ async function selectSong(songId) {
 
     // Stop BPM indicator pulsing (but keep toggle state)
     stopBpmIndicatorPulsing();
+    
+    // Reset animation state tracking when changing songs
+    lastBpmAnimationState = {
+        isAnimating: false,
+        bpm: null,
+        isPaused: null
+    };
 
     closeSongSelector();
     loadSong(songId);
@@ -4116,33 +4130,62 @@ function toggleBpmIndicator() {
 }
 
 function updateBpmIndicator() {
+    // CRITICAL: This function is called frequently by Spotify state updates
+    // We use state tracking to prevent unnecessary animation restarts
+    // Animation should ONLY change when: play/pause, BPM change, or song change
+    
     // If indicator is disabled, stop and return
     if (!bpmIndicatorEnabled) {
-        stopBpmIndicatorPulsing();
+        if (lastBpmAnimationState.isAnimating) {
+            stopBpmIndicatorPulsing();
+            lastBpmAnimationState.isAnimating = false;
+        }
         return;
     }
 
     // Check if we have a valid BPM
     if (!currentSong || !currentSong.bpm || currentSong.bpm === 'N/A' || currentSong.bpm === 'NOT_FOUND') {
-        stopBpmIndicatorPulsing();
+        if (lastBpmAnimationState.isAnimating) {
+            stopBpmIndicatorPulsing();
+            lastBpmAnimationState.isAnimating = false;
+        }
         return;
     }
 
     // Parse BPM value (supports decimals)
     const bpm = parseFloat(currentSong.bpm);
     if (isNaN(bpm) || bpm <= 0) {
-        stopBpmIndicatorPulsing();
+        if (lastBpmAnimationState.isAnimating) {
+            stopBpmIndicatorPulsing();
+            lastBpmAnimationState.isAnimating = false;
+        }
         return;
     }
 
     // Check if Spotify is playing to start/stop animation
     checkIfPlaying().then(isPlaying => {
+        // Check if state actually changed before doing anything
+        const stateChanged = (
+            isPlaying !== lastBpmAnimationState.isPaused ||
+            bpm !== lastBpmAnimationState.bpm
+        );
+
         if (isPlaying && bpmIndicatorEnabled) {
-            // Animate indicator when playing - startBpmIndicator will only restart if BPM changed
-            startBpmIndicator(bpm);
+            // Only call startBpmIndicator if state changed
+            if (stateChanged || !lastBpmAnimationState.isAnimating) {
+                startBpmIndicator(bpm);
+                lastBpmAnimationState.isAnimating = true;
+                lastBpmAnimationState.isPaused = isPlaying;
+                lastBpmAnimationState.bpm = bpm;
+            }
+            // Otherwise, animation is already running correctly - don't touch it!
         } else {
-            // Stop animation when paused
-            stopBpmIndicatorPulsing();
+            // Stop animation when paused (only if currently animating)
+            if (lastBpmAnimationState.isAnimating) {
+                stopBpmIndicatorPulsing();
+                lastBpmAnimationState.isAnimating = false;
+                lastBpmAnimationState.isPaused = isPlaying;
+            }
         }
     });
 }
