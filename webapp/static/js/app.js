@@ -651,7 +651,7 @@ async function saveNotes() {
             currentSong.notes = notes;
             exitEditMode();
             renderNotes();
-            showToast('Notes saved successfully!', 'success');
+            // showToast('Notes saved successfully!', 'success');
             setStatus('Notes saved', 'success');
         } else {
             showToast('Failed to save notes', 'error');
@@ -1806,7 +1806,7 @@ function insertVerse() {
     const textAfter = textarea.value.substring(cursorPos);
     
     // Insert [Verse] followed by a newline
-    const textToInsert = '[Verse]\n';
+    const textToInsert = '[Verse]';
     textarea.value = textBefore + textToInsert + textAfter;
     
     // Move cursor to end of inserted text
@@ -1818,7 +1818,7 @@ function insertVerse() {
     updateLyricsEditorLineNumbers();
     
     // Show feedback
-    showToast('[Verse] heading inserted', 'success');
+    // showToast('[Verse] heading inserted', 'success');
 }
 
 function insertChorus() {
@@ -1828,7 +1828,7 @@ function insertChorus() {
     const textAfter = textarea.value.substring(cursorPos);
     
     // Insert [Chorus] followed by a newline
-    const textToInsert = '[Chorus]\n';
+    const textToInsert = '[Chorus]';
     textarea.value = textBefore + textToInsert + textAfter;
     
     // Move cursor to end of inserted text
@@ -1840,7 +1840,7 @@ function insertChorus() {
     updateLyricsEditorLineNumbers();
     
     // Show feedback
-    showToast('[Chorus] heading inserted', 'success');
+    // showToast('[Chorus] heading inserted', 'success');
 }
 
 async function saveLyrics() {
@@ -2193,7 +2193,7 @@ async function saveTappedBpm() {
             }
 
             closeBpmTapTrainer();
-            showToast(`BPM set to ${savedBpm.toFixed(1)}`, 'success');
+            // showToast(`BPM set to ${savedBpm.toFixed(1)}`, 'success');
             setStatus(`BPM updated to ${savedBpm.toFixed(1)}`, 'success');
         } else {
             showToast('Failed to save BPM: ' + (data.error || 'Unknown error'), 'error');
