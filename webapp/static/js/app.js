@@ -1423,7 +1423,7 @@ function saveColumnPreference(songId, is2Column) {
 
 function loadColumnPreference(songId) {
     const preferences = JSON.parse(localStorage.getItem('bandPracticeColumnPreferences') || '{}');
-    const is2Column = preferences[songId] || false; // Default to 1 column
+    const is2Column = preferences[songId] !== undefined ? preferences[songId] : true; // Default to 2 columns
 
     isColumnMode2 = is2Column;
 
@@ -3324,31 +3324,28 @@ function renderMiniPlayer() {
     if (!miniPlayer || !currentSong) return;
 
     const artUrl = currentSong.album_art || currentSong.album_art_url || '';
-    
+
     miniPlayer.innerHTML = `
         <div class="mini-player-art">
             ${artUrl ? `<img src="${artUrl}" alt="Album art">` : '<i class="fa-solid fa-music"></i>'}
         </div>
         <div class="mini-player-main">
-            <div class="mini-player-info">
-                <div class="mini-player-title">${currentSong.title || 'Unknown'}</div>
-                <div class="mini-player-artist">${currentSong.artist || 'Unknown'}</div>
-            </div>
-            <div class="mini-player-controls">
-                <button class="mini-player-btn mini-player-btn-small" onclick="restartTrack()" title="Restart (T)">
-                    <i class="fa-solid fa-backward-step"></i>
-                </button>
-                <button class="mini-player-btn mini-player-btn-play" onclick="toggleAudioPlayback()" title="Play/Pause (SPACE)">
-                    <i class="fa-solid fa-play"></i>
-                </button>
-                <button class="mini-player-btn mini-player-btn-small" onclick="skipTrack()" title="Skip">
-                    <i class="fa-solid fa-forward-step"></i>
-                </button>
+            <div class="mini-player-top">
+                <div class="mini-player-info">
+                    <div class="mini-player-title">${currentSong.title || 'Unknown'}</div>
+                    <div class="mini-player-artist">${currentSong.artist || 'Unknown'}</div>
+                </div>
+                <div class="mini-player-controls">
+                    <button class="mini-player-btn mini-player-btn-small" onclick="restartTrack()" title="Restart (T)">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                    <button class="mini-player-btn mini-player-btn-play" onclick="toggleAudioPlayback()" title="Play/Pause (SPACE)">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
             </div>
             <div class="mini-player-progress">
-                <span class="mini-player-time" id="current-time">0:00</span>
                 <input type="range" class="mini-player-slider" id="progress-slider" min="0" max="100" value="0" onchange="seekToPosition(this.value)">
-                <span class="mini-player-time" id="total-time">0:00</span>
             </div>
         </div>
     `;
@@ -3371,18 +3368,24 @@ async function toggleAudioPlayback() {
 
     try {
         const state = await spotifyPlayer.getCurrentState();
+        const spotifyUri = currentSong.spotify_uri;
 
-        if (!state) {
-            // Not playing anything, start the current song
-            console.log('No current playback, starting song...');
-            const spotifyUri = currentSong.spotify_uri;
-            if (spotifyUri) {
-                await playSpotifyTrack(spotifyUri);
-            } else {
-                showToast('No Spotify link for this song', 'warning');
-            }
+        if (!spotifyUri) {
+            showToast('No Spotify link for this song', 'warning');
+            return;
+        }
+
+        // Check if we need to switch to a different track
+        const currentTrackUri = state?.track_window?.current_track?.uri;
+        const needsNewTrack = !state || currentTrackUri !== spotifyUri;
+
+        if (needsNewTrack) {
+            // Load and play the new track
+            console.log('Loading new track:', currentSong.title);
+            await playSpotifyTrack(spotifyUri);
+            showToast('▶ Playing', 'success');
         } else if (state.paused) {
-            // Resume playback
+            // Resume playback of current track
             console.log('Resuming playback...');
             await spotifyPlayer.resume();
             showToast('▶ Playing', 'success');
@@ -3398,6 +3401,68 @@ async function toggleAudioPlayback() {
     }
 }
 
+// Load a specific Spotify track in paused state (ready to play)
+async function loadSpotifyTrack(uri) {
+    if (!spotifyDeviceId || !spotifyAccessToken) {
+        showToast('Player not ready', 'error');
+        return;
+    }
+
+    try {
+        console.log(`🎵 Loading track (paused): ${uri} on device: ${spotifyDeviceId}`);
+
+        // Use the play endpoint to queue the track, then immediately pause
+        const playResponse = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                uris: [uri],
+                position_ms: 0
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${spotifyAccessToken}`
+            }
+        });
+
+        if (!playResponse.ok) {
+            const errorText = await playResponse.text();
+            console.error('Load request failed:', playResponse.status, errorText);
+
+            // Handle specific errors
+            if (playResponse.status === 403) {
+                showToast('Spotify Premium required', 'error');
+            } else if (playResponse.status === 404) {
+                showToast('Device not found - try reconnecting', 'error');
+            } else {
+                showToast('Failed to load track', 'error');
+            }
+            return;
+        }
+
+        console.log('✅ Play command sent, waiting briefly before pausing...');
+
+        // Wait a bit longer for the track to actually start before pausing
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Now pause the track
+        const pauseResponse = await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${spotifyDeviceId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${spotifyAccessToken}`
+            }
+        });
+
+        if (pauseResponse.ok) {
+            console.log('✅ Track loaded and paused, ready to play');
+        } else {
+            console.warn('⚠️ Track loaded but pause may have failed');
+        }
+    } catch (error) {
+        console.error('Error loading track:', error);
+        showToast('Failed to load', 'error');
+    }
+}
+
 // Play a specific Spotify track
 async function playSpotifyTrack(uri) {
     if (!spotifyDeviceId || !spotifyAccessToken) {
@@ -3407,7 +3472,7 @@ async function playSpotifyTrack(uri) {
 
     try {
         console.log(`🎵 Playing track: ${uri} on device: ${spotifyDeviceId}`);
-        
+
         const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`, {
             method: 'PUT',
             body: JSON.stringify({ uris: [uri] }),
@@ -3420,7 +3485,7 @@ async function playSpotifyTrack(uri) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Play request failed:', response.status, errorText);
-            
+
             // Handle specific errors
             if (response.status === 403) {
                 showToast('Spotify Premium required', 'error');
@@ -3531,10 +3596,10 @@ async function updatePlayerVisibility() {
     if (spotifyPlayerReady) {
         renderMiniPlayer();
 
-        // Load the song but don't auto-play (user can press spacebar to play)
+        // Just update the UI - don't load the track yet
+        // Track will be loaded when user presses play
         if (currentSong.spotify_uri) {
-            console.log('🎵 Song loaded and ready to play:', currentSong.title);
-            // Song will be queued/loaded when user presses play
+            console.log('🎵 Song ready to play:', currentSong.title);
         } else {
             console.warn('⚠️ No Spotify URI for this song');
         }
