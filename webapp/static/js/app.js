@@ -3861,7 +3861,8 @@ function startBpmIndicator(bpm) {
 }
 
 function tickTockMetronome(isTick) {
-    if (!bpmIndicatorElement) return;
+    // Stop if indicator is disabled or element doesn't exist
+    if (!bpmIndicatorElement || !bpmIndicatorEnabled) return;
 
     // Remove both classes
     bpmIndicatorElement.classList.remove('tick', 'tock');
@@ -3882,7 +3883,7 @@ function tickTockMetronome(isTick) {
 }
 
 function pulseBpmButton(pulse) {
-    if (!bpmIndicatorToggleBtn) return;
+    if (!bpmIndicatorToggleBtn || !bpmIndicatorEnabled) return;
 
     if (pulse) {
         // Add pulse class for brighter green
