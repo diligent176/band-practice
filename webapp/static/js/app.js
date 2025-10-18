@@ -4109,15 +4109,22 @@ function startBpmIndicator(bpm) {
     const animationDuration = beatDuration * 2;
     const durationString = `${animationDuration}s`;
 
-    // Only set animation duration if it changed (avoid restarting animation)
-    if (bpmIndicatorElement.style.animationDuration !== durationString) {
-        bpmIndicatorElement.style.animationDuration = durationString;
-        bpmIndicatorToggleBtn.style.animationDuration = durationString;
+    // Set animation duration
+    bpmIndicatorElement.style.animationDuration = durationString;
+    bpmIndicatorToggleBtn.style.animationDuration = durationString;
+
+    // Force synchronization: remove animations, trigger reflow, then add them back
+    // This ensures both animations start at exactly the same time
+    bpmIndicatorElement.classList.remove('animating');
+    if (bpmIndicatorToggleBtn) {
+        bpmIndicatorToggleBtn.classList.remove('animating');
     }
 
-    // Show and animate (adding same class is no-op, won't restart animation)
-    bpmIndicatorElement.classList.add('active', 'animating');
+    // Trigger reflow to restart animations
+    void bpmIndicatorElement.offsetWidth;
 
+    // Add animations back - they will now be in sync
+    bpmIndicatorElement.classList.add('active', 'animating');
     if (bpmIndicatorToggleBtn) {
         bpmIndicatorToggleBtn.classList.add('animating');
     }
