@@ -4015,19 +4015,8 @@ function toggleBpmIndicator() {
 }
 
 function updateBpmIndicator() {
-    // ALWAYS clear any existing interval FIRST
-    if (bpmIndicatorInterval) {
-        clearInterval(bpmIndicatorInterval);
-        bpmIndicatorInterval = null;
-    }
-
-    // Remove all animation classes
-    if (bpmIndicatorElement) {
-        bpmIndicatorElement.classList.remove('tick', 'tock');
-    }
-    if (bpmIndicatorToggleBtn) {
-        bpmIndicatorToggleBtn.classList.remove('pulse');
-    }
+    // Stop any existing animations
+    stopBpmIndicatorPulsing();
 
     // If indicator is disabled or element doesn't exist, hide it
     if (!bpmIndicatorEnabled || !bpmIndicatorElement) {
@@ -4091,7 +4080,10 @@ function stopBpmIndicatorPulsing() {
 }
 
 function startBpmIndicator(bpm) {
-    if (!bpmIndicatorElement || !bpmIndicatorEnabled) return;
+    if (!bpmIndicatorElement || !bpmIndicatorEnabled) {
+        console.log('BPM Indicator: Cannot start - element or toggle disabled', { element: !!bpmIndicatorElement, enabled: bpmIndicatorEnabled });
+        return;
+    }
 
     // CRITICAL: Stop any existing animation first
     stopBpmIndicatorPulsing();
@@ -4102,6 +4094,8 @@ function startBpmIndicator(bpm) {
     // Calculate beat duration in seconds (60 seconds per minute / BPM)
     // We want one full cycle (tick-tock) per beat
     const beatDuration = 60 / bpm;
+
+    console.log('BPM Indicator: Starting animation', { bpm, beatDuration, element: bpmIndicatorElement });
 
     // Apply CSS animation with precise timing
     bpmIndicatorElement.style.animationDuration = `${beatDuration}s`;
