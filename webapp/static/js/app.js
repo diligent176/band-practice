@@ -3530,11 +3530,11 @@ async function updatePlayerVisibility() {
     // If player is ready, render mini player with controls
     if (spotifyPlayerReady) {
         renderMiniPlayer();
-        
-        // Automatically start playing the newly selected song
+
+        // Load the song but don't auto-play (user can press spacebar to play)
         if (currentSong.spotify_uri) {
-            console.log('🎵 Auto-playing newly selected song:', currentSong.title);
-            await playSpotifyTrack(currentSong.spotify_uri);
+            console.log('🎵 Song loaded and ready to play:', currentSong.title);
+            // Song will be queued/loaded when user presses play
         } else {
             console.warn('⚠️ No Spotify URI for this song');
         }
