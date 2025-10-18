@@ -768,11 +768,6 @@ def health():
     return jsonify({'status': 'We healthy as heck - yeah! Get Band Practice PRO!'}), 200
 
 
-@app.route('/health2')
-def health_check():
-    return {"status": "healthy", "message": "Band Practice PRO is up and running!"}, 200
-
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=os.getenv('FLASK_ENV') == 'development')
