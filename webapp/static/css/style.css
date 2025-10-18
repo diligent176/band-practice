@@ -835,8 +835,8 @@ header h1 {
 }
 
 .btn-icon {
-  padding: 3px 5px;
-  font-size: 13px;
+  padding: 5px 7px;
+  font-size: 15px;
   min-width: auto;
   border-radius: 4px;
   background: rgba(24, 160, 73, 0.04);
@@ -852,8 +852,10 @@ header h1 {
 }
 
 .btn-icon i {
-  color: rgba(29, 185, 84, 0.8);
-  font-size: 13px;
+  color: rgba(29, 185, 84, 0.85);
+  font-size: 16px;
+  font-weight: 300;
+  opacity: 0.9;
 }
 
 .btn-icon .icon {
@@ -875,6 +877,8 @@ header h1 {
 
 .btn-icon-danger i {
   color: var(--accent-error);
+  font-weight: 300;
+  opacity: 0.9;
 }
 
 .icon {
@@ -1044,7 +1048,7 @@ header h1 {
 
 .lyrics-header-actions {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
   flex-shrink: 0;
 }
