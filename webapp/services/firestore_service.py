@@ -372,24 +372,19 @@ class FirestoreService:
     def count_songs_by_collection(self, collection_id):
         """
         Count songs in a specific collection (more efficient than fetching all data)
-        
+
         Args:
             collection_id: Collection document ID
-            
+
         Returns:
             Integer count of songs
         """
-        # Simple count - fetch document IDs only (minimal data transfer)
+        # Fetch document IDs only (minimal data transfer) and count
         query = (self.db.collection(self.songs_collection)
                 .where('collection_id', '==', collection_id)
                 .select([]))  # Empty select = only document IDs, no field data
-        
-        # Count the results
-        count = 0
-        for _ in query.stream():
-            count += 1
-        
-        return count
+
+        return len(list(query.stream()))
 
     # =========================================================================
     # Spotify OAuth Token Management
