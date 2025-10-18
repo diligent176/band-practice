@@ -371,6 +371,38 @@ function handleGlobalKeyboard(e) {
         exitResizeMode();
         return;
     }
+
+    // / or ? to toggle help card
+    if (e.key === '/' || e.key === '?') {
+        e.preventDefault();
+        toggleHelpCard();
+        return;
+    }
+}
+
+// Toggle help card visibility
+let helpCardVisible = false;
+const keyboardShortcutsHelp = document.querySelector('.keyboard-shortcuts-help');
+const helpCard = document.querySelector('.help-card');
+
+function toggleHelpCard() {
+    if (!keyboardShortcutsHelp || !helpCard) return;
+
+    helpCardVisible = !helpCardVisible;
+
+    if (helpCardVisible) {
+        // Show help card
+        helpCard.style.opacity = '1';
+        helpCard.style.visibility = 'visible';
+        helpCard.style.transform = 'translateY(0)';
+        helpCard.style.pointerEvents = 'auto';
+    } else {
+        // Hide help card
+        helpCard.style.opacity = '0';
+        helpCard.style.visibility = 'hidden';
+        helpCard.style.transform = 'translateY(-10px)';
+        helpCard.style.pointerEvents = 'none';
+    }
 }
 
 // API Functions
@@ -1818,7 +1850,7 @@ async function saveLyrics() {
             currentSong = data.song;
             renderSong();
             closeLyricsEditor();
-            showToast('Lyrics saved and marked as customized!', 'success');
+            // showToast('Lyrics saved and marked as customized!', 'success');
             setStatus('Lyrics customized', 'success');
         } else {
             showToast('Failed to save lyrics', 'error');

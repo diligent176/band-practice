@@ -470,8 +470,8 @@ header h1 {
   border: 1px solid rgba(29, 185, 84, 0.3);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(29, 185, 84, 0.15);
-  min-width: 520px;
-  max-width: 600px;
+  min-width: 560px;
+  max-width: 620px;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
@@ -502,6 +502,14 @@ header h1 {
 .help-card-header i {
   font-size: 14px;
   color: var(--accent-primary);
+}
+
+.help-toggle-hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+  font-style: italic;
 }
 
 .help-card-content {
