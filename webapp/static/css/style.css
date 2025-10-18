@@ -1131,43 +1131,41 @@ header h1 {
   color: var(--accent-warning);
 }
 
-/* BPM Indicator Metronome */
-.bpm-indicator {
-  display: inline-block;
+/* BPM Indicator Metronome - Persistent element */
+.bpm-indicator-persistent {
+  display: none;
   font-size: 11px;
   margin-left: 6px;
-  vertical-align: middle;
   color: var(--text-secondary);
-  opacity: 0;
-  width: 11px;
+  opacity: 0.3;
   transform-origin: center;
+  position: relative;
+  top: -1px;
 }
 
-.bpm-indicator.active {
-  opacity: 0.3;
+.bpm-indicator-persistent.active {
+  display: inline-block;
 }
 
 /* CSS-based tick-tock animation for rock-solid timing */
-.bpm-indicator.animating {
+.bpm-indicator-persistent.animating {
   animation-name: bpm-tick-tock;
   animation-timing-function: steps(2, jump-both);
   animation-iteration-count: infinite;
   animation-fill-mode: both;
+  opacity: 0.7;
   /* Duration set dynamically via inline style based on BPM */
 }
 
 @keyframes bpm-tick-tock {
   0% {
     transform: scaleX(-1);
-    opacity: 0.7;
   }
   50% {
     transform: scaleX(1);
-    opacity: 0.7;
   }
   100% {
     transform: scaleX(-1);
-    opacity: 0.7;
   }
 }
 

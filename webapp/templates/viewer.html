@@ -203,6 +203,8 @@
                             </div>
                         </div>
                         <div class="song-metadata" id="song-metadata"></div>
+                        <!-- Persistent BPM indicator - never recreated, just shown/hidden -->
+                        <i class="fa-solid fa-bars-staggered bpm-indicator-persistent" id="bpm-indicator"></i>
                         <div class="lyrics-header-actions">
                             <button id="toggle-columns-btn" class="btn btn-icon" title="Columns (C)">
                                 <i class="fa-solid fa-columns"></i>
@@ -696,7 +698,7 @@ END: Third repetition of chorus is acapella"></textarea>
                 console.log('✅ USER IS SIGNED IN');
                 try {
                     console.log('📝 Step A: Getting ID token...');
-                    idToken = await user.getIdToken();
+                    idToken = await user.getIdToken();  // Get current token
                     console.log('✅ Step B: Got ID token (first 50 chars):', idToken.substring(0, 50));
                     currentUser = user;
 

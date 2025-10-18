@@ -112,6 +112,9 @@ window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
     authenticatedApiCall = apiCallFunction;
 
+    // Initialize BPM indicator element reference
+    bpmIndicatorElement = document.getElementById('bpm-indicator');
+
     loadFontSizePreference();
     loadBpmIndicatorPreference();
     loadUserInfo();
@@ -1069,11 +1072,12 @@ function renderMetadata() {
         // Show loading indicator for pending lookup
         bpmDisplay = 'N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>';
     } else {
-        // Show BPM value with manual indicator and metronome if applicable
+        // Show BPM value with manual indicator
+        // Note: metronome indicator is always in DOM, just shown/hidden with CSS
         if (isManualBpm) {
-            bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span><i class="fa-solid fa-bars-staggered bpm-indicator" id="bpm-indicator"></i>`;
+            bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>`;
         } else {
-            bpmDisplay = `${bpmValue}<i class="fa-solid fa-bars-staggered bpm-indicator" id="bpm-indicator"></i>`;
+            bpmDisplay = `${bpmValue}`;
         }
     }
 
@@ -1087,8 +1091,7 @@ function renderMetadata() {
 
     songMetadata.innerHTML = metadataHtml;
 
-    // Update BPM indicator element reference after DOM update
-    bpmIndicatorElement = document.getElementById('bpm-indicator');
+    // BPM indicator is now persistent in DOM, just update its state
     updateBpmIndicator();
 }
 
@@ -3432,6 +3435,14 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 // Check Spotify connection status on app load
 async function checkSpotifyStatus() {
     if (isCheckingSpotifyStatus) return;
+
+    // Wait for authentication to complete
+    if (!authenticatedApiCall) {
+        console.log('⏳ Waiting for authentication before checking Spotify status...');
+        setTimeout(checkSpotifyStatus, 500);
+        return;
+    }
+
     isCheckingSpotifyStatus = true;
 
     try {
@@ -4060,50 +4071,36 @@ function updateBpmIndicator() {
 }
 
 function stopBpmIndicatorPulsing() {
-    // ALWAYS clear any existing interval first (for backwards compatibility)
-    if (bpmIndicatorInterval) {
-        clearInterval(bpmIndicatorInterval);
-        bpmIndicatorInterval = null;
-    }
-
     // Remove CSS animations from button
     if (bpmIndicatorToggleBtn) {
-        bpmIndicatorToggleBtn.classList.remove('pulse', 'animating');
-        bpmIndicatorToggleBtn.style.animationDuration = '';
+        bpmIndicatorToggleBtn.classList.remove('animating');
     }
 
     // Remove CSS animations from indicator
     if (bpmIndicatorElement) {
-        bpmIndicatorElement.classList.remove('tick', 'tock', 'animating');
-        bpmIndicatorElement.style.animationDuration = '';
+        bpmIndicatorElement.classList.remove('active', 'animating');
     }
 }
 
 function startBpmIndicator(bpm) {
     if (!bpmIndicatorElement || !bpmIndicatorEnabled) {
-        console.log('BPM Indicator: Cannot start - element or toggle disabled', { element: !!bpmIndicatorElement, enabled: bpmIndicatorEnabled });
         return;
     }
 
-    // CRITICAL: Stop any existing animation first
-    stopBpmIndicatorPulsing();
-
-    // Show the indicator
-    bpmIndicatorElement.classList.add('active');
-
     // Calculate beat duration in seconds (60 seconds per minute / BPM)
-    // We want one full cycle (tick-tock) per beat
     const beatDuration = 60 / bpm;
+    const durationString = `${beatDuration}s`;
 
-    console.log('BPM Indicator: Starting animation', { bpm, beatDuration, element: bpmIndicatorElement });
+    // Only set animation duration if it changed (avoid restarting animation)
+    if (bpmIndicatorElement.style.animationDuration !== durationString) {
+        bpmIndicatorElement.style.animationDuration = durationString;
+        bpmIndicatorToggleBtn.style.animationDuration = durationString;
+    }
 
-    // Apply CSS animation with precise timing
-    bpmIndicatorElement.style.animationDuration = `${beatDuration}s`;
-    bpmIndicatorElement.classList.add('animating');
+    // Show and animate (adding same class is no-op, won't restart animation)
+    bpmIndicatorElement.classList.add('active', 'animating');
 
-    // Also animate the button
     if (bpmIndicatorToggleBtn) {
-        bpmIndicatorToggleBtn.style.animationDuration = `${beatDuration}s`;
         bpmIndicatorToggleBtn.classList.add('animating');
     }
 }
