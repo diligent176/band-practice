@@ -687,6 +687,22 @@ END: Third repetition of chorus is acapella"></textarea>
                         document.getElementById('main-app').style.display = 'block';
                         document.getElementById('user-email').textContent = user.email;
 
+                        // Set up automatic token refresh every 50 minutes (before 1-hour expiration)
+                        if (!window.tokenRefreshInterval) {
+                            window.tokenRefreshInterval = setInterval(async () => {
+                                try {
+                                    console.log('🔄 Refreshing Firebase ID token...');
+                                    if (currentUser) {
+                                        idToken = await currentUser.getIdToken(true); // Force refresh
+                                        console.log('✅ Token refreshed successfully');
+                                    }
+                                } catch (error) {
+                                    console.error('❌ Failed to refresh token:', error);
+                                }
+                            }, 50 * 60 * 1000); // 50 minutes in milliseconds
+                            console.log('✅ Token auto-refresh enabled (every 50 minutes)');
+                        }
+
                         console.log('Step F: Checking if window.initializeApp exists:', typeof window.initializeApp);
                         // Initialize the main app with authenticated API calls
                         if (window.initializeApp) {
@@ -750,6 +766,12 @@ END: Third repetition of chorus is acapella"></textarea>
 
         // Sign out handler
         document.getElementById('signout-icon')?.addEventListener('click', () => {
+            // Clear token refresh interval
+            if (window.tokenRefreshInterval) {
+                clearInterval(window.tokenRefreshInterval);
+                window.tokenRefreshInterval = null;
+                console.log('🔄 Token auto-refresh disabled');
+            }
             auth.signOut();
         });
 
