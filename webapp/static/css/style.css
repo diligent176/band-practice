@@ -854,8 +854,7 @@ header h1 {
 .btn-icon i {
   color: rgba(29, 185, 84, 0.85);
   font-size: 16px;
-  font-weight: 300;
-  opacity: 0.9;
+  font-weight: 900;
 }
 
 .btn-icon .icon {
@@ -877,8 +876,7 @@ header h1 {
 
 .btn-icon-danger i {
   color: var(--accent-error);
-  font-weight: 300;
-  opacity: 0.9;
+  font-weight: 900;
 }
 
 .icon {
