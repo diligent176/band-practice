@@ -326,10 +326,11 @@ def update_bpm(song_id):
                 return jsonify({'error': 'Invalid BPM value', 'success': False}), 400
         else:
             try:
-                bpm_int = int(bpm_value)
-                if bpm_int <= 0 or bpm_int > 300:
+                bpm_float = float(bpm_value)
+                if bpm_float <= 0 or bpm_float > 300:
                     return jsonify({'error': 'BPM must be between 1 and 300', 'success': False}), 400
-                bpm_value = bpm_int
+                # Round to 1 decimal place
+                bpm_value = round(bpm_float, 1)
             except (ValueError, TypeError):
                 return jsonify({'error': 'Invalid BPM value', 'success': False}), 400
 
