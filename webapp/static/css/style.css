@@ -1121,7 +1121,7 @@ header h1 {
 }
 
 .bpm-indicator.active {
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .bpm-indicator.tick {

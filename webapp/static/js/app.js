@@ -920,6 +920,9 @@ async function selectSong(songId) {
         }
     }
 
+    // Stop BPM indicator pulsing (but keep toggle state)
+    stopBpmIndicatorPulsing();
+
     closeSongSelector();
     loadSong(songId);
 }
@@ -3867,18 +3870,38 @@ function updateBpmIndicator() {
         return;
     }
 
-    // Check if Spotify is playing
+    // Show indicator icon when toggle is enabled
+    if (bpmIndicatorElement && bpmIndicatorEnabled) {
+        bpmIndicatorElement.classList.add('active');
+    }
+
+    // Check if Spotify is playing to start animation
     checkIfPlaying().then(isPlaying => {
         if (isPlaying) {
             startBpmIndicator(bpm);
         } else {
-            bpmIndicatorElement.classList.remove('active');
-            // Remove pulse from button when not playing
-            if (bpmIndicatorToggleBtn) {
-                bpmIndicatorToggleBtn.classList.remove('pulse');
-            }
+            // Stop pulsing but keep icon visible
+            stopBpmIndicatorPulsing();
         }
     });
+}
+
+function stopBpmIndicatorPulsing() {
+    // Clear any existing interval
+    if (bpmIndicatorInterval) {
+        clearInterval(bpmIndicatorInterval);
+        bpmIndicatorInterval = null;
+    }
+
+    // Remove pulse from button (but keep toggle state)
+    if (bpmIndicatorToggleBtn) {
+        bpmIndicatorToggleBtn.classList.remove('pulse');
+    }
+
+    // Remove animation classes but keep base visibility
+    if (bpmIndicatorElement) {
+        bpmIndicatorElement.classList.remove('tick', 'tock');
+    }
 }
 
 function startBpmIndicator(bpm) {
