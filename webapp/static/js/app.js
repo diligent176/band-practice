@@ -2027,7 +2027,7 @@ async function saveBpm() {
             }
 
             closeBpmDialog();
-            showToast(`BPM set to ${bpmRounded}`, 'success');
+            // showToast(`BPM set to ${bpmRounded}`, 'success');
             setStatus(`BPM updated to ${bpmRounded}`, 'success');
         } else {
             showToast('Failed to save BPM: ' + (data.error || 'Unknown error'), 'error');
