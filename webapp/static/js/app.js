@@ -4116,29 +4116,29 @@ function toggleBpmIndicator() {
 }
 
 function updateBpmIndicator() {
-    // Stop any existing animations
-    stopBpmIndicatorPulsing();
-
-    // If indicator is disabled, keep it stopped
+    // If indicator is disabled, stop and return
     if (!bpmIndicatorEnabled) {
+        stopBpmIndicatorPulsing();
         return;
     }
 
     // Check if we have a valid BPM
     if (!currentSong || !currentSong.bpm || currentSong.bpm === 'N/A' || currentSong.bpm === 'NOT_FOUND') {
+        stopBpmIndicatorPulsing();
         return;
     }
 
     // Parse BPM value (supports decimals)
     const bpm = parseFloat(currentSong.bpm);
     if (isNaN(bpm) || bpm <= 0) {
+        stopBpmIndicatorPulsing();
         return;
     }
 
     // Check if Spotify is playing to start/stop animation
     checkIfPlaying().then(isPlaying => {
         if (isPlaying && bpmIndicatorEnabled) {
-            // Animate indicator when playing
+            // Animate indicator when playing - startBpmIndicator will only restart if BPM changed
             startBpmIndicator(bpm);
         } else {
             // Stop animation when paused
@@ -4174,25 +4174,40 @@ function startBpmIndicator(bpm) {
     // Get the metronome icon
     const metronomeIcon = document.getElementById('bpm-metronome-icon');
 
+    // Check if duration changed (BPM changed) - only restart if needed
+    const currentDuration = bpmIndicatorElement.style.animationDuration;
+    const needsRestart = currentDuration !== durationString;
+
     // Set animation duration
     bpmIndicatorElement.style.animationDuration = durationString;
     if (metronomeIcon) {
         metronomeIcon.style.animationDuration = durationString;
     }
 
-    // Force synchronization: remove animations, trigger reflow, then add them back
-    bpmIndicatorElement.classList.remove('animating');
-    if (metronomeIcon) {
-        metronomeIcon.classList.remove('animating');
-    }
+    // Only force restart if BPM changed, otherwise let it continue smoothly
+    if (needsRestart) {
+        // Force synchronization: remove animations, trigger reflow, then add them back
+        bpmIndicatorElement.classList.remove('animating');
+        if (metronomeIcon) {
+            metronomeIcon.classList.remove('animating');
+        }
 
-    // Trigger reflow to restart animations
-    void bpmIndicatorElement.offsetWidth;
+        // Trigger reflow to restart animations
+        void bpmIndicatorElement.offsetWidth;
 
-    // Add animations back - they will now be in sync
-    bpmIndicatorElement.classList.add('animating');
-    if (metronomeIcon) {
-        metronomeIcon.classList.add('animating');
+        // Add animations back - they will now be in sync
+        bpmIndicatorElement.classList.add('animating');
+        if (metronomeIcon) {
+            metronomeIcon.classList.add('animating');
+        }
+    } else {
+        // Just ensure animations are running (no restart needed)
+        if (!bpmIndicatorElement.classList.contains('animating')) {
+            bpmIndicatorElement.classList.add('animating');
+        }
+        if (metronomeIcon && !metronomeIcon.classList.contains('animating')) {
+            metronomeIcon.classList.add('animating');
+        }
     }
 }
 
