@@ -1103,10 +1103,24 @@ function parseNotes(notesText) {
         }
 
         // Match formats:
+        // "START: note" or "END: note"
         // "Line 12: note" or "Lines 45-48: note"
         // "12: note" or "45-48: note"
+        const specialMatch = line.match(/^(START|END):(.*)$/i);
         const lineMatch = line.match(/^(Lines?\s+)?(\d+(-\d+)?):(.*)$/i);
-        if (lineMatch) {
+
+        if (specialMatch) {
+            if (currentBlock) {
+                blocks.push({
+                    header: currentBlock,
+                    content: currentContent.join('\n').trim(),
+                    ...extractLineNumbers(currentBlock)
+                });
+            }
+
+            currentBlock = specialMatch[1].toUpperCase();
+            currentContent = [specialMatch[2].trim()];
+        } else if (lineMatch) {
             if (currentBlock) {
                 blocks.push({
                     header: currentBlock,
