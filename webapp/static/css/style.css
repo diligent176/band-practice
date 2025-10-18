@@ -389,7 +389,7 @@ header h1 {
 /* CSS-based button pulse animation for rock-solid timing */
 .bpm-indicator-toggle-btn.animating {
   animation-name: bpm-button-pulse;
-  animation-timing-function: steps(2, jump-both);
+  animation-timing-function: steps(1, jump-none);
   animation-iteration-count: infinite;
   animation-fill-mode: both;
   /* Duration set dynamically via inline style based on BPM */
@@ -400,13 +400,20 @@ header h1 {
     background: rgba(24, 160, 73, 0.45);
     border-color: rgba(24, 160, 73, 0.75);
   }
+
   50% {
+    background: rgba(24, 160, 73, 0.45);
+    border-color: rgba(24, 160, 73, 0.75);
+  }
+
+  51% {
     background: rgba(24, 160, 73, 0.25);
     border-color: rgba(24, 160, 73, 0.5);
   }
+
   100% {
-    background: rgba(24, 160, 73, 0.45);
-    border-color: rgba(24, 160, 73, 0.75);
+    background: rgba(24, 160, 73, 0.25);
+    border-color: rgba(24, 160, 73, 0.5);
   }
 }
 
@@ -1161,9 +1168,11 @@ header h1 {
   0% {
     transform: scaleX(-1);
   }
+
   50% {
     transform: scaleX(1);
   }
+
   100% {
     transform: scaleX(-1);
   }

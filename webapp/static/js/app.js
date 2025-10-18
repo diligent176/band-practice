@@ -4099,8 +4099,10 @@ function startBpmIndicator(bpm) {
     }
 
     // Calculate beat duration in seconds (60 seconds per minute / BPM)
+    // Double the duration so animation alternates: ON for one beat, OFF for next beat
     const beatDuration = 60 / bpm;
-    const durationString = `${beatDuration}s`;
+    const animationDuration = beatDuration * 2;
+    const durationString = `${animationDuration}s`;
 
     // Only set animation duration if it changed (avoid restarting animation)
     if (bpmIndicatorElement.style.animationDuration !== durationString) {
