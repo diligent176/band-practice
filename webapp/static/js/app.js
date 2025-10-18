@@ -310,6 +310,10 @@ function handleGlobalKeyboard(e) {
         if (isInResizeMode) {
             e.preventDefault();
             adjustPanelSplit(e.key === 'ArrowRight' ? 2 : -2); // Adjust by 2% per keypress
+        } else if (currentSong && spotifyPlayerReady) {
+            // Skip backward 5 seconds with left arrow, forward 5 seconds with right arrow
+            e.preventDefault();
+            skipSeconds(e.key === 'ArrowRight' ? 5 : -5);
         }
         return;
     }
@@ -851,7 +855,20 @@ ${albumArtHtml}
     }
 }
 
-function selectSong(songId) {
+async function selectSong(songId) {
+    // Stop playback if currently playing
+    if (spotifyPlayer && spotifyPlayerReady) {
+        try {
+            const state = await spotifyPlayer.getCurrentState();
+            if (state && !state.paused) {
+                await spotifyPlayer.pause();
+                console.log('⏸ Paused playback when switching songs');
+            }
+        } catch (error) {
+            console.warn('Could not pause playback:', error);
+        }
+    }
+
     closeSongSelector();
     loadSong(songId);
 }
@@ -3569,7 +3586,7 @@ async function skipTrack() {
 // Seek to a specific position in the track
 async function seekToPosition(percentage) {
     if (!spotifyPlayer) return;
-    
+
     try {
         const state = await spotifyPlayer.getCurrentState();
         if (state && state.duration) {
@@ -3579,6 +3596,23 @@ async function seekToPosition(percentage) {
     } catch (error) {
         console.error('Error seeking:', error);
         showToast('Failed to seek', 'error');
+    }
+}
+
+// Skip forward or backward by specified seconds
+async function skipSeconds(seconds) {
+    if (!spotifyPlayer) return;
+
+    try {
+        const state = await spotifyPlayer.getCurrentState();
+        if (state && state.duration) {
+            const currentPosition = state.position;
+            const newPosition = Math.max(0, Math.min(state.duration, currentPosition + (seconds * 1000)));
+            await spotifyPlayer.seek(newPosition);
+            console.log(`⏩ Skipped ${seconds > 0 ? 'forward' : 'backward'} ${Math.abs(seconds)}s`);
+        }
+    } catch (error) {
+        console.error('Error skipping:', error);
     }
 }
 
