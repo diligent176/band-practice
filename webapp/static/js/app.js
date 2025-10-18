@@ -101,12 +101,19 @@ const miniPlayerPlayBtn = document.getElementById('mini-player-play-btn');
 const albumArtFloat = document.getElementById('album-art-float');
 const albumArtImage = document.getElementById('album-art-image');
 
+// BPM Indicator
+const bpmIndicatorToggleBtn = document.getElementById('bpm-indicator-toggle-btn');
+let bpmIndicatorEnabled = false;
+let bpmIndicatorInterval = null;
+let bpmIndicatorElement = null;
+
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
     authenticatedApiCall = apiCallFunction;
 
     loadFontSizePreference();
+    loadBpmIndicatorPreference();
     loadUserInfo();
     loadCurrentCollection();  // Load collection first, then songs
     setupEventListeners();
@@ -147,6 +154,9 @@ function setupEventListeners() {
     // BPM dialog handlers
     bpmDialogSaveBtn.addEventListener('click', saveBpm);
     bpmDialogCancelBtn.addEventListener('click', closeBpmDialog);
+
+    // BPM Indicator toggle
+    bpmIndicatorToggleBtn.addEventListener('click', toggleBpmIndicator);
 
     // Confirmation dialog close buttons
     confirmDialogCancelBtn.addEventListener('click', hideConfirmDialog);
@@ -1000,7 +1010,7 @@ function renderMetadata() {
     const bpmValue = currentSong.bpm || 'N/A';
     const isManualBpm = currentSong.bpm_manual === true;
     let bpmDisplay;
-    
+
     if (bpmValue === 'NOT_FOUND') {
         // Show special icon for "not found" status
         bpmDisplay = '<span style="color: var(--text-muted);" title="BPM lookup failed - click Set BPM to enter manually">⊘</span>';
@@ -1008,14 +1018,14 @@ function renderMetadata() {
         // Show loading indicator for pending lookup
         bpmDisplay = 'N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>';
     } else {
-        // Show BPM value with manual indicator if applicable
+        // Show BPM value with manual indicator and metronome if applicable
         if (isManualBpm) {
-            bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>`;
+            bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span><i class="fa-solid fa-bars-staggered bpm-indicator" id="bpm-indicator"></i>`;
         } else {
-            bpmDisplay = bpmValue;
+            bpmDisplay = `${bpmValue}<i class="fa-solid fa-bars-staggered bpm-indicator" id="bpm-indicator"></i>`;
         }
     }
-    
+
     metadata.push({ icon: '<i class="fa-solid fa-drum"></i>', label: 'BPM', value: bpmDisplay });
 
     let metadataHtml = metadata.map(item =>
@@ -1025,6 +1035,10 @@ function renderMetadata() {
     // Note: Custom lyric badge is now shown in the header next to song name, not in metadata
 
     songMetadata.innerHTML = metadataHtml;
+
+    // Update BPM indicator element reference after DOM update
+    bpmIndicatorElement = document.getElementById('bpm-indicator');
+    updateBpmIndicator();
 }
 
 function renderLyrics() {
@@ -3618,6 +3632,9 @@ function updatePlayerUI(state) {
         }
     }
 
+    // Update BPM indicator based on play state
+    updateBpmIndicator();
+
     // Update progress bar and time display
     const position = state.position;
     const duration = state.duration;
@@ -3737,6 +3754,120 @@ async function updatePlayerVisibility() {
         if (albumArtFloat) {
             albumArtFloat.style.display = 'none';
         }
+    }
+}
+
+//=============================================================================
+// BPM Indicator Functions
+//=============================================================================
+
+function loadBpmIndicatorPreference() {
+    const saved = localStorage.getItem('bpmIndicatorEnabled');
+    bpmIndicatorEnabled = saved === 'true';
+
+    if (bpmIndicatorEnabled) {
+        bpmIndicatorToggleBtn.classList.add('active');
+    }
+}
+
+function toggleBpmIndicator() {
+    bpmIndicatorEnabled = !bpmIndicatorEnabled;
+    localStorage.setItem('bpmIndicatorEnabled', bpmIndicatorEnabled.toString());
+
+    if (bpmIndicatorEnabled) {
+        bpmIndicatorToggleBtn.classList.add('active');
+    } else {
+        bpmIndicatorToggleBtn.classList.remove('active');
+    }
+
+    updateBpmIndicator();
+}
+
+function updateBpmIndicator() {
+    // Clear any existing interval
+    if (bpmIndicatorInterval) {
+        clearInterval(bpmIndicatorInterval);
+        bpmIndicatorInterval = null;
+    }
+
+    // If indicator is disabled or element doesn't exist, hide it
+    if (!bpmIndicatorEnabled || !bpmIndicatorElement) {
+        if (bpmIndicatorElement) {
+            bpmIndicatorElement.classList.remove('active');
+        }
+        return;
+    }
+
+    // Check if we have a valid BPM and Spotify is playing
+    if (!currentSong || !currentSong.bpm || currentSong.bpm === 'N/A' || currentSong.bpm === 'NOT_FOUND') {
+        bpmIndicatorElement.classList.remove('active');
+        return;
+    }
+
+    // Parse BPM value
+    const bpm = parseInt(currentSong.bpm);
+    if (isNaN(bpm) || bpm <= 0) {
+        bpmIndicatorElement.classList.remove('active');
+        return;
+    }
+
+    // Check if Spotify is playing
+    checkIfPlaying().then(isPlaying => {
+        if (isPlaying) {
+            startBpmIndicator(bpm);
+        } else {
+            bpmIndicatorElement.classList.remove('active');
+        }
+    });
+}
+
+function startBpmIndicator(bpm) {
+    if (!bpmIndicatorElement || !bpmIndicatorEnabled) return;
+
+    // Show the indicator
+    bpmIndicatorElement.classList.add('active');
+
+    // Calculate interval in milliseconds (60000ms per minute / BPM)
+    const interval = 60000 / bpm;
+
+    // Start with tick
+    let isTick = true;
+    tickTockMetronome(isTick);
+
+    // Set up interval for continuous tick-tock
+    bpmIndicatorInterval = setInterval(() => {
+        isTick = !isTick;
+        tickTockMetronome(isTick);
+    }, interval);
+}
+
+function tickTockMetronome(isTick) {
+    if (!bpmIndicatorElement) return;
+
+    // Remove both classes
+    bpmIndicatorElement.classList.remove('tick', 'tock');
+
+    // Force reflow to ensure transition happens
+    void bpmIndicatorElement.offsetWidth;
+
+    // Add the appropriate class
+    if (isTick) {
+        bpmIndicatorElement.classList.add('tick');
+    } else {
+        bpmIndicatorElement.classList.add('tock');
+    }
+}
+
+async function checkIfPlaying() {
+    if (!spotifyPlayer || !spotifyPlayerReady) {
+        return false;
+    }
+
+    try {
+        const state = await spotifyPlayer.getCurrentState();
+        return state && !state.paused;
+    } catch (error) {
+        return false;
     }
 }
 
