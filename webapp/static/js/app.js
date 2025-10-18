@@ -1094,8 +1094,12 @@ function renderNotes() {
         html += '<div class="song-structure-section">';
         html += '<div class="song-structure-title">Song Structure</div>';
         html += '<div class="song-structure-blocks">';
-        structure.forEach(section => {
+        structure.forEach((section, index) => {
             html += `<div class="song-structure-block">${escapeHtml(section)}</div>`;
+            // Add arrow between blocks (but not after the last one)
+            if (index < structure.length - 1) {
+                html += '<i class="fa-solid fa-arrow-right song-structure-arrow"></i>';
+            }
         });
         html += '</div>';
         html += '</div>';
@@ -3136,7 +3140,7 @@ function exitResizeMode() {
     if (currentSong) {
         const lyricsPercentage = (lyricsPanel.getBoundingClientRect().width / panelsContainer.getBoundingClientRect().width) * 100;
         savePanelSplit(currentSong.id, lyricsPercentage);
-        showToast('Panel split saved', 'success', 'toast-panel-split');
+        // showToast('Panel split saved', 'success', 'toast-panel-split');
     }
 }
 
@@ -3278,8 +3282,6 @@ async function initializeSpotifyPlayer() {
         const response = await authenticatedApiCall('/api/spotify/token');
         const data = await response.json();
 
-        console.log('Token response:', data);
-
         if (!data.success) {
             if (data.needs_auth) {
                 console.log('ℹ️ User needs to connect Spotify');
@@ -3291,7 +3293,6 @@ async function initializeSpotifyPlayer() {
         }
 
         spotifyAccessToken = data.access_token;
-        console.log('✅ Got Spotify access token (first 30 chars):', spotifyAccessToken.substring(0, 30));
 
         // Check if SDK is loaded
         if (typeof Spotify === 'undefined') {
@@ -3301,11 +3302,9 @@ async function initializeSpotifyPlayer() {
         }
 
         // Create player
-        console.log('Creating Spotify.Player...');
         spotifyPlayer = new Spotify.Player({
             name: 'Band Practice Pro',
             getOAuthToken: async cb => {
-                console.log('SDK requesting OAuth token...');
                 // Always get the latest token (could have been refreshed)
                 if (spotifyAccessToken) {
                     cb(spotifyAccessToken);
@@ -3325,7 +3324,8 @@ async function initializeSpotifyPlayer() {
                     }
                 }
             },
-            volume: 0.7
+            volume: 0.7,
+            enableMediaSession: true
         });
 
         // Error handling
@@ -3356,7 +3356,7 @@ async function initializeSpotifyPlayer() {
             spotifyDeviceId = device_id;
             spotifyPlayerReady = true;
             updateSpotifyConnectionUI(true);
-            showToast('Spotify player ready!', 'success');
+            // showToast('Spotify player ready!', 'success');
         });
 
         // Not ready
@@ -3366,13 +3366,11 @@ async function initializeSpotifyPlayer() {
 
         // Player state changed
         spotifyPlayer.addListener('player_state_changed', state => {
-            console.log('Player state changed:', state);
             if (!state) return;
             updatePlayerUI(state);
         });
 
         // Connect to Spotify
-        console.log('Connecting to Spotify...');
         const connected = await spotifyPlayer.connect();
         
         if (connected) {
@@ -3481,17 +3479,17 @@ async function toggleAudioPlayback() {
             // Load and play the new track
             console.log('Loading new track:', currentSong.title);
             await playSpotifyTrack(spotifyUri);
-            showToast('▶ Playing', 'success');
+            // showToast('▶ Playing', 'success');
         } else if (state.paused) {
             // Resume playback of current track
             console.log('Resuming playback...');
             await spotifyPlayer.resume();
-            showToast('▶ Playing', 'success');
+            // showToast('▶ Playing', 'success');
         } else {
             // Pause playback
             console.log('Pausing playback...');
             await spotifyPlayer.pause();
-            showToast('⏸ Paused', 'success');
+            // showToast('⏸ Paused', 'success');
         }
     } catch (error) {
         console.error('Error toggling playback:', error);
@@ -3507,7 +3505,6 @@ async function loadSpotifyTrack(uri) {
     }
 
     try {
-        console.log(`🎵 Loading track (paused): ${uri} on device: ${spotifyDeviceId}`);
 
         // Use the play endpoint to queue the track, then immediately pause
         const playResponse = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`, {
@@ -3569,7 +3566,6 @@ async function playSpotifyTrack(uri) {
     }
 
     try {
-        console.log(`🎵 Playing track: ${uri} on device: ${spotifyDeviceId}`);
 
         const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`, {
             method: 'PUT',
@@ -3699,7 +3695,6 @@ async function skipSeconds(seconds) {
 
 // Show/hide player and album art based on current song
 async function updatePlayerVisibility() {
-    console.log('🎨 updatePlayerVisibility called');
 
     if (!currentSong) {
         if (miniPlayer) miniPlayer.style.display = 'none';
