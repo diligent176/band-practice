@@ -105,6 +105,10 @@ const albumArtImage = document.getElementById('album-art-image');
 let bpmIndicatorEnabled = true; // Always start enabled
 let bpmIndicatorElement = null;
 
+// Mute state
+let isMuted = false;
+let volumeBeforeMute = 1.0; // Default volume (0.0 to 1.0)
+
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
@@ -251,11 +255,22 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
-    // Ctrl+Shift+B to open BPM Tap Trainer
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'b' || e.key === 'B')) {
-        e.preventDefault();
-        openBpmTapTrainer();
-        return;
+    // . (period) to open BPM Tap Trainer
+    if (e.key === '.') {
+        // Only if current song exists and no other dialog is open
+        if (currentSong && 
+            !isEditMode && 
+            songSelectorDialog.style.display !== 'flex' &&
+            lyricsEditorDialog.style.display !== 'flex' &&
+            bpmDialog.style.display !== 'flex' &&
+            bpmTapDialog.style.display !== 'flex' &&
+            confirmDialog.style.display !== 'flex' &&
+            importDialog.style.display !== 'flex' &&
+            collectionDialog.style.display !== 'flex') {
+            e.preventDefault();
+            openBpmTapTrainer();
+            return;
+        }
     }
 
     // Ctrl+B to toggle BPM indicator
@@ -290,6 +305,15 @@ function handleGlobalKeyboard(e) {
         if (currentSong && spotifyPlayerReady) {
             e.preventDefault();
             restartTrack();
+        }
+        return;
+    }
+
+    // M to toggle mute
+    if (e.key === 'm' || e.key === 'M') {
+        if (currentSong && spotifyPlayerReady) {
+            e.preventDefault();
+            toggleMute();
         }
         return;
     }
@@ -926,6 +950,9 @@ async function selectSong(songId) {
             console.warn('Could not pause playback:', error);
         }
     }
+
+    // Reset mute state when loading a new song
+    isMuted = false;
 
     // Stop BPM indicator pulsing (but keep toggle state)
     stopBpmIndicatorPulsing();
@@ -2092,6 +2119,34 @@ function handleBpmTapKeyboard(e) {
     if (e.key === '.') {
         e.preventDefault();
         recordTap();
+        return;
+    }
+
+    // Arrow Up to increase BPM by 0.1
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (detectedBpm !== null) {
+            detectedBpm = Math.round((detectedBpm + 0.1) * 10) / 10;
+            bpmTapDisplay.textContent = detectedBpm.toFixed(1);
+            // Enable save button if not already enabled
+            if (tapTimes.length >= 1) {
+                bpmTapSaveBtn.disabled = false;
+            }
+        }
+        return;
+    }
+
+    // Arrow Down to decrease BPM by 0.1
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (detectedBpm !== null && detectedBpm > 0.1) {
+            detectedBpm = Math.round((detectedBpm - 0.1) * 10) / 10;
+            bpmTapDisplay.textContent = detectedBpm.toFixed(1);
+            // Enable save button if not already enabled
+            if (tapTimes.length >= 1) {
+                bpmTapSaveBtn.disabled = false;
+            }
+        }
         return;
     }
 
@@ -3921,6 +3976,35 @@ async function restartTrack() {
     } catch (error) {
         console.error('Error restarting track:', error);
         showToast('Failed to restart', 'error');
+    }
+}
+
+// Toggle mute on/off
+async function toggleMute() {
+    if (!spotifyPlayer) return;
+    
+    try {
+        if (isMuted) {
+            // Unmute - restore previous volume
+            await spotifyPlayer.setVolume(volumeBeforeMute);
+            isMuted = false;
+            setStatus('🔊 Unmuted', 'success');
+            console.log(`🔊 Unmuted - restored volume to ${volumeBeforeMute}`);
+        } else {
+            // Mute - save current volume and set to 0
+            const state = await spotifyPlayer.getCurrentState();
+            if (state) {
+                // Get current volume (0.0 to 1.0)
+                volumeBeforeMute = await spotifyPlayer.getVolume() || 1.0;
+            }
+            await spotifyPlayer.setVolume(0);
+            isMuted = true;
+            setStatus('🔇 Muted', 'success');
+            console.log(`🔇 Muted - saved volume ${volumeBeforeMute}`);
+        }
+    } catch (error) {
+        console.error('Error toggling mute:', error);
+        showToast('Failed to toggle mute', 'error');
     }
 }
 
