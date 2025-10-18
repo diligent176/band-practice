@@ -120,6 +120,10 @@ window.initializeApp = function(apiCallFunction) {
     loadUserInfo();
     loadCurrentCollection();  // Load collection first, then songs
     setupEventListeners();
+
+    // NOW check Spotify status (after auth is complete)
+    console.log('🎵 Checking Spotify connection status...');
+    checkSpotifyStatus();
 };
 
 function setupEventListeners() {
@@ -3433,17 +3437,24 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 };
 
 // Check Spotify connection status on app load
+let spotifyStatusCheckRetries = 0;
 async function checkSpotifyStatus() {
     if (isCheckingSpotifyStatus) return;
 
-    // Wait for authentication to complete
+    // Wait for authentication to complete (max 20 retries = 10 seconds)
     if (!authenticatedApiCall) {
-        console.log('⏳ Waiting for authentication before checking Spotify status...');
-        setTimeout(checkSpotifyStatus, 500);
+        if (spotifyStatusCheckRetries < 20) {
+            spotifyStatusCheckRetries++;
+            console.log(`⏳ Waiting for authentication before checking Spotify status... (${spotifyStatusCheckRetries}/20)`);
+            setTimeout(checkSpotifyStatus, 500);
+        } else {
+            console.error('❌ Gave up waiting for authentication');
+        }
         return;
     }
 
     isCheckingSpotifyStatus = true;
+    spotifyStatusCheckRetries = 0;  // Reset for next time
 
     try {
         const response = await authenticatedApiCall('/api/spotify/status');
@@ -4121,15 +4132,6 @@ async function checkIfPlaying() {
     }
 }
 
-// Auto-check Spotify status on app initialization
-// Called after Firebase auth completes and initializeApp runs
-setTimeout(() => {
-    if (typeof Spotify !== 'undefined') {
-        console.log('🎵 Auto-checking Spotify status...');
-        checkSpotifyStatus();
-    } else {
-        console.warn('⚠️ Spotify SDK not loaded yet, will retry...');
-        setTimeout(checkSpotifyStatus, 2000);
-    }
-}, 1000);
+// Spotify status check is now called ONLY from initializeApp() after auth succeeds
+// DO NOT auto-check on page load - wait for authentication first
 

@@ -54,7 +54,8 @@ class AuthService:
             logger.info(f"=== VERIFYING TOKEN ===")
             logger.info(f"Token (first 50 chars): {id_token[:50] if id_token else 'None'}...")
 
-            decoded_token = auth.verify_id_token(id_token)
+            # Allow up to 60 seconds of clock skew (Firebase's maximum allowed value)
+            decoded_token = auth.verify_id_token(id_token, clock_skew_seconds=60)
             email = decoded_token.get('email')
 
             logger.info(f"Token verified for email: {email}")
