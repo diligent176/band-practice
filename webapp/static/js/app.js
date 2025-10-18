@@ -2116,8 +2116,8 @@ function recordTap() {
     const now = Date.now();
     tapTimes.push(now);
 
-    // Keep only last 8 taps for rolling average
-    if (tapTimes.length > 8) {
+    // Keep up to 24 taps for tracking
+    if (tapTimes.length > 24) {
         tapTimes.shift();
     }
 
@@ -2178,20 +2178,22 @@ async function saveTappedBpm() {
         const data = await response.json();
 
         if (data.success) {
-            currentSong.bpm = detectedBpm;
+            // Use the BPM from the response or the detected one
+            const savedBpm = data.bpm || detectedBpm;
+            currentSong.bpm = savedBpm;
             currentSong.bpm_manual = true;
             renderMetadata();
 
             // Update the song in the allSongs array
             const songIndex = allSongs.findIndex(s => s.id === currentSong.id);
             if (songIndex !== -1) {
-                allSongs[songIndex].bpm = detectedBpm;
+                allSongs[songIndex].bpm = savedBpm;
                 allSongs[songIndex].bpm_manual = true;
             }
 
             closeBpmTapTrainer();
-            showToast(`BPM set to ${detectedBpm}`, 'success');
-            setStatus(`BPM updated to ${detectedBpm}`, 'success');
+            showToast(`BPM set to ${savedBpm.toFixed(1)}`, 'success');
+            setStatus(`BPM updated to ${savedBpm.toFixed(1)}`, 'success');
         } else {
             showToast('Failed to save BPM: ' + (data.error || 'Unknown error'), 'error');
         }
