@@ -102,9 +102,7 @@ const albumArtFloat = document.getElementById('album-art-float');
 const albumArtImage = document.getElementById('album-art-image');
 
 // BPM Indicator
-const bpmIndicatorToggleBtn = document.getElementById('bpm-indicator-toggle-btn');
-let bpmIndicatorEnabled = false;
-let bpmIndicatorInterval = null;
+let bpmIndicatorEnabled = true; // Always start enabled
 let bpmIndicatorElement = null;
 
 // Initialize - called from viewer.html after auth is complete
@@ -161,9 +159,6 @@ function setupEventListeners() {
     // BPM dialog handlers
     bpmDialogSaveBtn.addEventListener('click', saveBpm);
     bpmDialogCancelBtn.addEventListener('click', closeBpmDialog);
-
-    // BPM Indicator toggle
-    bpmIndicatorToggleBtn.addEventListener('click', toggleBpmIndicator);
 
     // Confirmation dialog close buttons
     confirmDialogCancelBtn.addEventListener('click', hideConfirmDialog);
@@ -266,9 +261,7 @@ function handleGlobalKeyboard(e) {
     // Ctrl+B to toggle BPM indicator
     if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
         e.preventDefault();
-        if (bpmIndicatorToggleBtn) {
-            bpmIndicatorToggleBtn.click();
-        }
+        toggleBpmIndicator();
         return;
     }
 
@@ -1064,41 +1057,37 @@ function renderMetadata() {
         { icon: '<i class="fa-solid fa-calendar"></i>', label: 'Year', value: currentSong.year || 'N/A' }
     ];
 
-    // Add BPM with appropriate display based on status
-    const bpmValue = currentSong.bpm || 'N/A';
-    const isManualBpm = currentSong.bpm_manual === true;
-    let bpmDisplay;
-
-    if (bpmValue === 'NOT_FOUND') {
-        // Show special icon for "not found" status
-        bpmDisplay = '<span style="color: var(--text-muted);" title="BPM lookup failed - click Set BPM to enter manually">⊘</span>';
-    } else if (bpmValue === 'N/A') {
-        // Show loading indicator for pending lookup
-        bpmDisplay = 'N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>';
-    } else {
-        // Show BPM value with manual indicator (no inline metronome)
-        if (isManualBpm) {
-            bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>`;
-        } else {
-            bpmDisplay = `${bpmValue}`;
-        }
-    }
-
-    metadata.push({ icon: '<i class="fa-solid fa-drum"></i>', label: 'BPM', value: bpmDisplay });
-
+    // Build standard metadata HTML
     let metadataHtml = metadata.map(item =>
         `<div class="metadata-item"><span class="metadata-icon">${item.icon}</span> ${item.value}</div>`
     ).join('');
 
-    // Add the persistent BPM indicator as the last metadata item (it controls its own visibility)
-    metadataHtml += '<i class="fa-solid fa-bars-staggered bpm-indicator-persistent" id="bpm-indicator"></i>';
+    // Add BPM as a separate animated block
+    const bpmValue = currentSong.bpm || 'N/A';
+    const isManualBpm = currentSong.bpm_manual === true;
+    let bpmBlockContent;
+
+    if (bpmValue === 'NOT_FOUND') {
+        // Show special icon for "not found" status
+        bpmBlockContent = '<i class="fa-solid fa-drum"></i> <span style="color: var(--text-muted);" title="BPM lookup failed - click Set BPM to enter manually">⊘</span>';
+    } else if (bpmValue === 'N/A') {
+        // Show loading indicator for pending lookup
+        bpmBlockContent = '<i class="fa-solid fa-drum"></i> N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>';
+    } else {
+        // Show BPM block with drum icon, value, animated metronome, and optional manual badge
+        const manualBadge = isManualBpm ? '<span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>' : '';
+        bpmBlockContent = `<i class="fa-solid fa-drum"></i> ${bpmValue} <i class="fa-solid fa-bars-staggered bpm-metronome-icon" id="bpm-metronome-icon"></i>${manualBadge}`;
+    }
+
+    // Add the BPM block with animation container
+    metadataHtml += `<div class="bpm-indicator-block" id="bpm-indicator-block">${bpmBlockContent}</div>`;
 
     // Note: Custom lyric badge is now shown in the header next to song name, not in metadata
 
     songMetadata.innerHTML = metadataHtml;
 
-    // Re-get the BPM indicator reference since we just recreated it
-    bpmIndicatorElement = document.getElementById('bpm-indicator');
+    // Re-get the BPM indicator block reference since we just recreated it
+    bpmIndicatorElement = document.getElementById('bpm-indicator-block');
 
     // BPM indicator is now persistent in DOM, just update its state
     updateBpmIndicator();
@@ -4021,23 +4010,17 @@ async function updatePlayerVisibility() {
 
 function loadBpmIndicatorPreference() {
     const saved = localStorage.getItem('bpmIndicatorEnabled');
-    bpmIndicatorEnabled = saved === 'true';
-
-    if (bpmIndicatorEnabled) {
-        bpmIndicatorToggleBtn.classList.add('active');
-    }
+    // Default to true if not set
+    bpmIndicatorEnabled = saved === null ? true : saved === 'true';
 }
 
 function toggleBpmIndicator() {
     bpmIndicatorEnabled = !bpmIndicatorEnabled;
     localStorage.setItem('bpmIndicatorEnabled', bpmIndicatorEnabled.toString());
-
-    if (bpmIndicatorEnabled) {
-        bpmIndicatorToggleBtn.classList.add('active');
-    } else {
-        bpmIndicatorToggleBtn.classList.remove('active');
-    }
-
+    
+    // Show status message
+    setStatus(bpmIndicatorEnabled ? 'BPM Indicator Enabled' : 'BPM Indicator Disabled', 'success');
+    
     updateBpmIndicator();
 }
 
@@ -4045,61 +4028,49 @@ function updateBpmIndicator() {
     // Stop any existing animations
     stopBpmIndicatorPulsing();
 
-    // If indicator is disabled or element doesn't exist, hide it
-    if (!bpmIndicatorEnabled || !bpmIndicatorElement) {
-        if (bpmIndicatorElement) {
-            bpmIndicatorElement.classList.remove('active');
-        }
+    // If indicator is disabled, keep it stopped
+    if (!bpmIndicatorEnabled) {
         return;
     }
 
     // Check if we have a valid BPM
     if (!currentSong || !currentSong.bpm || currentSong.bpm === 'N/A' || currentSong.bpm === 'NOT_FOUND') {
-        if (bpmIndicatorElement) {
-            bpmIndicatorElement.classList.remove('active');
-        }
         return;
     }
 
     // Parse BPM value (supports decimals)
     const bpm = parseFloat(currentSong.bpm);
     if (isNaN(bpm) || bpm <= 0) {
-        if (bpmIndicatorElement) {
-            bpmIndicatorElement.classList.remove('active');
-        }
         return;
     }
 
     // Check if Spotify is playing to start/stop animation
     checkIfPlaying().then(isPlaying => {
         if (isPlaying && bpmIndicatorEnabled) {
-            // Show and animate indicator
+            // Animate indicator when playing
             startBpmIndicator(bpm);
         } else {
-            // Stop pulsing
+            // Stop animation when paused
             stopBpmIndicatorPulsing();
-            // Show icon (dimmed) if toggle is enabled
-            if (bpmIndicatorElement && bpmIndicatorEnabled) {
-                bpmIndicatorElement.classList.add('active');
-            }
         }
     });
 }
 
 function stopBpmIndicatorPulsing() {
-    // Remove CSS animations from button
-    if (bpmIndicatorToggleBtn) {
-        bpmIndicatorToggleBtn.classList.remove('animating');
+    // Remove CSS animations from block
+    if (bpmIndicatorElement) {
+        bpmIndicatorElement.classList.remove('animating');
     }
 
-    // Remove CSS animations from indicator
-    if (bpmIndicatorElement) {
-        bpmIndicatorElement.classList.remove('active', 'animating');
+    // Remove CSS animation from metronome icon
+    const metronomeIcon = document.getElementById('bpm-metronome-icon');
+    if (metronomeIcon) {
+        metronomeIcon.classList.remove('animating');
     }
 }
 
 function startBpmIndicator(bpm) {
-    if (!bpmIndicatorElement || !bpmIndicatorEnabled) {
+    if (!bpmIndicatorElement) {
         return;
     }
 
@@ -4109,24 +4080,28 @@ function startBpmIndicator(bpm) {
     const animationDuration = beatDuration * 2;
     const durationString = `${animationDuration}s`;
 
+    // Get the metronome icon
+    const metronomeIcon = document.getElementById('bpm-metronome-icon');
+
     // Set animation duration
     bpmIndicatorElement.style.animationDuration = durationString;
-    bpmIndicatorToggleBtn.style.animationDuration = durationString;
+    if (metronomeIcon) {
+        metronomeIcon.style.animationDuration = durationString;
+    }
 
     // Force synchronization: remove animations, trigger reflow, then add them back
-    // This ensures both animations start at exactly the same time
     bpmIndicatorElement.classList.remove('animating');
-    if (bpmIndicatorToggleBtn) {
-        bpmIndicatorToggleBtn.classList.remove('animating');
+    if (metronomeIcon) {
+        metronomeIcon.classList.remove('animating');
     }
 
     // Trigger reflow to restart animations
     void bpmIndicatorElement.offsetWidth;
 
     // Add animations back - they will now be in sync
-    bpmIndicatorElement.classList.add('active', 'animating');
-    if (bpmIndicatorToggleBtn) {
-        bpmIndicatorToggleBtn.classList.add('animating');
+    bpmIndicatorElement.classList.add('animating');
+    if (metronomeIcon) {
+        metronomeIcon.classList.add('animating');
     }
 }
 
