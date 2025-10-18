@@ -3798,12 +3798,20 @@ function updateBpmIndicator() {
         if (bpmIndicatorElement) {
             bpmIndicatorElement.classList.remove('active');
         }
+        // Remove pulse from button
+        if (bpmIndicatorToggleBtn) {
+            bpmIndicatorToggleBtn.classList.remove('pulse');
+        }
         return;
     }
 
     // Check if we have a valid BPM and Spotify is playing
     if (!currentSong || !currentSong.bpm || currentSong.bpm === 'N/A' || currentSong.bpm === 'NOT_FOUND') {
         bpmIndicatorElement.classList.remove('active');
+        // Remove pulse from button
+        if (bpmIndicatorToggleBtn) {
+            bpmIndicatorToggleBtn.classList.remove('pulse');
+        }
         return;
     }
 
@@ -3811,6 +3819,10 @@ function updateBpmIndicator() {
     const bpm = parseFloat(currentSong.bpm);
     if (isNaN(bpm) || bpm <= 0) {
         bpmIndicatorElement.classList.remove('active');
+        // Remove pulse from button
+        if (bpmIndicatorToggleBtn) {
+            bpmIndicatorToggleBtn.classList.remove('pulse');
+        }
         return;
     }
 
@@ -3820,6 +3832,10 @@ function updateBpmIndicator() {
             startBpmIndicator(bpm);
         } else {
             bpmIndicatorElement.classList.remove('active');
+            // Remove pulse from button when not playing
+            if (bpmIndicatorToggleBtn) {
+                bpmIndicatorToggleBtn.classList.remove('pulse');
+            }
         }
     });
 }
@@ -3856,8 +3872,24 @@ function tickTockMetronome(isTick) {
     // Add the appropriate class
     if (isTick) {
         bpmIndicatorElement.classList.add('tick');
+        // Pulse button on tick (the beat)
+        pulseBpmButton(true);
     } else {
         bpmIndicatorElement.classList.add('tock');
+        // Unpulse button on tock (between beats)
+        pulseBpmButton(false);
+    }
+}
+
+function pulseBpmButton(pulse) {
+    if (!bpmIndicatorToggleBtn) return;
+
+    if (pulse) {
+        // Add pulse class for brighter green
+        bpmIndicatorToggleBtn.classList.add('pulse');
+    } else {
+        // Remove pulse class to return to normal
+        bpmIndicatorToggleBtn.classList.remove('pulse');
     }
 }
 
