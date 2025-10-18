@@ -3304,9 +3304,26 @@ async function initializeSpotifyPlayer() {
         console.log('Creating Spotify.Player...');
         spotifyPlayer = new Spotify.Player({
             name: 'Band Practice Pro',
-            getOAuthToken: cb => { 
+            getOAuthToken: async cb => {
                 console.log('SDK requesting OAuth token...');
-                cb(spotifyAccessToken); 
+                // Always get the latest token (could have been refreshed)
+                if (spotifyAccessToken) {
+                    cb(spotifyAccessToken);
+                } else {
+                    console.warn('⚠️ No Spotify token available, fetching new one...');
+                    try {
+                        const response = await authenticatedApiCall('/api/spotify/token');
+                        const data = await response.json();
+                        if (data.success && data.access_token) {
+                            spotifyAccessToken = data.access_token;
+                            cb(spotifyAccessToken);
+                        } else {
+                            console.error('❌ Failed to get Spotify token');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error getting Spotify token:', error);
+                    }
+                }
             },
             volume: 0.7
         });
@@ -3360,6 +3377,27 @@ async function initializeSpotifyPlayer() {
         
         if (connected) {
             console.log('✅ Connected to Spotify successfully');
+
+            // Set up automatic token refresh every 45 minutes (Spotify tokens expire in 1 hour)
+            if (!window.spotifyTokenRefreshInterval) {
+                window.spotifyTokenRefreshInterval = setInterval(async () => {
+                    try {
+                        console.log('🔄 Refreshing Spotify access token...');
+                        const response = await authenticatedApiCall('/api/spotify/token');
+                        const data = await response.json();
+
+                        if (data.success && data.access_token) {
+                            spotifyAccessToken = data.access_token;
+                            console.log('✅ Spotify token refreshed successfully');
+                        } else {
+                            console.error('❌ Failed to refresh Spotify token:', data);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error refreshing Spotify token:', error);
+                    }
+                }, 45 * 60 * 1000); // 45 minutes in milliseconds
+                console.log('✅ Spotify token auto-refresh enabled (every 45 minutes)');
+            }
         } else {
             console.error('❌ Failed to connect to Spotify');
             showToast('Failed to connect to Spotify', 'error');
