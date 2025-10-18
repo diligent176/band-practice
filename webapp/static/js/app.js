@@ -249,6 +249,15 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
+    // Ctrl+B to toggle BPM indicator
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        if (bpmIndicatorToggleBtn) {
+            bpmIndicatorToggleBtn.click();
+        }
+        return;
+    }
+
     // B to set BPM
     if (e.key === 'b' || e.key === 'B') {
         const setBpmBtn = document.getElementById('set-bpm-btn');
