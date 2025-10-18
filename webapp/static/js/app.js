@@ -249,6 +249,13 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
+    // Ctrl+Shift+B to open BPM Tap Trainer
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        openBpmTapTrainer();
+        return;
+    }
+
     // Ctrl+B to toggle BPM indicator
     if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
         e.preventDefault();
@@ -2029,6 +2036,181 @@ async function saveBpm() {
     } finally {
         hideLoading();
     }
+}
+
+//=============================================================================
+// BPM Tap Trainer Dialog
+//=============================================================================
+
+const bpmTapDialog = document.getElementById('bpm-tap-dialog');
+const bpmTapSongInfo = document.getElementById('bpm-tap-song-info');
+const bpmTapDisplay = document.getElementById('bpm-tap-display');
+const bpmTapCount = document.getElementById('bpm-tap-count');
+const bpmTapResetBtn = document.getElementById('bpm-tap-reset-btn');
+const bpmTapCancelBtn = document.getElementById('bpm-tap-cancel-btn');
+const bpmTapSaveBtn = document.getElementById('bpm-tap-save-btn');
+
+let tapTimes = [];
+let detectedBpm = null;
+
+function openBpmTapTrainer() {
+    if (!currentSong) {
+        showToast('Please select a song first', 'error');
+        return;
+    }
+
+    bpmTapSongInfo.textContent = `${currentSong.title} - ${currentSong.artist}`;
+    resetTapTrainer();
+
+    bpmTapDialog.style.display = 'flex';
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleBpmTapKeyboard);
+}
+
+function closeBpmTapTrainer() {
+    bpmTapDialog.style.display = 'none';
+    resetTapTrainer();
+
+    // Remove keyboard shortcuts
+    document.removeEventListener('keydown', handleBpmTapKeyboard);
+}
+
+function resetTapTrainer() {
+    tapTimes = [];
+    detectedBpm = null;
+    bpmTapDisplay.textContent = '--.-';
+    bpmTapCount.textContent = 'Taps: 0';
+    bpmTapSaveBtn.disabled = true;
+}
+
+function handleBpmTapKeyboard(e) {
+    // Only handle if tap dialog is visible
+    if (bpmTapDialog.style.display !== 'flex') return;
+
+    // Period key to tap
+    if (e.key === '.') {
+        e.preventDefault();
+        recordTap();
+        return;
+    }
+
+    // ESC to cancel
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeBpmTapTrainer();
+        return;
+    }
+
+    // ENTER to save
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!bpmTapSaveBtn.disabled) {
+            saveTappedBpm();
+        }
+        return;
+    }
+}
+
+function recordTap() {
+    const now = Date.now();
+    tapTimes.push(now);
+
+    // Keep only last 8 taps for rolling average
+    if (tapTimes.length > 8) {
+        tapTimes.shift();
+    }
+
+    // Update count
+    bpmTapCount.textContent = `Taps: ${tapTimes.length}`;
+
+    // Calculate BPM if we have at least 2 taps
+    if (tapTimes.length >= 2) {
+        calculateBpm();
+    }
+
+    // Visual feedback - pulse the display
+    bpmTapDisplay.style.transform = 'scale(1.1)';
+    setTimeout(() => {
+        bpmTapDisplay.style.transform = 'scale(1)';
+    }, 100);
+}
+
+function calculateBpm() {
+    if (tapTimes.length < 2) return;
+
+    // Calculate intervals between taps
+    const intervals = [];
+    for (let i = 1; i < tapTimes.length; i++) {
+        intervals.push(tapTimes[i] - tapTimes[i - 1]);
+    }
+
+    // Average interval in milliseconds
+    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+
+    // Convert to BPM (60000 ms per minute / interval in ms)
+    const bpm = 60000 / avgInterval;
+
+    // Round to 1 decimal place
+    detectedBpm = Math.round(bpm * 10) / 10;
+
+    // Update display
+    bpmTapDisplay.textContent = detectedBpm.toFixed(1);
+    bpmTapDisplay.style.transition = 'transform 0.1s ease';
+
+    // Enable save button if we have at least 4 taps
+    if (tapTimes.length >= 4) {
+        bpmTapSaveBtn.disabled = false;
+    }
+}
+
+async function saveTappedBpm() {
+    if (!currentSong || !detectedBpm) return;
+
+    try {
+        showLoading('Saving BPM...');
+
+        const response = await authenticatedApiCall(`/api/songs/${currentSong.id}/bpm`, {
+            method: 'PUT',
+            body: JSON.stringify({ bpm: detectedBpm })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            currentSong.bpm = detectedBpm;
+            currentSong.bpm_manual = true;
+            renderMetadata();
+
+            // Update the song in the allSongs array
+            const songIndex = allSongs.findIndex(s => s.id === currentSong.id);
+            if (songIndex !== -1) {
+                allSongs[songIndex].bpm = detectedBpm;
+                allSongs[songIndex].bpm_manual = true;
+            }
+
+            closeBpmTapTrainer();
+            showToast(`BPM set to ${detectedBpm}`, 'success');
+            setStatus(`BPM updated to ${detectedBpm}`, 'success');
+        } else {
+            showToast('Failed to save BPM: ' + (data.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        showToast('Error saving BPM: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Event listeners for tap trainer
+if (bpmTapResetBtn) {
+    bpmTapResetBtn.addEventListener('click', resetTapTrainer);
+}
+if (bpmTapCancelBtn) {
+    bpmTapCancelBtn.addEventListener('click', closeBpmTapTrainer);
+}
+if (bpmTapSaveBtn) {
+    bpmTapSaveBtn.addEventListener('click', saveTappedBpm);
 }
 
 //=============================================================================

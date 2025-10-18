@@ -542,6 +542,37 @@ END: Third repetition of chorus is acapella"></textarea>
             </div>
         </div>
 
+        <!-- BPM Tap Trainer Dialog -->
+        <div id="bpm-tap-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog">
+                <h3><i class="fa-solid fa-hand-pointer"></i> BPM Tap Trainer</h3>
+                <p id="bpm-tap-song-info" style="color: var(--text-secondary); font-size: 14px; margin-bottom: 15px;"></p>
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <div style="margin-bottom: 15px;">
+                        <p style="color: var(--text-primary); margin-bottom: 10px;">Tap the <kbd>.</kbd> (period) key to the beat</p>
+                        <p style="color: var(--text-muted); font-size: 13px;">Tap at least 4 times for accurate detection</p>
+                    </div>
+                    <div id="bpm-tap-display" style="font-size: 48px; font-weight: bold; color: var(--accent-primary); margin: 20px 0; font-family: monospace;">
+                        --.-
+                    </div>
+                    <div id="bpm-tap-count" style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
+                        Taps: 0
+                    </div>
+                    <button id="bpm-tap-reset-btn" class="btn btn-secondary" style="margin-top: 10px;">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+                <div class="dialog-actions">
+                    <button id="bpm-tap-cancel-btn" class="btn btn-secondary">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                    <button id="bpm-tap-save-btn" class="btn btn-primary" disabled>
+                        <i class="fa-solid fa-check"></i> Save BPM
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Loading Overlay -->
         <div id="loading-overlay" class="loading-overlay" style="display: none;">
             <div class="spinner"></div>
