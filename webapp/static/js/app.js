@@ -34,6 +34,7 @@ const notesTextarea = document.getElementById('notes-textarea');
 const songMetadata = document.getElementById('song-metadata');
 const lyricsHeading = document.getElementById('lyrics-heading');
 const statusMessage = document.getElementById('status-message');
+const toastContainer = document.getElementById('toast-container');
 
 const editNotesBtn = document.getElementById('edit-notes-btn');
 const saveNotesBtn = document.getElementById('save-notes-btn');
@@ -1342,13 +1343,12 @@ function highlightLines(noteBlock) {
 
 function scrollIntoViewIfNeeded(element) {
     // Get the scrollable container (lyrics-content which is the panel-content)
-    const lyricsContainer = document.getElementById('lyrics-content');
-    if (!lyricsContainer || !element) {
+    if (!lyricsContent || !element) {
         return;
     }
 
     // Get container bounds
-    const containerRect = lyricsContainer.getBoundingClientRect();
+    const containerRect = lyricsContent.getBoundingClientRect();
     const elementRect = element.getBoundingClientRect();
     
     // Check if element is already fully visible in the container
@@ -1364,18 +1364,18 @@ function scrollIntoViewIfNeeded(element) {
     
     // Calculate how much to scroll
     // We want to center the element in the container
-    const containerHeight = lyricsContainer.clientHeight;
+    const containerHeight = lyricsContent.clientHeight;
     const elementHeight = element.offsetHeight;
-    
+
     // Get current scroll position and element position relative to the container
-    const currentScroll = lyricsContainer.scrollTop;
+    const currentScroll = lyricsContent.scrollTop;
     const elementTop = elementRect.top - containerRect.top;
-    
+
     // Calculate target scroll to center the element
     const targetScroll = currentScroll + elementTop - (containerHeight / 2) + (elementHeight / 2);
-    
+
     // Smoothly scroll ONLY the lyrics container, not the page
-    lyricsContainer.scrollTo({
+    lyricsContent.scrollTo({
         top: Math.max(0, targetScroll),
         behavior: 'smooth'
     });
@@ -1425,19 +1425,17 @@ function navigateNotes(direction) {
 
 // Scroll lyrics and notes to bottom
 function scrollToBottom() {
-    const lyricsContainer = document.getElementById('lyrics-content');
-    if (lyricsContainer) {
-        lyricsContainer.scrollTo({
-            top: lyricsContainer.scrollHeight,
+    if (lyricsContent) {
+        lyricsContent.scrollTo({
+            top: lyricsContent.scrollHeight,
             behavior: 'smooth'
         });
     }
 
     // Also scroll notes panel to bottom to reveal song structure
-    const notesContainer = document.getElementById('notes-view');
-    if (notesContainer && notesContainer.parentElement) {
-        notesContainer.parentElement.scrollTo({
-            top: notesContainer.parentElement.scrollHeight,
+    if (notesView && notesView.parentElement) {
+        notesView.parentElement.scrollTo({
+            top: notesView.parentElement.scrollHeight,
             behavior: 'smooth'
         });
     }
@@ -1568,7 +1566,7 @@ function showToast(message, type = 'info') {
     toast.className = `toast ${type}`;
     toast.textContent = message;
 
-    document.getElementById('toast-container').appendChild(toast);
+    toastContainer.appendChild(toast);
 
     // Remove toast after animation completes (3s wait + 0.8s animation)
     setTimeout(() => {
