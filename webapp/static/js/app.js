@@ -1067,28 +1067,27 @@ function renderLyrics() {
 
 function renderNotes() {
     const notes = currentSong.notes || '';
-
-    if (!notes.trim()) {
-        notesView.innerHTML = '<div class="empty-state"><p>No notes yet. Click Edit to add practice notes.</p></div>';
-        return;
-    }
-
-    const noteBlocks = parseNotes(notes);
     let html = '';
 
-    noteBlocks.forEach(block => {
-        const dataAttr = block.lineStart ?
-            `data-line-start="${block.lineStart}" data-line-end="${block.lineEnd}"` : '';
+    // Render practice notes if available
+    if (!notes.trim()) {
+        html += '<div class="empty-state"><p>No notes yet. Click Edit to add practice notes.</p></div>';
+    } else {
+        const noteBlocks = parseNotes(notes);
+        noteBlocks.forEach(block => {
+            const dataAttr = block.lineStart ?
+                `data-line-start="${block.lineStart}" data-line-end="${block.lineEnd}"` : '';
 
-        html += `
-            <div class="note-block" ${dataAttr} onclick="highlightLines(this)">
-                <div class="note-header">${escapeHtml(block.header)}</div>
-                <div class="note-content">${escapeHtml(block.content)}</div>
-            </div>
-        `;
-    });
+            html += `
+                <div class="note-block" ${dataAttr} onclick="highlightLines(this)">
+                    <div class="note-header">${escapeHtml(block.header)}</div>
+                    <div class="note-content">${escapeHtml(block.content)}</div>
+                </div>
+            `;
+        });
+    }
 
-    // Add song structure if available
+    // Always add song structure if available (separate from notes)
     const structure = extractSongStructure();
     if (structure.length > 0) {
         html += '<div class="song-structure-section">';
@@ -1309,12 +1308,21 @@ function navigateNotes(direction) {
     return true;
 }
 
-// Scroll lyrics to bottom
+// Scroll lyrics and notes to bottom
 function scrollToBottom() {
     const lyricsContainer = document.getElementById('lyrics-content');
     if (lyricsContainer) {
         lyricsContainer.scrollTo({
             top: lyricsContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+
+    // Also scroll notes panel to bottom to reveal song structure
+    const notesContainer = document.getElementById('notes-view');
+    if (notesContainer && notesContainer.parentElement) {
+        notesContainer.parentElement.scrollTo({
+            top: notesContainer.parentElement.scrollHeight,
             behavior: 'smooth'
         });
     }
