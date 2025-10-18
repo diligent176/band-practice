@@ -104,7 +104,7 @@ class FirestoreService:
 
         # Re-number the lyrics
         from services.lyrics_service import LyricsService
-        lyrics_numbered = LyricsService._add_line_numbers_static(lyrics)
+        lyrics_numbered = LyricsService._add_line_numbers(lyrics)
 
         doc_ref.update({
             'lyrics': lyrics,

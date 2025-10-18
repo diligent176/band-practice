@@ -4,7 +4,7 @@ Authentication Service - Firebase Authentication
 
 import os
 from functools import wraps
-from flask import request, jsonify, g, redirect, url_for
+from flask import request, jsonify, g
 import firebase_admin
 from firebase_admin import auth, credentials
 import logging
@@ -77,10 +77,6 @@ class AuthService:
         except Exception as e:
             logger.error(f"Token verification failed: {e}", exc_info=True)
             return None
-
-    def is_development_mode(self):
-        """Check if running in development mode (local testing)"""
-        return os.getenv('FLASK_ENV') == 'development' or os.getenv('DEVELOPMENT') == 'true'
 
 
 # Global auth service instance

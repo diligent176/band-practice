@@ -680,13 +680,9 @@ class LyricsService:
                 'lyrics_numbered': f"Error fetching lyrics: {str(e)}"
             }
 
-    def _add_line_numbers(self, lyrics):
-        """Add line numbers to lyrics (skip section headers)"""
-        return self._add_line_numbers_static(lyrics)
-
     @staticmethod
-    def _add_line_numbers_static(lyrics):
-        """Static method to add line numbers to lyrics (skip section headers)"""
+    def _add_line_numbers(lyrics):
+        """Add line numbers to lyrics (skip section headers)"""
         lines = lyrics.split('\n')
         formatted_lines = []
         line_num = 1
