@@ -273,8 +273,8 @@ function handleGlobalKeyboard(e) {
         }
     }
 
-    // Ctrl+B to toggle BPM indicator
-    if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+    // I to toggle BPM indicator
+    if (e.key === 'i' || e.key === 'I') {
         e.preventDefault();
         toggleBpmIndicator();
         return;
@@ -952,6 +952,14 @@ async function selectSong(songId) {
     }
 
     // Reset mute state when loading a new song
+    if (isMuted && spotifyPlayer) {
+        try {
+            await spotifyPlayer.setVolume(volumeBeforeMute);
+            console.log(`🔊 Unmuted on song change - restored volume to ${volumeBeforeMute}`);
+        } catch (error) {
+            console.warn('Could not restore volume:', error);
+        }
+    }
     isMuted = false;
 
     // Stop BPM indicator pulsing (but keep toggle state)
