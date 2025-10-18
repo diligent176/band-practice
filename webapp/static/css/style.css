@@ -1140,24 +1140,26 @@ header h1 {
 
 /* BPM Indicator Metronome - Persistent element */
 .bpm-indicator-persistent {
-  display: none;
+  display: inline-block;
+  visibility: hidden;
   font-size: 11px;
-  margin-left: 6px;
+  margin-left: 8px;
   color: var(--text-secondary);
   opacity: 0.3;
   transform-origin: center;
   position: relative;
   top: -1px;
+  vertical-align: middle;
 }
 
 .bpm-indicator-persistent.active {
-  display: inline-block;
+  visibility: visible;
 }
 
 /* CSS-based tick-tock animation for rock-solid timing */
 .bpm-indicator-persistent.animating {
   animation-name: bpm-tick-tock;
-  animation-timing-function: steps(2, jump-both);
+  animation-timing-function: steps(1, jump-none);
   animation-iteration-count: infinite;
   animation-fill-mode: both;
   opacity: 0.7;
@@ -1170,12 +1172,35 @@ header h1 {
   }
 
   50% {
+    transform: scaleX(-1);
+  }
+
+  51% {
     transform: scaleX(1);
   }
 
   100% {
-    transform: scaleX(-1);
+    transform: scaleX(1);
   }
+}
+
+/* Inline BPM indicator in song metadata */
+.bpm-indicator-inline {
+  font-size: 11px;
+  margin-left: 6px;
+  color: var(--text-secondary);
+  opacity: 0.3;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.bpm-indicator-inline.animating {
+  animation-name: bpm-tick-tock;
+  animation-timing-function: steps(1, jump-none);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  opacity: 0.7;
+  /* Duration set dynamically via inline style based on BPM */
 }
 
 .bpm-manual-badge-small {

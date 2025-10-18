@@ -1076,8 +1076,7 @@ function renderMetadata() {
         // Show loading indicator for pending lookup
         bpmDisplay = 'N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>';
     } else {
-        // Show BPM value with manual indicator
-        // Note: metronome indicator is always in DOM, just shown/hidden with CSS
+        // Show BPM value with manual indicator (no inline metronome)
         if (isManualBpm) {
             bpmDisplay = `${bpmValue} <span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>`;
         } else {
@@ -1091,9 +1090,15 @@ function renderMetadata() {
         `<div class="metadata-item"><span class="metadata-icon">${item.icon}</span> ${item.value}</div>`
     ).join('');
 
+    // Add the persistent BPM indicator as the last metadata item (it controls its own visibility)
+    metadataHtml += '<i class="fa-solid fa-bars-staggered bpm-indicator-persistent" id="bpm-indicator"></i>';
+
     // Note: Custom lyric badge is now shown in the header next to song name, not in metadata
 
     songMetadata.innerHTML = metadataHtml;
+
+    // Re-get the BPM indicator reference since we just recreated it
+    bpmIndicatorElement = document.getElementById('bpm-indicator');
 
     // BPM indicator is now persistent in DOM, just update its state
     updateBpmIndicator();
