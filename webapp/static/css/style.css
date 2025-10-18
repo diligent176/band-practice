@@ -350,8 +350,8 @@ header h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: rgba(24, 160, 73, 0.12);
+  border: 1px solid rgba(24, 160, 73, 0.3);
   border-radius: 4px;
   padding: 4px 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -360,29 +360,30 @@ header h1 {
   flex-shrink: 0;
   height: 28px;
   width: 28px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   margin-left: auto;
   margin-right: 6px;
 }
 
 .bpm-indicator-toggle-btn:hover {
-  background: #323232;
-  border-color: #444;
-  color: var(--text-primary);
+  background: rgba(24, 160, 73, 0.2);
+  border-color: rgba(24, 160, 73, 0.45);
 }
 
 .bpm-indicator-toggle-btn.active {
-  background: #1db954;
-  border-color: #1ed760;
-  color: white;
+  background: rgba(24, 160, 73, 0.25);
+  border-color: rgba(24, 160, 73, 0.5);
+  color: var(--text-primary);
 }
 
 .bpm-indicator-toggle-btn.active:hover {
-  background: #1ed760;
+  background: rgba(24, 160, 73, 0.3);
+  border-color: rgba(24, 160, 73, 0.6);
 }
 
 .bpm-indicator-toggle-btn i {
   font-size: 11px;
+  color: var(--accent-primary);
 }
 
 .font-size-selector {
@@ -1088,18 +1089,19 @@ header h1 {
 
 /* BPM Indicator Metronome */
 .bpm-indicator {
-  display: none;
+  display: inline-block;
   font-size: 11px;
   margin-left: 6px;
   vertical-align: middle;
   color: var(--text-secondary);
-  opacity: 0.5;
+  opacity: 0;
+  width: 11px;
   transition: transform 0.1s ease-out, opacity 0.2s ease;
   transform-origin: center;
 }
 
 .bpm-indicator.active {
-  display: inline-block;
+  opacity: 0.5;
 }
 
 .bpm-indicator.tick {

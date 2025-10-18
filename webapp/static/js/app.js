@@ -1943,37 +1943,40 @@ async function saveBpm() {
         return;
     }
 
-    const bpmNumber = parseInt(bpmValue);
+    const bpmNumber = parseFloat(bpmValue);
     if (isNaN(bpmNumber) || bpmNumber <= 0 || bpmNumber > 300) {
         showToast('BPM must be between 1 and 300', 'error');
         return;
     }
+
+    // Round to 1 decimal place
+    const bpmRounded = Math.round(bpmNumber * 10) / 10;
 
     try {
         showLoading('Saving BPM...');
 
         const response = await authenticatedApiCall(`/api/songs/${currentSong.id}/bpm`, {
             method: 'PUT',
-            body: JSON.stringify({ bpm: bpmNumber })
+            body: JSON.stringify({ bpm: bpmRounded })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            currentSong.bpm = bpmNumber;
+            currentSong.bpm = bpmRounded;
             currentSong.bpm_manual = true;
             renderMetadata();
-            
+
             // Update the song in the allSongs array so selector shows the badge
             const songIndex = allSongs.findIndex(s => s.id === currentSong.id);
             if (songIndex !== -1) {
-                allSongs[songIndex].bpm = bpmNumber;
+                allSongs[songIndex].bpm = bpmRounded;
                 allSongs[songIndex].bpm_manual = true;
             }
-            
+
             closeBpmDialog();
-            showToast(`BPM set to ${bpmNumber}`, 'success');
-            setStatus(`BPM updated to ${bpmNumber}`, 'success');
+            showToast(`BPM set to ${bpmRounded}`, 'success');
+            setStatus(`BPM updated to ${bpmRounded}`, 'success');
         } else {
             showToast('Failed to save BPM: ' + (data.error || 'Unknown error'), 'error');
         }
@@ -3804,8 +3807,8 @@ function updateBpmIndicator() {
         return;
     }
 
-    // Parse BPM value
-    const bpm = parseInt(currentSong.bpm);
+    // Parse BPM value (supports decimals)
+    const bpm = parseFloat(currentSong.bpm);
     if (isNaN(bpm) || bpm <= 0) {
         bpmIndicatorElement.classList.remove('active');
         return;
