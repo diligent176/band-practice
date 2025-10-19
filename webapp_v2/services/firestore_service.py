@@ -373,7 +373,7 @@ class FirestoreService:
 
     def count_songs_by_collection(self, collection_id):
         """
-        Count songs in a specific collection (more efficient than fetching all data)
+        Count songs in a specific collection (optimized with select([]))
 
         Args:
             collection_id: Collection document ID
@@ -381,7 +381,7 @@ class FirestoreService:
         Returns:
             Integer count of songs
         """
-        # Fetch document IDs only (minimal data transfer) and count
+        # Use select([]) to fetch only document IDs (minimal data transfer)
         query = (self.db.collection(self.songs_collection)
                 .where('collection_id', '==', collection_id)
                 .select([]))  # Empty select = only document IDs, no field data
