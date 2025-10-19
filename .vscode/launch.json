@@ -2,14 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Flask: webapp/app.py",
+      "name": "Flask: Band Practice PRO V2 webapp",
       "type": "debugpy",
       "request": "launch",
       "module": "flask",
-      "cwd": "${workspaceFolder}/webapp",
+      "cwd": "${workspaceFolder}/webapp_v2",
       "envFile": "${workspaceFolder}/.env",
       "env": {
-        "FLASK_APP": "webapp/app.py",
+        "FLASK_APP": "webapp_v2/app.py",
         "FLASK_ENV": "development",
         "FLASK_DEBUG": "1"
       },
