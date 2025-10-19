@@ -55,7 +55,6 @@ const lyricsEditorTextarea = document.getElementById('lyrics-editor-textarea');
 const lyricsEditorLineNumbers = document.getElementById('lyrics-editor-line-numbers');
 const lyricsEditorSaveBtn = document.getElementById('lyrics-editor-save-btn');
 const lyricsEditorCancelBtn = document.getElementById('lyrics-editor-cancel-btn');
-const customizationBadge = document.getElementById('customization-badge');
 const customizationBadgeMain = document.getElementById('customization-badge-main');
 const insertVerseBtn = document.getElementById('insert-verse-btn');
 const insertChorusBtn = document.getElementById('insert-chorus-btn');
@@ -941,10 +940,34 @@ function closeSongSelector() {
     songSelectorList.removeEventListener('click', handleSongListClick);
 }
 
-function toggleSongSort() {
-    songSelectorSortByArtist = !songSelectorSortByArtist;
-    sortModeLabel.textContent = songSelectorSortByArtist ? 'Sort: Artist (Alt+T)' : 'Sort: Song (Alt+T)';
-    filterSongsV2();
+// Show temporary sort mode hint in Song Chooser
+function showSortModeHint(mode) {
+    // Remove any existing hint
+    const existingHint = document.querySelector('.sort-mode-hint');
+    if (existingHint) {
+        existingHint.remove();
+    }
+
+    // Create hint element
+    const hint = document.createElement('div');
+    hint.className = 'sort-mode-hint';
+
+    const modeLabels = {
+        'name': 'Sort: By Song Name',
+        'artist': 'Sort: By Artist',
+        'playlist': 'Sort: By Playlist'
+    };
+
+    hint.textContent = modeLabels[mode] || 'Sort: Unknown';
+
+    // Add to song selector dialog
+    songSelectorDialog.appendChild(hint);
+
+    // Remove after 2 seconds
+    setTimeout(() => {
+        hint.classList.add('fade-out');
+        setTimeout(() => hint.remove(), 300);
+    }, 2000);
 }
 
 // V2: Handle sort dropdown change
@@ -953,102 +976,6 @@ function handleSortChange(e) {
     localStorage.setItem('songSelectorSortMode', songSelectorSortMode);
     console.log(`🔄 Sort mode changed to: ${songSelectorSortMode}`);
     loadSongs();  // Reload songs with new sort
-}
-
-function filterSongs() {
-    try {
-        const searchTerm = songSearchInput.value.toLowerCase();
-
-        // Filter songs
-        filteredSongs = allSongs.filter(song => {
-            const title = song.title.toLowerCase();
-            const artist = song.artist.toLowerCase();
-            return title.includes(searchTerm) || artist.includes(searchTerm);
-        });
-
-        // Log search info
-        if (searchTerm) {
-            console.log(`🔍 Search: "${searchTerm}" - ${filteredSongs.length} results`);
-        }
-
-        // Sort songs
-        filteredSongs.sort((a, b) => {
-            if (songSelectorSortByArtist) {
-                const artistCompare = a.artist.localeCompare(b.artist);
-                return artistCompare !== 0 ? artistCompare : a.title.localeCompare(b.title);
-            } else {
-                return a.title.localeCompare(b.title);
-            }
-        });
-
-        renderSongList();
-    } catch (error) {
-        console.error('❌ Error in filterSongs:', error);
-    }
-}
-
-function renderSongList() {
-    try {
-        const listElement = document.getElementById('song-selector-list');
-
-        if (!listElement) {
-            console.error('❌ song-selector-list element not found!');
-            return;
-        }
-
-        if (allSongs.length === 0) {
-            listElement.innerHTML = '<div class="empty-state"><p>No songs in database. Import a playlist!</p></div>';
-            if (songCountDisplay) songCountDisplay.textContent = '0 songs';
-            return;
-        }
-
-        if (filteredSongs.length === 0) {
-            listElement.innerHTML = '<div class="empty-state"><p>No songs match your search</p></div>';
-            if (songCountDisplay) songCountDisplay.textContent = `0 of ${allSongs.length} songs`;
-            return;
-        }
-
-        if (songCountDisplay) songCountDisplay.textContent = `${filteredSongs.length} song${filteredSongs.length !== 1 ? 's' : ''}`;
-
-        let html = '';
-        filteredSongs.forEach((song, index) => {
-            const selectedClass = index === selectedSongIndex ? 'selected' : '';
-            const albumArtHtml = song.album_art_url
-                ? `<img src="${escapeHtml(song.album_art_url)}" alt="Album art" class="song-selector-item-art">`
-                : `<div class="song-selector-item-art-placeholder">🎵</div>`;
-
-            // Format BPM display with manual indicator if applicable
-            let bpmDisplay = song.bpm || 'N/A';
-            if (song.bpm && song.bpm !== 'N/A' && song.bpm !== 'NOT_FOUND' && song.bpm_manual) {
-                bpmDisplay = `${song.bpm}<span class="bpm-manual-badge-small" title="Custom bpm/tempo (B)"><i class="fa-solid fa-pen"></i></span>`;
-            }
-
-            html += `<div class="song-selector-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
-${albumArtHtml}
-<div class="song-selector-item-info">
-<div class="song-selector-item-main">
-<div class="song-selector-item-title">${escapeHtml(song.title)}</div>
-<div class="song-selector-item-artist"><i class="fa-solid fa-microphone"></i> ${escapeHtml(song.artist)}</div>
-</div>
-<div class="song-selector-item-meta">
-<div class="song-selector-item-meta-row"><i class="fa-solid fa-compact-disc"></i> ${escapeHtml(song.album || 'N/A')}</div>
-<div class="song-selector-item-meta-row"><i class="fa-solid fa-calendar"></i> ${song.year || 'N/A'} • <i class="fa-solid fa-drum"></i> ${bpmDisplay}</div>
-</div>
-</div>
-</div>`;
-        });
-
-        listElement.innerHTML = html;
-
-        // Use event delegation instead of attaching individual click handlers
-        // This is much more efficient - single listener instead of N listeners
-        if (selectedSongIndex >= filteredSongs.length) {
-            selectedSongIndex = filteredSongs.length - 1;
-        }
-    } catch (error) {
-        console.error('❌ Error in renderSongList:', error);
-        console.error('Stack:', error.stack);
-    }
 }
 
 async function selectSong(songId) {
@@ -1107,10 +1034,17 @@ function handleSongSelectorKeyboard(e) {
         return;
     }
     
-    // Alt+T to toggle sort
+    // Alt+T to cycle through sort modes (name → artist → playlist)
     if (e.altKey && (e.key === 't' || e.key === 'T')) {
         e.preventDefault();
-        toggleSongSort();
+        const modes = ['name', 'artist', 'playlist'];
+        const currentIndex = modes.indexOf(songSelectorSortMode);
+        const nextIndex = (currentIndex + 1) % modes.length;
+        songSelectorSortMode = modes[nextIndex];
+        localStorage.setItem('songSelectorSortMode', songSelectorSortMode);
+        songSelectorSort.value = songSelectorSortMode;
+        loadSongs();
+        showSortModeHint(songSelectorSortMode);
         return;
     }
     
@@ -1885,10 +1819,8 @@ function openLyricsEditor() {
 
     // Show customization badge if song is already customized (only on main view, not in editor)
     if (currentSong.is_customized) {
-        if (customizationBadge) customizationBadge.style.display = 'block';
         if (customizationBadgeMain) customizationBadgeMain.style.display = 'inline-flex';
     } else {
-        if (customizationBadge) customizationBadge.style.display = 'none';
         if (customizationBadgeMain) customizationBadgeMain.style.display = 'none';
     }
 

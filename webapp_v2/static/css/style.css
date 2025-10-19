@@ -1828,15 +1828,6 @@ header h1 i {
   margin: 0;
 }
 
-.customization-badge {
-  padding: 6px 12px;
-  background: rgba(255, 152, 0, 0.1);
-  border: 1px solid var(--accent-secondary);
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .lyrics-editor-content {
   flex: 1;
   display: flex;
@@ -2912,6 +2903,49 @@ header h1 i {
   margin-left: 12px;
 }
 
+/* Sort mode hint (Alt+T feedback) */
+.sort-mode-hint {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-primary);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 10001;
+  animation: hintFadeIn 0.2s ease-out;
+  pointer-events: none;
+}
+
+.sort-mode-hint.fade-out {
+  animation: hintFadeOut 0.3s ease-in forwards;
+}
+
+@keyframes hintFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes hintFadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
 
 .song-item-trash-icon {
   position: absolute;
