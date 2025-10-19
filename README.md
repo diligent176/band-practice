@@ -1,21 +1,21 @@
-# 🎸 Band Practice App
+# Band Practice App
 
-A real-time web application for managing song lyrics and practice notes during band practice.
+A web application for managing song lyrics and practice notes during band practice. Import Spotify playlists, auto-fetch lyrics, organize into collections, and add line-specific notes that sync in real-time to the cloud.
 
 ## Features
 
-✅ **Sync Spotify Playlists** - Import songs from any Spotify playlist
-✅ **Auto-Fetch Lyrics** - Automatically downloads lyrics from Genius
-✅ **BPM Detection** - Automatically fetches song tempo/BPM data
-✅ **Practice Notes** - Add line-specific notes that highlight when clicked
-✅ **Real-Time Editing** - Edit notes during practice, auto-saves to cloud
-✅ **Multi-Playlist Support** - Switch between different playlists anytime
-✅ **Cloud Hosted** - Access from any device via single URL
-✅ **Mobile Friendly** - Responsive design works on phones/tablets
+- **Spotify Integration** - Import playlists and play songs in-browser (Premium required)
+- **Auto Lyrics** - Fetches lyrics from Genius automatically
+- **BPM Detection** - Optional automatic tempo detection
+- **Collections** - Organize songs by band or project
+- **Practice Notes** - Add line-specific notes with highlighting
+- **Real-Time Sync** - Cloud-hosted with instant save to Firestore
+- **Mobile Ready** - Responsive design works on any device
+- **Authentication** - Firebase auth with user whitelist
 
 ## Quick Start
 
-### Local Development (No Docker Required!)
+### Local Development
 
 ```bash
 # 1. Install dependencies
@@ -23,122 +23,154 @@ pip install -r requirements.txt
 
 # 2. Configure environment
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env with your API keys (see .docs/API_SETUP.md)
 
-# 3. Run locally (Windows)
-run-local.bat
+# 3. Run locally
+.\run-local.bat  # Windows
 
-# Note: Mac/Linux users should manually activate venv and run:
-# python -m venv venv
-# source venv/bin/activate  # On Mac/Linux
-# pip install -r requirements.txt
-# python webapp/app.py
+# Access at http://127.0.0.1:8080
 ```
 
-Access at: http://127.0.0.1:8080
+### Production Deployment
 
-### Cloud Deployment
+Deploy to Google Cloud Run using GitHub Actions (fully automated):
 
-Deploy to Google Cloud Run (serverless, near-zero cost):
+1. Follow [.docs/DEPLOYMENT.md](.docs/DEPLOYMENT.md) for initial setup
+2. Configure API keys - see [.docs/API_SETUP.md](.docs/API_SETUP.md)
+3. Push to `main` branch - GitHub Actions handles the rest
 
-Deployment is handled via GitHub Actions workflows automatically when you push to the `main` branch.
-
-See [.docs/WEBAPP_DEPLOYMENT.md](.docs/WEBAPP_DEPLOYMENT.md) for complete deployment guide.
+**Deployment is automatic** - no manual cloud operations needed!
 
 ## Project Structure
 
 ```
-webapp/              # Flask web application
-├── app.py          # API routes and server
-├── services/       # Business logic
-│   ├── firestore_service.py   # Database operations
-│   └── lyrics_service.py      # Spotify/Genius integration
-├── templates/      # HTML templates
-└── static/         # CSS and JavaScript
+webapp/              # Flask application
+├── app.py           # API routes
+├── services/        # Business logic
+│   ├── firestore_service.py
+│   ├── lyrics_service.py
+│   ├── spotify_auth_service.py
+│   └── auth_service.py
+├── templates/       # HTML
+└── static/          # CSS and JavaScript
 
-terraform/          # Infrastructure as code
-├── main.tf         # GCP resources
-└── variables.tf    # Configuration
+terraform/           # Infrastructure as Code
+├── main.tf          # GCP resources
+├── firestore.tf     # Database indexes
+├── cloud_run.tf     # Service definition
+├── secrets.tf       # Secret Manager
+└── variables.tf     # Configuration
 
-deprecated/         # Old standalone scripts
+.github/workflows/   # CI/CD
+├── deploy.yml       # Application deployment
+└── terraform.yml    # Infrastructure deployment
 ```
 
 ## Configuration
 
-Create `.env` file:
+Create `.env` file (for local development only):
 
 ```bash
-# GCP Configuration
+# GCP
 GCP_PROJECT_ID=your-project-id
 GCP_REGION=us-west1
 
 # Spotify API
 SPOTIFY_CLIENT_ID=your_client_id
 SPOTIFY_CLIENT_SECRET=your_client_secret
-SPOTIFY_PLAYLIST_URL=https://open.spotify.com/playlist/YOUR_ID
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:8080/api/spotify/callback
 
 # Genius API
 GENIUS_ACCESS_TOKEN=your_genius_token
 
-# GetSongBPM API (optional - for BPM detection)
-GETSONGBPM_API_KEY=your_getsongbpm_api_key
+# Firebase Auth
+FIREBASE_API_KEY=your_firebase_key
+FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_PROJECT_ID=your-project-id
+
+# User Access (comma-separated emails)
+ALLOWED_USERS=user1@gmail.com,user2@gmail.com
 
 # Flask
 SECRET_KEY=your-random-secret-key
+
+# Optional APIs
+GETSONGBPM_API_KEY=your_bpm_key
+SCRAPER_API_KEY=your_scraper_key
 ```
+
+**Production secrets** are stored in Google Secret Manager and managed by Terraform/GitHub Actions.
 
 ## Usage
 
-1. **Sync Playlist**: Click "Sync Playlist" or use "Change Playlist" to import songs
-2. **Select Song**: Choose from dropdown
-3. **View Lyrics**: Numbered lyrics displayed on left
-4. **Edit Notes**: Click "Edit" to add practice notes
-5. **Link Notes to Lines**: Use `Line 12:` or `Lines 45-48:` syntax
-6. **Click Notes**: Highlights referenced lyric lines
-7. **Auto-Save**: Notes save instantly to Firestore
-
-## Development
-
-```bash
-# Run locally
-run-local.bat  # On Windows
-
-# Deploy to cloud
-# Push to main branch - GitHub Actions handles deployment automatically
-
-# Infrastructure changes
-cd terraform
-terraform plan
-terraform apply
-```
+1. **Sign In** - Authenticate with Google (must be in ALLOWED_USERS)
+2. **Create Collection** - Organize songs by band/project
+3. **Import Playlist** - Paste Spotify playlist URL and select songs
+4. **View Lyrics** - Lyrics load automatically when you open a song
+5. **Add Notes** - Use `Line 12:` syntax to reference specific lyrics
+6. **Play Music** - Press spacebar to play in-browser (Premium required)
 
 ## Documentation
 
-- **[Deployment Guide](.docs/WEBAPP_DEPLOYMENT.md)** - Complete GCP deployment instructions
-- **[Authentication Setup](.docs/AUTHENTICATION.md)** - Firebase Authentication configuration
-- **[GetSongBPM API Setup](.docs/GETSONGBPM-API.md)** - BPM detection configuration
-- **[ScraperAPI Setup](.docs/SCRAPERAPI_SETUP.md)** - Optional lyrics scraping proxy setup
+- **[DEPLOYMENT.md](.docs/DEPLOYMENT.md)** - Complete deployment guide
+- **[API_SETUP.md](.docs/API_SETUP.md)** - Configure Spotify, Genius, and optional APIs
+- **[AUTHENTICATION.md](.docs/AUTHENTICATION.md)** - Firebase auth setup details
+- **[TROUBLESHOOTING.md](.docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## Tech Stack
 
 - **Backend**: Flask (Python)
 - **Database**: Google Firestore (NoSQL)
 - **Hosting**: Google Cloud Run (Serverless)
-- **Frontend**: Vanilla JavaScript + Modern CSS
-- **APIs**: Spotify Web API, Genius API
+- **Auth**: Firebase Authentication
+- **Frontend**: Vanilla JavaScript + CSS
+- **APIs**: Spotify, Genius, GetSongBPM (optional), ScraperAPI (optional)
 - **Infrastructure**: Terraform
+- **CI/CD**: GitHub Actions
 
 ## Cost
 
-Running on Google Cloud Platform:
+With GCP free tier:
+- Cloud Run: 2M requests/month FREE
+- Firestore: 50K reads, 20K writes/day FREE
+- Cloud Build: 120 build-minutes/day FREE
 
-- **Free Tier**: Covers most personal use
-- **Expected Cost**: $0 - $5/month for typical band practice usage
+**Typical monthly cost: $0 - $5**
+
+## Development Workflow
+
+```bash
+# Make changes
+# Test locally
+.\run-local.bat
+
+# Deploy to production
+git add .
+git commit -m "Your changes"
+git push origin main
+# GitHub Actions automatically deploys
+```
+
+## Infrastructure Changes
+
+If modifying Terraform configuration:
+
+```bash
+cd terraform
+terraform plan
+terraform apply
+```
+
+Then redeploy the application (push to main).
+
+## Security
+
+- Firebase Authentication on all endpoints
+- User whitelist via `ALLOWED_USERS`
+- All secrets in Google Secret Manager
+- HTTPS enforced (Cloud Run default)
+- Terraform-managed IAM permissions
 
 ## License
 
 MIT
-
-## Questions?
-
-See [WEBAPP_DEPLOYMENT.md](WEBAPP_DEPLOYMENT.md) for detailed setup and troubleshooting.
