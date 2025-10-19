@@ -5,20 +5,22 @@ Complete guide for deploying the Band Practice app to Google Cloud Platform from
 ## Prerequisites
 
 - Google Cloud Platform account with billing enabled
-- GitHub account
+- GitHub account with this repository
 - gcloud CLI installed: https://cloud.google.com/sdk/docs/install
 
-## Deployment Overview
+## Deployment Philosophy
 
-This app uses **Infrastructure as Code** and **Continuous Deployment**:
+**GitHub Actions does everything.** Manual steps are ONLY for:
+1. Initial GCP project creation
+2. Service account creation for GitHub Actions
+3. Configuring GitHub secrets/variables
+4. Firebase initial setup (one-time)
 
-- **Terraform** manages all GCP resources (Firestore, Cloud Run, Secret Manager)
-- **GitHub Actions** automatically builds and deploys when you push to `main`
-- **Manual steps** are ONLY for initial setup and GitHub secrets
+Everything else (APIs, Firestore, Terraform, deployment) is automated.
 
-## Initial Setup (One-Time)
+## Initial Setup (One-Time Only)
 
-### 1. Create GCP Project
+### 1. Create GCP Project & Enable Billing
 
 ```bash
 # Create project
@@ -27,76 +29,23 @@ gcloud projects create YOUR-PROJECT-ID --name="Band Practice"
 # Set as active project
 gcloud config set project YOUR-PROJECT-ID
 
-# Enable billing (required - use GCP Console)
-# https://console.cloud.google.com/billing
-
-# Enable required APIs
-gcloud services enable run.googleapis.com
-gcloud services enable firestore.googleapis.com
-gcloud services enable cloudbuild.googleapis.com
-gcloud services enable artifactregistry.googleapis.com
-gcloud services enable secretmanager.googleapis.com
+# Enable billing (REQUIRED - must do in GCP Console)
+# Go to: https://console.cloud.google.com/billing
+# Link billing account to YOUR-PROJECT-ID
 ```
 
-### 2. Create Firestore Database
+**That's it for GCP setup.** GitHub Actions will enable all APIs.
 
-```bash
-# Create Firestore in Native mode
-gcloud firestore databases create --location=nam5 --type=firestore-native
-```
+### 2. Create Service Account for GitHub Actions
 
-### 3. Set Up Terraform State Bucket
-
-```bash
-# Create bucket for Terraform state
-gcloud storage buckets create gs://YOUR-PROJECT-ID-terraform-state --location=us-west1
-
-# Enable versioning
-gcloud storage buckets update gs://YOUR-PROJECT-ID-terraform-state --versioning
-```
-
-### 4. Configure GitHub Repository
-
-#### a. Set up GitHub Actions Variables
-
-Go to your GitHub repository → Settings → Secrets and variables → Actions → Variables
-
-Add these **Variables** (not secrets):
-
-| Name | Value | Description |
-|------|-------|-------------|
-| `GCP_PROJECT_ID` | `YOUR-PROJECT-ID` | Your GCP project ID |
-| `GCP_REGION` | `us-west1` | GCP region |
-| `SPOTIFY_REDIRECT_URI` | `https://your-domain.com/api/spotify/callback` | Spotify OAuth redirect |
-
-#### b. Set up GitHub Actions Secrets
-
-Go to your GitHub repository → Settings → Secrets and variables → Actions → Secrets
-
-Add these **Secrets**:
-
-| Name | Value | How to Get |
-|------|-------|------------|
-| `GCP_SA_KEY` | JSON key | See step 5 below |
-| `SPOTIFY_CLIENT_ID` | Your client ID | https://developer.spotify.com/dashboard |
-| `SPOTIFY_CLIENT_SECRET` | Your client secret | https://developer.spotify.com/dashboard |
-| `GENIUS_ACCESS_TOKEN` | Your token | https://genius.com/api-clients |
-| `FIREBASE_API_KEY` | Your API key | Firebase Console (step 6) |
-| `FIREBASE_AUTH_DOMAIN` | `YOUR-PROJECT-ID.firebaseapp.com` | Firebase Console |
-| `FIREBASE_PROJECT_ID` | `YOUR-PROJECT-ID` | Same as GCP project |
-| `ALLOWED_USERS` | `user1@gmail.com,user2@gmail.com` | Comma-separated emails |
-| `SECRET_KEY` | Random string | Generate: `python -c "import secrets; print(secrets.token_hex(32))"` |
-| `GETSONGBPM_API_KEY` | Your API key (optional) | https://getsongbpm.com/api |
-| `SCRAPER_API_KEY` | Your API key (optional) | https://www.scraperapi.com/signup |
-
-### 5. Create Service Account for GitHub Actions
+This allows GitHub Actions to manage everything in your GCP project.
 
 ```bash
 # Create service account
 gcloud iam service-accounts create github-actions \
   --display-name="GitHub Actions Deployment"
 
-# Grant permissions
+# Grant all necessary permissions
 gcloud projects add-iam-policy-binding YOUR-PROJECT-ID \
   --member="serviceAccount:github-actions@YOUR-PROJECT-ID.iam.gserviceaccount.com" \
   --role="roles/run.admin"
@@ -117,143 +66,173 @@ gcloud projects add-iam-policy-binding YOUR-PROJECT-ID \
   --member="serviceAccount:github-actions@YOUR-PROJECT-ID.iam.gserviceaccount.com" \
   --role="roles/cloudbuild.builds.editor"
 
-# Create and download key
+gcloud projects add-iam-policy-binding YOUR-PROJECT-ID \
+  --member="serviceAccount:github-actions@YOUR-PROJECT-ID.iam.gserviceaccount.com" \
+  --role="roles/serviceusage.serviceUsageAdmin"
+
+# Create key and download
 gcloud iam service-accounts keys create github-actions-key.json \
   --iam-account=github-actions@YOUR-PROJECT-ID.iam.gserviceaccount.com
 
-# Copy the contents of github-actions-key.json and add to GitHub Actions secret GCP_SA_KEY
-# Then DELETE the local file:
+# Copy the ENTIRE contents of github-actions-key.json (including { and })
+# Save for next step, then DELETE the local file:
 rm github-actions-key.json
 ```
 
-### 6. Set Up Firebase Authentication
+### 3. Configure GitHub Repository
+
+#### a. Set GitHub Actions Variables
+
+Go to: GitHub repo → **Settings** → **Secrets and variables** → **Actions** → **Variables** tab
+
+Add these **Variables**:
+
+| Name | Value |
+|------|-------|
+| `GCP_PROJECT_ID` | `YOUR-PROJECT-ID` |
+| `GCP_REGION` | `us-west1` |
+| `SPOTIFY_REDIRECT_URI` | `https://YOUR-DOMAIN/api/spotify/callback` (update after first deploy) |
+
+#### b. Set GitHub Actions Secrets
+
+Go to: GitHub repo → **Settings** → **Secrets and variables** → **Actions** → **Secrets** tab
+
+Add these **Secrets**:
+
+| Name | Value | How to Get |
+|------|-------|------------|
+| `GCP_SA_KEY` | Entire JSON key from step 2 | Copy/paste the full JSON |
+| `SPOTIFY_CLIENT_ID` | Your client ID | https://developer.spotify.com/dashboard |
+| `SPOTIFY_CLIENT_SECRET` | Your client secret | https://developer.spotify.com/dashboard |
+| `GENIUS_ACCESS_TOKEN` | Your token | https://genius.com/api-clients |
+| `FIREBASE_API_KEY` | Your API key | See step 4 below |
+| `FIREBASE_AUTH_DOMAIN` | `YOUR-PROJECT-ID.firebaseapp.com` | See step 4 below |
+| `FIREBASE_PROJECT_ID` | `YOUR-PROJECT-ID` | Same as GCP project |
+| `ALLOWED_USERS` | `user1@gmail.com,user2@gmail.com` | Comma-separated emails |
+| `SECRET_KEY` | Random string | `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `GETSONGBPM_API_KEY` | Your API key | https://getsongbpm.com/api (optional) |
+| `SCRAPER_API_KEY` | Your API key | https://www.scraperapi.com/signup (optional) |
+
+See [API_SETUP.md](API_SETUP.md) for detailed instructions on getting API keys.
+
+### 4. Set Up Firebase Authentication
 
 ```bash
-# Go to Firebase Console
+# Open Firebase Console
 open https://console.firebase.google.com
-
-# Add your GCP project to Firebase (click "Add project" and select existing project)
 ```
 
-Then in Firebase Console:
+In Firebase Console:
 
-1. Go to **Authentication** → **Sign-in method**
-2. Enable **Google** provider
-3. Set support email
-4. Go to **Project Settings** (gear icon)
-5. Scroll to **Your apps** → Click web app icon (`</>`)
-6. Register app as "Band Practice"
-7. Copy the **API Key** → Add to GitHub secret `FIREBASE_API_KEY`
-8. Note the **Auth Domain** → Add to GitHub secret `FIREBASE_AUTH_DOMAIN`
+1. Click **Add project**
+2. Select your existing GCP project (YOUR-PROJECT-ID)
+3. Accept Firebase terms → **Continue**
+4. Go to **Authentication** → **Sign-in method**
+5. Enable **Google** provider, set support email
+6. Go to **Project Settings** (gear icon)
+7. Scroll to **Your apps** → Click web app icon (`</>`)
+8. Register app as "Band Practice"
+9. Copy **API Key** → Add to GitHub secret `FIREBASE_API_KEY`
+10. Copy **Auth Domain** → Add to GitHub secret `FIREBASE_AUTH_DOMAIN`
 
-### 7. Configure Terraform
-
-```bash
-cd terraform
-
-# Create terraform.tfvars
-cp terraform.tfvars.example terraform.tfvars
-
-# Edit terraform.tfvars with your values
-# Update: project_id, region, allowed_user_emails, etc.
-```
-
-### 8. Deploy Infrastructure with Terraform
+### 5. Deploy Everything via GitHub Actions
 
 ```bash
-cd terraform
-
-# Initialize Terraform
-terraform init
-
-# Preview changes
-terraform plan
-
-# Deploy infrastructure
-terraform apply
-```
-
-This creates:
-- Cloud Run service
-- Firestore indexes
-- Secret Manager secrets
-- IAM bindings
-- Artifact Registry repository
-
-### 9. Deploy Application via GitHub Actions
-
-```bash
-# Return to project root
-cd ..
-
-# Commit and push
+# Commit and push to trigger deployment
 git add .
 git commit -m "Initial deployment"
 git push origin main
 ```
 
-GitHub Actions will:
-1. Build Docker image using Cloud Build
-2. Push to Artifact Registry
-3. Deploy to Cloud Run with all secrets
-4. Your app will be live in ~3-5 minutes
+**GitHub Actions will now:**
+1. ✅ Enable all required GCP APIs (run, firestore, cloudbuild, etc.)
+2. ✅ Create Firestore database
+3. ✅ Create Terraform state bucket
+4. ✅ Run Terraform to create all infrastructure
+5. ✅ Build Docker image
+6. ✅ Deploy to Cloud Run
+7. ✅ Configure all secrets in Secret Manager
 
-Check deployment status in GitHub → Actions tab.
+**Wait ~5-10 minutes** for workflows to complete.
 
-### 10. Configure Authorized Domains
+Check status: GitHub repo → **Actions** tab
 
-After deployment, get your Cloud Run URL:
+### 6. Post-Deployment Configuration
+
+After deployment completes, you need to configure authorized domains.
+
+**Get your Cloud Run URL:**
 
 ```bash
 gcloud run services describe band-practice-pro --region=us-west1 --format="value(status.url)"
 ```
 
-Add this domain to Firebase:
+#### a. Add to Firebase Authorized Domains
 
 1. Firebase Console → **Authentication** → **Settings** → **Authorized domains**
-2. Add your Cloud Run domain (e.g., `band-practice-pro-123456.us-west1.run.app`)
-3. Click **Add domain**
+2. Click **Add domain**
+3. Enter your Cloud Run domain (without `https://`)
+   - Example: `band-practice-pro-123456.us-west1.run.app`
+4. Click **Add**
 
-And to Spotify:
+#### b. Add to Spotify Redirect URIs
 
 1. Go to https://developer.spotify.com/dashboard
 2. Select your app → **Edit Settings**
-3. Add redirect URI: `https://YOUR-CLOUD-RUN-URL/api/spotify/callback`
-4. Click **Add** → **Save**
+3. Scroll to **Redirect URIs**
+4. Add: `https://YOUR-CLOUD-RUN-URL/api/spotify/callback`
+5. Also add for local dev: `http://127.0.0.1:8080/api/spotify/callback`
+6. Click **Add** → **Save**
+
+#### c. Update GitHub Variable
+
+Update the `SPOTIFY_REDIRECT_URI` variable with your production URL:
+
+1. GitHub repo → Settings → Secrets and variables → Actions → Variables
+2. Edit `SPOTIFY_REDIRECT_URI`
+3. Change to: `https://YOUR-CLOUD-RUN-URL/api/spotify/callback`
+4. Click **Update variable**
+
+**Done!** Your app is now fully deployed and configured.
 
 ## Ongoing Deployments
 
-After initial setup, deployments are automatic:
+After initial setup, all deployments are automatic:
 
 ```bash
 # Make code changes
 # Commit and push
 git add .
-git commit -m "Your change description"
+git commit -m "Your changes"
 git push origin main
 ```
 
-GitHub Actions automatically deploys to Cloud Run. No manual steps needed!
+GitHub Actions automatically:
+- Builds new Docker image
+- Deploys to Cloud Run
+- Updates all secrets from GitHub
 
-## Infrastructure Updates
-
-If you change Terraform configuration:
-
-```bash
-cd terraform
-terraform plan
-terraform apply
-```
-
-Then redeploy the app (push to main or manually trigger GitHub Actions workflow).
+**No manual steps. Ever.**
 
 ## Updating Secrets
 
-To update secrets (API keys, allowed users, etc.):
+To change API keys, allowed users, etc:
 
-1. Update the secret value in GitHub Actions Secrets
-2. Re-run the deployment workflow (or push a commit)
-3. GitHub Actions will update Secret Manager and redeploy
+1. Update the value in GitHub Actions Secrets
+2. Push a commit (or manually trigger deploy workflow)
+3. GitHub Actions updates Secret Manager and redeploys
+
+**No gcloud commands needed.**
+
+## Infrastructure Changes
+
+If you modify Terraform files:
+
+1. Commit and push to main
+2. GitHub Actions runs `terraform plan` and `terraform apply`
+3. Then redeploys the app
+
+**Terraform runs in GitHub Actions, not locally.**
 
 ## Local Development
 
@@ -261,7 +240,8 @@ To update secrets (API keys, allowed users, etc.):
 # Copy environment template
 cp .env.example .env
 
-# Edit .env with your API keys
+# Edit .env with your API keys (same values as GitHub secrets)
+
 # Run locally
 .\run-local.bat  # Windows
 ```
@@ -278,28 +258,47 @@ gcloud run services logs tail band-practice-pro --region=us-west1
 gcloud run services logs read band-practice-pro --region=us-west1 --limit=50
 ```
 
-## Cost Estimate
+Or use GCP Console → Cloud Run → band-practice-pro → Logs
+
+## Cost
 
 With GCP free tier:
-- Cloud Run: First 2M requests/month FREE
+- Cloud Run: 2M requests/month FREE
 - Firestore: 50K reads, 20K writes/day FREE
 - Cloud Build: 120 build-minutes/day FREE
 
 **Typical monthly cost: $0 - $5**
 
-## Security Notes
+## What GitHub Actions Manages
 
-- All secrets stored in Google Secret Manager (never in code)
-- Firebase Authentication required for all API endpoints
-- User whitelist enforced via `ALLOWED_USERS`
-- Cloud Run service uses least-privilege service account
-- Infrastructure managed via Terraform (auditable, repeatable)
+Everything except the initial bootstrapping:
+
+- ✅ Enabling GCP APIs
+- ✅ Creating Firestore database
+- ✅ Creating Terraform state bucket
+- ✅ Running Terraform (infrastructure)
+- ✅ Creating Artifact Registry
+- ✅ Building Docker images
+- ✅ Deploying to Cloud Run
+- ✅ Managing Secret Manager secrets
+- ✅ Creating Firestore indexes
+
+**You only do:**
+- ❌ Create GCP project + enable billing (one-time)
+- ❌ Create service account for GitHub Actions (one-time)
+- ❌ Configure GitHub secrets/variables (one-time)
+- ❌ Set up Firebase (one-time)
+- ❌ Configure authorized domains (one-time, after first deploy)
+
+## Troubleshooting
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues.
 
 ## Next Steps
 
-1. Import a Spotify playlist
-2. Add practice notes to songs
-3. Organize songs into collections
-4. Share the Cloud Run URL with your band
+1. Sign in to your app with Google
+2. Import a Spotify playlist
+3. Add practice notes to songs
+4. Share the URL with your band
 
-See [API_SETUP.md](API_SETUP.md) for detailed API configuration and [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues.
+See [API_SETUP.md](API_SETUP.md) for API configuration details.
