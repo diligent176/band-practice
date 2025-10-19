@@ -373,7 +373,7 @@ def create_svg_favicon():
 def create_webmanifest():
     """Create a web manifest for PWA support"""
     manifest_content = '''{
-  "name": "Band Practice PRO",
+  "name": "Band Practice Pro",
   "short_name": "Band Practice",
   "description": "Manage band practice songs with lyrics, notes, and BPM",
   "icons": [

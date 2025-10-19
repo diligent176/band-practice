@@ -1,5 +1,5 @@
 """
-Band Practice PRO - Flask Web Application
+Band Practice Pro - Flask Web Application
 """
 
 import logging
@@ -765,7 +765,7 @@ def get_spotify_preview(track_id):
 @app.route('/health')
 def health():
     """Health check endpoint for Cloud Run"""
-    return jsonify({'status': 'We healthy as heck - yeah! Get Band Practice PRO!'}), 200
+    return jsonify({'status': 'We healthy as heck - yeah! Get Band Practice Pro!'}), 200
 
 
 if __name__ == '__main__':
