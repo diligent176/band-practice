@@ -1,44 +1,78 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Background circle with dark background -->
-  <circle cx="32" cy="32" r="32" fill="#1a1a1a"/>
-
-  <!-- Reggae stripes in background -->
-  <rect x="0" y="8" width="64" height="8" fill="#DC143C" opacity="0.8"/>
-  <rect x="0" y="16" width="64" height="8" fill="#FFD700" opacity="0.8"/>
-  <rect x="0" y="24" width="64" height="8" fill="#1DB954" opacity="0.8"/>
-
-  <!-- Guitar body -->
-  <ellipse cx="32" cy="38" rx="14" ry="16" fill="#8B4513" stroke="#654321" stroke-width="1.5"/>
-
-  <!-- Sound hole -->
-  <circle cx="32" cy="38" r="5" fill="#2a1a0f"/>
-  <circle cx="32" cy="38" r="4" fill="none" stroke="#8B4513" stroke-width="0.8"/>
-
-  <!-- Guitar neck -->
-  <rect x="28" y="10" width="8" height="18" fill="#654321" rx="1"/>
-
-  <!-- Frets -->
-  <line x1="28" y1="14" x2="36" y2="14" stroke="#d4d4d4" stroke-width="0.6"/>
-  <line x1="28" y1="18" x2="36" y2="18" stroke="#d4d4d4" stroke-width="0.6"/>
-  <line x1="28" y1="22" x2="36" y2="22" stroke="#d4d4d4" stroke-width="0.6"/>
-  <line x1="28" y1="26" x2="36" y2="26" stroke="#d4d4d4" stroke-width="0.6"/>
-
-  <!-- Strings -->
-  <line x1="30" y1="10" x2="30" y2="50" stroke="#e0e0e0" stroke-width="0.5" opacity="0.9"/>
-  <line x1="32" y1="10" x2="32" y2="50" stroke="#e0e0e0" stroke-width="0.5" opacity="0.9"/>
-  <line x1="34" y1="10" x2="34" y2="50" stroke="#e0e0e0" stroke-width="0.5" opacity="0.9"/>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Reggae gradient for full circle background -->
+    <linearGradient id="reggaeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc143c;stop-opacity:1" />
+      <stop offset="33%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="66%" style="stop-color:#1db954;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#158f3f;stop-opacity:1" />
+    </linearGradient>
+    <!-- Wood gradient for guitar body -->
+    <radialGradient id="bodyGradient" cx="50%" cy="35%">
+      <stop offset="0%" style="stop-color:rgb(160,90,30);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(139,69,19);stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- MASSIVE Full circle with reggae gradient -->
+  <circle cx="128" cy="128" r="128" fill="url(#reggaeGradient)"/>
+  
+  <!-- MASSIVE GUITAR overlaid on top - 98% height -->
+  
   <!-- Headstock -->
-  <rect x="27" y="6" width="10" height="5" fill="#654321" rx="1"/>
-
-  <!-- Tuning pegs -->
-  <circle cx="29" cy="8" r="1.2" fill="#FFD700"/>
-  <circle cx="32" cy="8" r="1.2" fill="#FFD700"/>
-  <circle cx="35" cy="8" r="1.2" fill="#FFD700"/>
-
+  <rect x="108" y="3" width="40" height="20" rx="3" fill="#654321" stroke="#8b4513" stroke-width="2"/>
+  
+  <!-- Tuning pegs (left) -->
+  <circle cx="115" cy="8" r="3" fill="#ffd700" stroke="#654321" stroke-width="1"/>
+  <circle cx="115" cy="13" r="3" fill="#ffd700" stroke="#654321" stroke-width="1"/>
+  <circle cx="115" cy="18" r="3" fill="#ffd700" stroke="#654321" stroke-width="1"/>
+  
+  <!-- Tuning pegs (right) -->
+  <circle cx="141" cy="8" r="3" fill="#ffd700" stroke="#654321" stroke-width="1"/>
+  <circle cx="141" cy="13" r="3" fill="#ffd700" stroke="#654321" stroke-width="1"/>
+  <circle cx="141" cy="18" r="3" fill="#ffd700" stroke="#654321" stroke-width="1"/>
+  
+  <!-- Guitar neck - TALL -->
+  <rect x="118" y="23" width="20" height="102" rx="3" fill="#654321" stroke="#8b4513" stroke-width="2"/>
+  
+  <!-- Frets -->
+  <line x1="120" y1="35" x2="136" y2="35" stroke="#e0e0e0" stroke-width="1.5" opacity="0.8"/>
+  <line x1="120" y1="48" x2="136" y2="48" stroke="#e0e0e0" stroke-width="1.5" opacity="0.8"/>
+  <line x1="120" y1="61" x2="136" y2="61" stroke="#e0e0e0" stroke-width="1.5" opacity="0.8"/>
+  <line x1="120" y1="74" x2="136" y2="74" stroke="#e0e0e0" stroke-width="1.5" opacity="0.8"/>
+  <line x1="120" y1="87" x2="136" y2="87" stroke="#e0e0e0" stroke-width="1.5" opacity="0.8"/>
+  <line x1="120" y1="100" x2="136" y2="100" stroke="#e0e0e0" stroke-width="1.5" opacity="0.8"/>
+  <line x1="120" y1="113" x2="136" y2="113" stroke="#e0e0e0" stroke-width="1.5" opacity="0.8"/>
+  
+  <!-- Upper bout -->
+  <ellipse cx="128" cy="132" rx="50" ry="40" fill="url(#bodyGradient)" stroke="#654321" stroke-width="3"/>
+  
+  <!-- Lower bout - LARGE -->
+  <ellipse cx="128" cy="190" rx="58" ry="62" fill="url(#bodyGradient)" stroke="#654321" stroke-width="3"/>
+  
+  <!-- Sound hole -->
+  <circle cx="128" cy="145" r="18" fill="#2a1a0f"/>
+  <circle cx="128" cy="145" r="21" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.8"/>
+  <circle cx="128" cy="145" r="24" fill="none" stroke="#ffd700" stroke-width="1.5" opacity="0.6"/>
+  
   <!-- Bridge -->
-  <rect x="28" y="50" width="8" height="2" fill="#654321" rx="0.5"/>
-
-  <!-- Highlight on guitar body -->
-  <ellipse cx="28" cy="34" rx="4" ry="6" fill="#ffffff" opacity="0.15"/>
+  <rect x="106" y="235" width="44" height="10" rx="2" fill="#654321" stroke="#ffd700" stroke-width="1"/>
+  
+  <!-- Guitar strings running full length -->
+  <line x1="121" y1="23" x2="121" y2="235" stroke="#e0e0e0" stroke-width="1" opacity="0.7"/>
+  <line x1="124" y1="23" x2="124" y2="235" stroke="#e0e0e0" stroke-width="1.2" opacity="0.7"/>
+  <line x1="128" y1="23" x2="128" y2="235" stroke="#e0e0e0" stroke-width="1.4" opacity="0.7"/>
+  <line x1="132" y1="23" x2="132" y2="235" stroke="#e0e0e0" stroke-width="1.6" opacity="0.7"/>
+  <line x1="135" y1="23" x2="135" y2="235" stroke="#e0e0e0" stroke-width="1.8" opacity="0.7"/>
+  
+  <!-- Bridge pins -->
+  <circle cx="121" cy="240" r="2" fill="#ffd700"/>
+  <circle cx="124" cy="240" r="2" fill="#ffd700"/>
+  <circle cx="128" cy="240" r="2" fill="#ffd700"/>
+  <circle cx="132" cy="240" r="2" fill="#ffd700"/>
+  <circle cx="135" cy="240" r="2" fill="#ffd700"/>
+  
+  <!-- Highlight for depth on body -->
+  <ellipse cx="128" cy="145" rx="25" ry="35" fill="white" opacity="0.12"/>
 </svg>
