@@ -2595,12 +2595,12 @@ header h1 i {
   white-space: nowrap;
 }
 
-.collection-item-song-count {
-  color: var(--text-muted);
-  font-size: 12px;
+.collection-item-counts {
+  color: var(--text-secondary);
+  font-size: 13px;
   font-weight: 400;
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.85;
   white-space: nowrap;
 }
 

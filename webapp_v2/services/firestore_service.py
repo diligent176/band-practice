@@ -388,6 +388,23 @@ class FirestoreService:
 
         return len(list(query.stream()))
 
+    def count_playlists_by_collection(self, collection_id):
+        """
+        Count playlists linked to a specific collection
+
+        Args:
+            collection_id: Collection document ID
+
+        Returns:
+            Integer count of linked playlists
+        """
+        collection = self.get_collection(collection_id)
+        if not collection:
+            return 0
+
+        playlist_ids = collection.get('playlist_ids', [])
+        return len(playlist_ids)
+
     # =========================================================================
     # V2: Playlist Linking Methods
     # =========================================================================

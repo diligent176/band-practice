@@ -46,7 +46,6 @@ const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const refreshSongBtn = document.getElementById('refresh-song-btn');
 const fetchBpmBtn = document.getElementById('fetch-bpm-btn');
 const editLyricsBtn = document.getElementById('edit-lyrics-btn');
-const deleteSongBtn = document.getElementById('delete-song-btn');
 const toggleColumnsBtn = document.getElementById('toggle-columns-btn');
 const fontSizeSelect = document.getElementById('font-size-select');
 
@@ -255,7 +254,6 @@ function setupEventListeners() {
     fetchBpmBtn.addEventListener('click', manuallyFetchBpm);
     setBpmBtn.addEventListener('click', openBpmDialog);
     editLyricsBtn.addEventListener('click', openLyricsEditor);
-    deleteSongBtn.addEventListener('click', deleteCurrentSong);
     lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
     lyricsEditorCancelBtn.addEventListener('click', closeLyricsEditor);
     insertVerseBtn.addEventListener('click', insertVerse);
@@ -484,16 +482,6 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
-    // Alt+D to delete song
-    if (e.altKey && (e.key === 'd' || e.key === 'D')) {
-        const deleteSongBtn = document.getElementById('delete-song-btn');
-        if (deleteSongBtn && !deleteSongBtn.disabled) {
-            e.preventDefault();
-            deleteSongBtn.click();
-        }
-        return;
-    }
-
     // Arrow keys to navigate through notes OR adjust panel split in resize mode
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         if (navigateNotes(e.key === 'ArrowDown' ? 1 : -1)) {
@@ -667,7 +655,6 @@ async function loadSong(songId) {
             refreshSongBtn.disabled = false;
             editNotesBtn.disabled = false;
             editLyricsBtn.disabled = false;
-            deleteSongBtn.disabled = false;
             fetchBpmBtn.disabled = false;
             setBpmBtn.disabled = false;
             setStatus('Song loaded', 'success');
@@ -911,67 +898,6 @@ async function performRefresh(forceOverwrite) {
     } finally {
         hideLoading();
     }
-}
-
-async function deleteCurrentSong() {
-    if (!currentSong) return;
-
-    const songTitle = `${currentSong.title} - ${currentSong.artist}`;
-
-    showConfirmDialog(
-        'Delete Song?',
-        `Delete "${songTitle}" from the collection? Custom Lyrics will be deleted.\n\nThis cannot be undone.`,
-        async () => {
-            try {
-                showLoading('Deleting song...');
-
-                const response = await authenticatedApiCall(`/api/songs/${currentSong.id}`, {
-                    method: 'DELETE'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    setStatus('Song deleted', 'success');
-
-                    // Clear current song
-                    currentSong = null;
-                    saveCurrentSong(null); // Clear saved song from localStorage
-
-                    // Show the "Lyrics" heading again
-                    if (lyricsHeading) {
-                        lyricsHeading.style.display = 'block';
-                        lyricsHeading.textContent = 'Lyrics';
-                    }
-
-                    // Disable buttons
-                    refreshSongBtn.disabled = true;
-                    editNotesBtn.disabled = true;
-                    editLyricsBtn.disabled = true;
-                    deleteSongBtn.disabled = true;
-                    fetchBpmBtn.disabled = true;
-
-                    // Clear displays
-                    lyricsContentInner.innerHTML = '<div class="empty-state"><p>Select a song to view lyrics</p></div>';
-                    notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
-                    songMetadata.innerHTML = '';
-
-                    // Update current song display
-                    updateCurrentSongDisplay();
-
-                    // Reload song list
-                    await loadSongs();
-                } else {
-                    showToast('Failed to delete song: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showToast('Error deleting song: ' + error.message, 'error');
-            } finally {
-                hideLoading();
-            }
-        }
-    );
 }
 
 async function openSongSelector() {
@@ -3399,9 +3325,17 @@ function renderCollectionList() {
         const isActive = currentCollection && collection.id === currentCollection.id;
         const activeClass = isActive ? 'active' : '';
         const canEdit = collection.name !== 'Default';
+        const playlistCount = collection.playlist_count || 0;
         const songCount = collection.song_count || 0;
-        const songCountText = songCount === 1 ? '1 song' : `${songCount} songs`;
-        
+
+        // Build count text: "3 playlists, 27 songs"
+        const countParts = [];
+        if (playlistCount > 0) {
+            countParts.push(playlistCount === 1 ? '1 playlist' : `${playlistCount} playlists`);
+        }
+        countParts.push(songCount === 1 ? '1 song' : `${songCount} songs`);
+        const countText = countParts.join(', ');
+
         html += `
             <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
                 <div class="collection-item-icon">
@@ -3410,7 +3344,7 @@ function renderCollectionList() {
                 <div class="collection-item-info">
                     <div class="collection-item-header">
                         <span class="collection-item-name">${escapeHtml(collection.name)}</span>
-                        <span class="collection-item-song-count">${songCountText}</span>
+                        <span class="collection-item-counts">${countText}</span>
                     </div>
                     ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
                 </div>

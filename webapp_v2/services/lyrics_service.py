@@ -1010,6 +1010,6 @@ class LyricsService:
         
         yield {
             'type': 'complete',
-            'message': f'Sync complete: {stats["new_songs"]} new, {stats["updated_songs"]} updated, {stats["removed_songs"]} removed',
+            'message': f'Synced {stats["new_songs"]} new, {stats["updated_songs"]} updated, {stats["removed_songs"]} removed',
             'stats': stats
         }
