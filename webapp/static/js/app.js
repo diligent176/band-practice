@@ -2252,7 +2252,10 @@ function openBpmDialog() {
     bpmInput.select();
 
     // Add keyboard shortcuts
-    document.addEventListener('keydown', handleBpmDialogKeyboard);
+    if (!eventListenerFlags.bpmDialog) {
+        document.addEventListener('keydown', handleBpmDialogKeyboard);
+        eventListenerFlags.bpmDialog = true;
+    }
 }
 
 function closeBpmDialog() {
@@ -2260,7 +2263,10 @@ function closeBpmDialog() {
     bpmInput.value = '';
 
     // Remove keyboard shortcuts
-    document.removeEventListener('keydown', handleBpmDialogKeyboard);
+    if (eventListenerFlags.bpmDialog) {
+        document.removeEventListener('keydown', handleBpmDialogKeyboard);
+        eventListenerFlags.bpmDialog = false;
+    }
 }
 
 function handleBpmDialogKeyboard(e) {
@@ -2354,7 +2360,10 @@ function openBpmTapTrainer() {
     bpmTapDialog.style.display = 'flex';
 
     // Add keyboard shortcuts
-    document.addEventListener('keydown', handleBpmTapKeyboard);
+    if (!eventListenerFlags.bpmTapDialog) {
+        document.addEventListener('keydown', handleBpmTapKeyboard);
+        eventListenerFlags.bpmTapDialog = true;
+    }
 }
 
 function closeBpmTapTrainer() {
@@ -2362,7 +2371,10 @@ function closeBpmTapTrainer() {
     resetTapTrainer();
 
     // Remove keyboard shortcuts
-    document.removeEventListener('keydown', handleBpmTapKeyboard);
+    if (eventListenerFlags.bpmTapDialog) {
+        document.removeEventListener('keydown', handleBpmTapKeyboard);
+        eventListenerFlags.bpmTapDialog = false;
+    }
 }
 
 function resetTapTrainer() {
@@ -2575,7 +2587,10 @@ async function showImportDialog() {
     importPlaylistUrl.focus();
 
     // Add keyboard shortcuts
-    document.addEventListener('keydown', handleImportDialogKeyboard);
+    if (!eventListenerFlags.importDialog) {
+        document.addEventListener('keydown', handleImportDialogKeyboard);
+        eventListenerFlags.importDialog = true;
+    }
 }
 
 function closeImportDialog() {
@@ -2588,7 +2603,10 @@ function closeImportDialog() {
     };
 
     // Remove keyboard shortcuts
-    document.removeEventListener('keydown', handleImportDialogKeyboard);
+    if (eventListenerFlags.importDialog) {
+        document.removeEventListener('keydown', handleImportDialogKeyboard);
+        eventListenerFlags.importDialog = false;
+    }
 }
 
 function handleImportDialogKeyboard(e) {
@@ -3170,15 +3188,20 @@ async function showCollectionDialog() {
         hideLoading();
     }
     
-    // Remove any existing keyboard listener first to prevent duplicates
-    document.removeEventListener('keydown', handleCollectionDialogKeyboard);
     // Add keyboard shortcuts
-    document.addEventListener('keydown', handleCollectionDialogKeyboard);
+    if (!eventListenerFlags.collectionDialog) {
+        document.addEventListener('keydown', handleCollectionDialogKeyboard);
+        eventListenerFlags.collectionDialog = true;
+    }
 }
 
 function closeCollectionDialog() {
     collectionDialog.style.display = 'none';
-    document.removeEventListener('keydown', handleCollectionDialogKeyboard);
+    
+    if (eventListenerFlags.collectionDialog) {
+        document.removeEventListener('keydown', handleCollectionDialogKeyboard);
+        eventListenerFlags.collectionDialog = false;
+    }
 }
 
 let selectedCollectionIndex = 0;
@@ -3430,12 +3453,19 @@ function showNewCollectionDialog() {
     collectionNameInput.focus();
     
     // Add keyboard shortcuts
-    document.addEventListener('keydown', handleNewCollectionDialogKeyboard);
+    if (!eventListenerFlags.newCollectionDialog) {
+        document.addEventListener('keydown', handleNewCollectionDialogKeyboard);
+        eventListenerFlags.newCollectionDialog = true;
+    }
 }
 
 function closeNewCollectionDialog() {
     newCollectionDialog.style.display = 'none';
-    document.removeEventListener('keydown', handleNewCollectionDialogKeyboard);
+    
+    if (eventListenerFlags.newCollectionDialog) {
+        document.removeEventListener('keydown', handleNewCollectionDialogKeyboard);
+        eventListenerFlags.newCollectionDialog = false;
+    }
 }
 
 function handleNewCollectionDialogKeyboard(e) {
@@ -3500,13 +3530,20 @@ function showEditCollectionDialog() {
     editCollectionNameInput.select();
     
     // Add keyboard shortcuts
-    document.addEventListener('keydown', handleEditCollectionDialogKeyboard);
+    if (!eventListenerFlags.editCollectionDialog) {
+        document.addEventListener('keydown', handleEditCollectionDialogKeyboard);
+        eventListenerFlags.editCollectionDialog = true;
+    }
 }
 
 function closeEditCollectionDialog() {
     editCollectionDialog.style.display = 'none';
     editingCollectionId = null;
-    document.removeEventListener('keydown', handleEditCollectionDialogKeyboard);
+    
+    if (eventListenerFlags.editCollectionDialog) {
+        document.removeEventListener('keydown', handleEditCollectionDialogKeyboard);
+        eventListenerFlags.editCollectionDialog = false;
+    }
 }
 
 function handleEditCollectionDialogKeyboard(e) {
