@@ -56,6 +56,9 @@ const customizationBadge = document.getElementById('customization-badge');
 const customizationBadgeMain = document.getElementById('customization-badge-main');
 const insertVerseBtn = document.getElementById('insert-verse-btn');
 const insertChorusBtn = document.getElementById('insert-chorus-btn');
+const insertBridgeBtn = document.getElementById('insert-bridge-btn');
+const insertIntroBtn = document.getElementById('insert-intro-btn');
+const insertOutroBtn = document.getElementById('insert-outro-btn');
 const tightenLyricsBtn = document.getElementById('tighten-lyrics-btn');
 
 const confirmDialog = document.getElementById('confirm-dialog');
@@ -212,6 +215,9 @@ function setupEventListeners() {
     lyricsEditorCancelBtn.addEventListener('click', closeLyricsEditor);
     insertVerseBtn.addEventListener('click', insertVerse);
     insertChorusBtn.addEventListener('click', insertChorus);
+    if (insertBridgeBtn) insertBridgeBtn.addEventListener('click', insertBridge);
+    if (insertIntroBtn) insertIntroBtn.addEventListener('click', insertIntro);
+    if (insertOutroBtn) insertOutroBtn.addEventListener('click', insertOutro);
     tightenLyricsBtn.addEventListener('click', tightenLyrics);
 
     // BPM dialog handlers
@@ -1767,12 +1773,12 @@ function openLyricsEditor() {
     // Set the dialog title with song info
     lyricsEditorTitle.textContent = `Edit Lyrics: ${currentSong.title} - ${currentSong.artist}`;
 
-    // Show customization badge if song is already customized
+    // Show customization badge if song is already customized (only on main view, not in editor)
     if (currentSong.is_customized) {
-        customizationBadge.style.display = 'block';
+        if (customizationBadge) customizationBadge.style.display = 'block';
         if (customizationBadgeMain) customizationBadgeMain.style.display = 'inline-flex';
     } else {
-        customizationBadge.style.display = 'none';
+        if (customizationBadge) customizationBadge.style.display = 'none';
         if (customizationBadgeMain) customizationBadgeMain.style.display = 'none';
     }
 
@@ -1920,12 +1926,35 @@ function handleLyricsEditorKeyboard(e) {
         insertChorus();
         return;
     }
+
+    // Alt+B to insert [Bridge]
+    if (e.altKey && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        e.stopPropagation();
+        insertBridge();
+        return;
+    }
+
+    // Alt+I to insert [Intro]
+    if (e.altKey && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault();
+        e.stopPropagation();
+        insertIntro();
+        return;
+    }
+
+    // Alt+O to insert [Outro]
+    if (e.altKey && (e.key === 'o' || e.key === 'O')) {
+        e.preventDefault();
+        e.stopPropagation();
+        insertOutro();
+        return;
+    }
 }
 
 function tightenLyrics() {
     const lines = lyricsEditorTextarea.value.split('\n');
     const tightenedLines = [];
-    let previousLineWasHeader = false;
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -1937,16 +1966,21 @@ function tightenLyrics() {
         // Check if line is blank
         const isBlank = trimmedLine === '';
 
-        if (isBlank && previousLineWasHeader) {
-            // Skip blank lines that come immediately after headers
+        // Check if previous line was a header
+        const prevLine = i > 0 ? lines[i - 1].trim() : '';
+        const previousLineWasHeader = /^\[.*\]/.test(prevLine);
+
+        // Check if next line is a header
+        const nextLine = i < lines.length - 1 ? lines[i + 1].trim() : '';
+        const nextLineIsHeader = /^\[.*\]/.test(nextLine);
+
+        // Skip blank lines that are immediately before or after headers
+        if (isBlank && (previousLineWasHeader || nextLineIsHeader)) {
             continue;
         }
 
         // Add the line
         tightenedLines.push(line);
-
-        // Track if this line was a header
-        previousLineWasHeader = isHeader;
     }
 
     // Update the textarea with tightened lyrics
@@ -1956,51 +1990,107 @@ function tightenLyrics() {
     updateLyricsEditorLineNumbers();
 
     // Show feedback
-    showToast('Removed blank lines after section headers', 'success');
+    showToast('Removed blank lines around section headers', 'success');
 }
 
 function insertVerse() {
     const textarea = lyricsEditorTextarea;
-    const cursorPos = textarea.selectionStart;
-    const textBefore = textarea.value.substring(0, cursorPos);
-    const textAfter = textarea.value.substring(cursorPos);
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const textBefore = textarea.value.substring(0, start);
+    const textAfter = textarea.value.substring(end);
     
-    // Insert [Verse] followed by a newline
+    // Insert [Verse] (replaces selected text if any)
     const textToInsert = '[Verse]';
     textarea.value = textBefore + textToInsert + textAfter;
     
     // Move cursor to end of inserted text
-    const newCursorPos = cursorPos + textToInsert.length;
+    const newCursorPos = start + textToInsert.length;
     textarea.setSelectionRange(newCursorPos, newCursorPos);
     textarea.focus();
     
     // Update line numbers
     updateLyricsEditorLineNumbers();
-    
-    // Show feedback
-    // showToast('[Verse] heading inserted', 'success');
 }
 
 function insertChorus() {
     const textarea = lyricsEditorTextarea;
-    const cursorPos = textarea.selectionStart;
-    const textBefore = textarea.value.substring(0, cursorPos);
-    const textAfter = textarea.value.substring(cursorPos);
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const textBefore = textarea.value.substring(0, start);
+    const textAfter = textarea.value.substring(end);
     
-    // Insert [Chorus] followed by a newline
+    // Insert [Chorus] (replaces selected text if any)
     const textToInsert = '[Chorus]';
     textarea.value = textBefore + textToInsert + textAfter;
     
     // Move cursor to end of inserted text
-    const newCursorPos = cursorPos + textToInsert.length;
+    const newCursorPos = start + textToInsert.length;
     textarea.setSelectionRange(newCursorPos, newCursorPos);
     textarea.focus();
     
     // Update line numbers
     updateLyricsEditorLineNumbers();
+}
+
+function insertBridge() {
+    const textarea = lyricsEditorTextarea;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const textBefore = textarea.value.substring(0, start);
+    const textAfter = textarea.value.substring(end);
     
-    // Show feedback
-    // showToast('[Chorus] heading inserted', 'success');
+    // Insert [Bridge] (replaces selected text if any)
+    const textToInsert = '[Bridge]';
+    textarea.value = textBefore + textToInsert + textAfter;
+    
+    // Move cursor to end of inserted text
+    const newCursorPos = start + textToInsert.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    textarea.focus();
+    
+    // Update line numbers
+    updateLyricsEditorLineNumbers();
+}
+
+function insertIntro() {
+    const textarea = lyricsEditorTextarea;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const textBefore = textarea.value.substring(0, start);
+    const textAfter = textarea.value.substring(end);
+    
+    // Insert [Intro] (replaces selected text if any)
+    const textToInsert = '[Intro]';
+    textarea.value = textBefore + textToInsert + textAfter;
+    
+    // Move cursor to end of inserted text
+    const newCursorPos = start + textToInsert.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    textarea.focus();
+    
+    // Update line numbers
+    updateLyricsEditorLineNumbers();
+}
+
+function insertOutro() {
+    const textarea = lyricsEditorTextarea;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const textBefore = textarea.value.substring(0, start);
+    const textAfter = textarea.value.substring(end);
+    
+    // Insert [Outro] (replaces selected text if any)
+    const textToInsert = '[Outro]';
+    textarea.value = textBefore + textToInsert + textAfter;
+    
+    // Move cursor to end of inserted text
+    const newCursorPos = start + textToInsert.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    textarea.focus();
+    
+    // Update line numbers
+    updateLyricsEditorLineNumbers();
 }
 
 async function saveLyrics() {

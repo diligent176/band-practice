@@ -450,18 +450,24 @@ END: Third repetition of chorus is acapella"></textarea>
                 <div class="dialog-header">
                     <h3 id="lyrics-editor-title">Edit Lyrics</h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <button id="insert-verse-btn" class="btn btn-badge" title="Insert [Verse] heading at cursor">
+                        <button id="insert-verse-btn" class="btn btn-badge" title="Insert [Verse] heading (replaces selection)">
                             <i class="fa-solid fa-music"></i> Verse (Alt+V)
                         </button>
-                        <button id="insert-chorus-btn" class="btn btn-badge" title="Insert [Chorus] heading at cursor">
+                        <button id="insert-chorus-btn" class="btn btn-badge" title="Insert [Chorus] heading (replaces selection)">
                             <i class="fa-solid fa-microphone"></i> Chorus (Alt+C)
                         </button>
-                        <button id="tighten-lyrics-btn" class="btn btn-badge" title="Remove blank lines after section headers">
+                        <button id="insert-bridge-btn" class="btn btn-badge" title="Insert [Bridge] heading (replaces selection)">
+                            <i class="fa-solid fa-bridge"></i> Bridge (Alt+B)
+                        </button>
+                        <button id="insert-intro-btn" class="btn btn-badge" title="Insert [Intro] heading (replaces selection)">
+                            <i class="fa-solid fa-play"></i> Intro (Alt+I)
+                        </button>
+                        <button id="insert-outro-btn" class="btn btn-badge" title="Insert [Outro] heading (replaces selection)">
+                            <i class="fa-solid fa-stop"></i> Outro (Alt+O)
+                        </button>
+                        <button id="tighten-lyrics-btn" class="btn btn-badge" title="Remove blank lines around section headers">
                             <i class="fa-solid fa-compress"></i> Tighten (Alt+T)
                         </button>
-                        <div class="customization-badge" id="customization-badge" style="display: none;">
-                            <span style="color: #FF9800;"><i class="fa-solid fa-triangle-exclamation"></i> Customized</span>
-                        </div>
                     </div>
                 </div>
                 <div class="lyrics-editor-content">
