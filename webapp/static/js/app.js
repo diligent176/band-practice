@@ -249,8 +249,8 @@ function setupEventListeners() {
 
 // Global keyboard shortcut handler
 function handleGlobalKeyboard(e) {
-    // Ctrl+Up/Down for font size adjustment (works even when typing)
-    if (e.ctrlKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    // Alt+Up/Down for font size adjustment (works even when typing)
+    if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault();
         adjustFontSize(e.key === 'ArrowUp' ? 1 : -1);
         return;
@@ -1695,8 +1695,8 @@ function adjustFontSize(direction) {
         1.0
     );
 
-    // Increment/decrement by 0.1 (smooth adjustment)
-    const step = 0.1;
+    // Increment/decrement by 0.05 (5% adjustment)
+    const step = 0.05;
     let newScale = currentScale + (direction * step);
 
     // Clamp between 0.5 and 2.5 (reasonable limits)
@@ -1711,10 +1711,6 @@ function adjustFontSize(direction) {
 
     // Update dropdown to closest match (optional - keeps UI in sync)
     updateFontSizeDropdown(newScale);
-
-    // Show toast notification with current size
-    const percentage = Math.round(newScale * 100);
-    showToast(`Font size: ${percentage}%`, 'info');
 }
 
 // Update dropdown to nearest matching size
