@@ -4683,12 +4683,12 @@ function renderPlaylistDialog() {
     } else {
         linkedList.innerHTML = linkedPlaylists.map(playlist => `
             <div class="playlist-item">
-                <img src="${playlist.image_url || '/static/icons/playlist-placeholder.png'}" 
-                     alt="${escapeHtml(playlist.name)}" 
+                <img src="${playlist.image_url || '/static/icons/playlist-placeholder.png'}"
+                     alt="${escapeHtml(playlist.name)}"
                      class="playlist-item-image">
                 <div class="playlist-item-info">
-                    <div class="playlist-item-name">${escapeHtml(playlist.name)}</div>
-                    <div class="playlist-item-meta">${playlist.owner} • ${playlist.total_tracks} tracks</div>
+                    <span class="playlist-item-name">${escapeHtml(playlist.name)}</span>
+                    <span class="playlist-item-meta">${playlist.owner} • ${playlist.total_tracks} track${playlist.total_tracks !== 1 ? 's' : ''}</span>
                 </div>
                 <div class="playlist-item-actions">
                     <span class="playlist-item-linked-badge">
@@ -4716,12 +4716,12 @@ function renderPlaylistDialog() {
     } else {
         otherList.innerHTML = otherPlaylists.map(playlist => `
             <div class="playlist-item">
-                <img src="${playlist.image_url || '/static/icons/playlist-placeholder.png'}" 
-                     alt="${escapeHtml(playlist.name)}" 
+                <img src="${playlist.image_url || '/static/icons/playlist-placeholder.png'}"
+                     alt="${escapeHtml(playlist.name)}"
                      class="playlist-item-image">
                 <div class="playlist-item-info">
-                    <div class="playlist-item-name">${escapeHtml(playlist.name)}</div>
-                    <div class="playlist-item-meta">${playlist.owner} • ${playlist.total_tracks} tracks</div>
+                    <span class="playlist-item-name">${escapeHtml(playlist.name)}</span>
+                    <span class="playlist-item-meta">${playlist.owner} • ${playlist.total_tracks} track${playlist.total_tracks !== 1 ? 's' : ''}</span>
                 </div>
                 <div class="playlist-item-actions">
                     <button class="btn-link-playlist" data-playlist-url="${escapeHtml(playlist.playlist_url)}">
