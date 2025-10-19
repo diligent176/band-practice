@@ -373,7 +373,13 @@ class FirestoreService:
 
     def count_songs_by_collection(self, collection_id):
         """
-        Count songs in a specific collection (optimized with select([]))
+        Count songs in a specific collection using Firestore count aggregation.
+
+        REQUIRES: google-cloud-firestore >= 2.16.0
+
+        This uses server-side count aggregation which is much faster than
+        streaming documents. The count is computed on the server without
+        transferring any document data.
 
         Args:
             collection_id: Collection document ID
@@ -381,12 +387,30 @@ class FirestoreService:
         Returns:
             Integer count of songs
         """
-        # Use select([]) to fetch only document IDs (minimal data transfer)
-        query = (self.db.collection(self.songs_collection)
-                .where('collection_id', '==', collection_id)
-                .select([]))  # Empty select = only document IDs, no field data
+        try:
+            # Use Firestore's native count aggregation (available in 2.16.0+)
+            query = self.db.collection(self.songs_collection).where('collection_id', '==', collection_id)
 
-        return len(list(query.stream()))
+            # count() returns an AggregationQuery that computes the count server-side
+            aggregation_query = query.count()
+
+            # Execute the aggregation and get results
+            results = aggregation_query.get()
+
+            # Extract the count value from results
+            # results is a list of aggregation result lists
+            # results[0][0] is the first (and only) aggregation result
+            if results and len(results) > 0 and len(results[0]) > 0:
+                return results[0][0].value
+            return 0
+
+        except AttributeError:
+            # Fallback for older Firestore versions (< 2.16.0)
+            # This shouldn't happen after upgrade, but provides safety net
+            query = (self.db.collection(self.songs_collection)
+                    .where('collection_id', '==', collection_id)
+                    .select([]))  # Empty select = only document IDs, no field data
+            return len(list(query.stream()))
 
     def count_playlists_by_collection(self, collection_id):
         """
