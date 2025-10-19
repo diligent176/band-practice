@@ -905,6 +905,17 @@ function openSongSelector() {
 
     // Add keyboard handler for song selector
     document.addEventListener('keydown', handleSongSelectorKeyboard);
+    
+    // Add event delegation for song clicks (more efficient than individual listeners)
+    songSelectorList.addEventListener('click', handleSongListClick);
+}
+
+function handleSongListClick(e) {
+    // Find the clicked song item (could be the item itself or a child element)
+    const songItem = e.target.closest('.song-selector-item');
+    if (songItem && songItem.dataset.songId) {
+        selectSong(songItem.dataset.songId);
+    }
 }
 
 function closeSongSelector() {
@@ -913,6 +924,9 @@ function closeSongSelector() {
     
     // Remove keyboard handler
     document.removeEventListener('keydown', handleSongSelectorKeyboard);
+    
+    // Remove click delegation handler
+    songSelectorList.removeEventListener('click', handleSongListClick);
 }
 
 function toggleSongSort() {
@@ -1006,13 +1020,8 @@ ${albumArtHtml}
 
         listElement.innerHTML = html;
 
-        // Add click handlers
-        document.querySelectorAll('.song-selector-item').forEach(item => {
-            item.addEventListener('click', () => {
-                selectSong(item.dataset.songId);
-            });
-        });
-
+        // Use event delegation instead of attaching individual click handlers
+        // This is much more efficient - single listener instead of N listeners
         if (selectedSongIndex >= filteredSongs.length) {
             selectedSongIndex = filteredSongs.length - 1;
         }
