@@ -444,7 +444,11 @@ function handleGlobalKeyboard(e) {
     }
 
     // T to restart track (rewind to beginning)
+    // Skip if Song Chooser is open (Alt+T cycles sort modes there)
     if (e.key === 't' || e.key === 'T') {
+        if (songSelectorDialog.style.display !== 'none') {
+            return;  // Let Song Chooser handle it
+        }
         if (currentSong && spotifyPlayerReady) {
             e.preventDefault();
             restartTrack();
