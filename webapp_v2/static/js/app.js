@@ -942,13 +942,8 @@ function openSongSelector() {
     songSelectorDialog.style.display = 'flex';
     songSearchInput.value = '';
 
-    // Initialize filtered songs with all songs
-    filteredSongs = [...allSongs];
-
-    // Sort by title initially
-    filteredSongs.sort((a, b) => a.title.localeCompare(b.title));
-
-    renderSongList();
+    // V2: Use filterSongsV2 to get proper rendering with trash icons
+    filterSongsV2();
 
     songSearchInput.focus();
 
@@ -3454,7 +3449,7 @@ async function switchCollection(collectionId) {
             // V2: Trigger background sync after switching collection
             syncCollectionInBackground(collectionId);
             
-            showToast(`Switched to collection: ${currentCollection.name}`, 'success');
+            setStatus(`Switched to collection: ${currentCollection.name}`, 'success');
         } else {
             showToast('Failed to switch collection', 'error');
         }
@@ -4652,9 +4647,10 @@ async function syncCollectionInBackground(collectionId) {
                     
                     if (data.type === 'progress') {
                         console.log(`📊 Sync progress: ${data.message}`);
+                        setStatus(data.message, 'info');
                     } else if (data.type === 'complete') {
                         console.log(`✅ Sync complete: ${data.message}`);
-                        showToast(data.message, 'success');
+                        setStatus(data.message, 'success');
                         // Reload songs to reflect changes
                         await loadSongs();
                     } else if (data.type === 'error') {
@@ -4971,6 +4967,21 @@ function renderSongItem(song, index) {
         bpmDisplay = `${song.bpm}<span class="bpm-manual-badge-small" title="Custom bpm/tempo (B)"><i class="fa-solid fa-pen"></i></span>`;
     }
 
+    // Show trash icon if flagged removed or not in any playlist
+    const isFlaggedRemoved = song.is_removed_from_spotify === true;
+    const isOrphaned = !song.source_playlist_ids || song.source_playlist_ids.length === 0;
+    let trashIconHtml = '';
+    if (isFlaggedRemoved || isOrphaned) {
+        const trashClass = isFlaggedRemoved ? 'song-item-trash-icon trash-flagged' : 'song-item-trash-icon';
+        const trashTitle = isFlaggedRemoved
+            ? 'This song was removed from the playlist on Spotify. Click to remove from collection.'
+            : 'Remove this song from the collection.';
+        trashIconHtml = `
+            <div class="${trashClass}" data-song-id="${song.id}" title="${trashTitle}">
+                <i class="fa-solid fa-trash"></i>
+            </div>
+        `;
+    }
     return `
         <div class="song-selector-item song-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
             ${albumArtHtml}
@@ -4984,9 +4995,7 @@ function renderSongItem(song, index) {
                     <div class="song-selector-item-meta-row"><i class="fa-solid fa-calendar"></i> ${song.year || 'N/A'} • <i class="fa-solid fa-drum"></i> ${bpmDisplay}</div>
                 </div>
             </div>
-            <div class="song-item-trash-icon" data-song-id="${song.id}" title="Delete song (Del key)">
-                <i class="fa-solid fa-trash"></i>
-            </div>
+            ${trashIconHtml}
         </div>
     `;
 }

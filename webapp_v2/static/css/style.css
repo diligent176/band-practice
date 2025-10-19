@@ -2906,6 +2906,7 @@ header h1 i {
   /* Don't override tight song-selector-item layout */
 }
 
+
 .song-item-trash-icon {
   position: absolute;
   right: 4px;
@@ -2927,17 +2928,20 @@ header h1 i {
   flex-shrink: 0;
 }
 
-.song-item:hover .song-item-trash-icon {
-  opacity: 0.8;
-  background: rgba(220, 38, 38, 0.12);
-  border-color: rgba(220, 38, 38, 0.2);
-}
-
 .song-item-trash-icon:hover {
   opacity: 1 !important;
   background: rgba(220, 38, 38, 0.15) !important;
   border-color: rgba(220, 38, 38, 0.4) !important;
   transform: translateY(-50%) scale(1.05);
+}
+
+.trash-flagged {
+  background: #dc2626 !important;
+  color: #fff !important;
+  border-color: #dc2626 !important;
+  opacity: 0.95 !important;
+  font-weight: bold;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
 }
 
 .empty-state-small {
