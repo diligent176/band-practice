@@ -1312,17 +1312,18 @@ header h1 {
 
 .lyrics-line.section-header {
   font-weight: 600;
-  color: rgba(255, 152, 0, 0.6); /* Subtle muted amber */
+  color: rgba(255, 152, 0, 0.5); /* Very subtle muted amber */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: calc(9px * var(--font-scale)); /* Even smaller - 9px base */
   margin-top: 8px;
-  margin-bottom: 2px;
-  padding: 2px 6px;
-  background: rgba(255, 152, 0, 0.08); /* Subtle tab background */
+  margin-bottom: 4px;
+  padding: 2px 6px 4px 6px;
+  background: rgba(255, 152, 0, 0.05); /* Very subtle tab background */
   border-radius: 3px 3px 0 0; /* Rounded top corners like a tab */
-  border-bottom: 1px solid rgba(255, 152, 0, 0.2); /* Subtle tab underline */
-  display: inline-block;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08); /* Subtle grey underline, thicker */
+  display: block; /* Full width for underline */
+  max-width: 95%; /* Nearly full column width */
   break-after: avoid;
 }
 
@@ -1351,7 +1352,7 @@ header h1 {
   background: var(--bg-tertiary);
   padding: 6px 8px;
   border-radius: 3px;
-  border-left: 3px solid var(--accent-secondary);
+  border-left: 3px solid rgba(255, 152, 0, 0.4); /* Subdued orange */
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1369,7 +1370,7 @@ header h1 {
 }
 
 .note-header {
-  color: var(--accent-secondary);
+  color: rgba(255, 152, 0, 0.65); /* Subdued orange text */
   font-weight: bold;
   margin-bottom: 3px;
 }
@@ -1405,12 +1406,12 @@ header h1 {
 
 .song-structure-block {
   background: var(--bg-tertiary);
-  color: var(--accent-warning);
+  color: rgba(255, 152, 0, 0.7); /* Subdued orange text */
   font-weight: 600;
   font-size: 10px;
   padding: 4px 8px;
   border-radius: 3px;
-  border: 1px solid rgba(255, 165, 0, 0.3);
+  border: 1px solid rgba(255, 152, 0, 0.2); /* Subdued orange border */
   white-space: nowrap;
 }
 
