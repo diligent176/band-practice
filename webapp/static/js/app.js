@@ -953,7 +953,7 @@ function renderSongList() {
             // Format BPM display with manual indicator if applicable
             let bpmDisplay = song.bpm || 'N/A';
             if (song.bpm && song.bpm !== 'N/A' && song.bpm !== 'NOT_FOUND' && song.bpm_manual) {
-                bpmDisplay = `${song.bpm}<span class="bpm-manual-badge-small" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>`;
+                bpmDisplay = `${song.bpm}<span class="bpm-manual-badge-small" title="Custom bpm/tempo (B)"><i class="fa-solid fa-pen"></i></span>`;
             }
 
             html += `<div class="song-selector-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
@@ -1169,7 +1169,7 @@ function renderMetadata() {
         bpmBlockContent = '<i class="fa-solid fa-drum"></i> N/A <i class="fa-solid fa-hourglass-half bpm-loading"></i>';
     } else {
         // Show BPM block with drum icon, value, animated metronome, and optional manual badge
-        const manualBadge = isManualBpm ? '<span class="bpm-manual-badge" title="Manually set tempo"><i class="fa-solid fa-pen-to-square"></i></span>' : '';
+        const manualBadge = isManualBpm ? '<span class="bpm-manual-badge" title="Custom bpm/tempo (B)"><i class="fa-solid fa-pen"></i></span>' : '';
         bpmBlockContent = `<i class="fa-solid fa-drum"></i> ${bpmValue} <i class="fa-solid fa-bars-staggered bpm-metronome-icon" id="bpm-metronome-icon"></i>${manualBadge}`;
     }
 

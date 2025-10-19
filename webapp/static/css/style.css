@@ -1130,14 +1130,33 @@ header h1 {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* BPM Manual Badge Styles */
+/* BPM Manual Badge Styles - matches Custom Lyric badge */
 .bpm-manual-badge {
   display: inline-block;
   font-size: 11px;
-  margin-left: 5px;
-  opacity: 0.7;
+  margin-left: 3px;
   vertical-align: middle;
-  color: var(--accent-warning);
+  color: rgba(255, 152, 0, 0.7);
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.bpm-manual-badge:hover {
+  color: rgba(255, 152, 0, 0.9);
+}
+
+.bpm-manual-badge-small {
+  display: inline-block;
+  font-size: 9px;
+  margin-left: 2px;
+  vertical-align: middle;
+  color: rgba(255, 152, 0, 0.7);
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.bpm-manual-badge-small:hover {
+  color: rgba(255, 152, 0, 0.9);
 }
 
 /* BPM Indicator Block - Unified animated block */
