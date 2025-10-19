@@ -2351,6 +2351,13 @@ header h1 i {
   border-radius: 4px;
 }
 
+.sort-tip {
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  font-style: italic;
+}
+
 .song-selector-search {
   margin-bottom: 12px;
 }

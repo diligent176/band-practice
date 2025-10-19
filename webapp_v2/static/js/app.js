@@ -1037,6 +1037,7 @@ function handleSongSelectorKeyboard(e) {
     // Alt+T to cycle through sort modes (name → artist → playlist)
     if (e.altKey && (e.key === 't' || e.key === 'T')) {
         e.preventDefault();
+        e.stopPropagation();  // Prevent 'T' from reaching main viewer (which restarts track)
         const modes = ['name', 'artist', 'playlist'];
         const currentIndex = modes.indexOf(songSelectorSortMode);
         const nextIndex = (currentIndex + 1) % modes.length;
