@@ -387,6 +387,8 @@ class FirestoreService:
         Returns:
             Integer count of songs
         """
+        import time
+        start = time.time()
         try:
             # Use Firestore's native count aggregation (available in 2.16.0+)
             query = self.db.collection(self.songs_collection).where('collection_id', '==', collection_id)
@@ -401,15 +403,32 @@ class FirestoreService:
             # results is a list of aggregation result lists
             # results[0][0] is the first (and only) aggregation result
             if results and len(results) > 0 and len(results[0]) > 0:
-                return results[0][0].value
+                count = results[0][0].value
+                elapsed = time.time() - start
+                logger.info(f"✅ Count aggregation for {collection_id}: {count} songs in {elapsed:.3f}s")
+                return count
+            elapsed = time.time() - start
+            logger.info(f"✅ Count aggregation for {collection_id}: 0 songs in {elapsed:.3f}s")
             return 0
 
-        except AttributeError:
+        except AttributeError as e:
             # Fallback for older Firestore versions (< 2.16.0)
-            # This shouldn't happen after upgrade, but provides safety net
+            logger.warning(f"⚠️  Count aggregation not available, using fallback: {e}")
             query = (self.db.collection(self.songs_collection)
                     .where('collection_id', '==', collection_id)
                     .select([]))  # Empty select = only document IDs, no field data
+            count = len(list(query.stream()))
+            elapsed = time.time() - start
+            logger.info(f"🐌 Fallback count for {collection_id}: {count} songs in {elapsed:.3f}s")
+            return count
+        except Exception as e:
+            # Catch any other errors
+            logger.error(f"❌ Error counting songs for {collection_id}: {e}")
+            elapsed = time.time() - start
+            logger.info(f"🐌 Fallback count (error) for {collection_id} in {elapsed:.3f}s")
+            query = (self.db.collection(self.songs_collection)
+                    .where('collection_id', '==', collection_id)
+                    .select([]))
             return len(list(query.stream()))
 
     def count_playlists_by_collection(self, collection_id):

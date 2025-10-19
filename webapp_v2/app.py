@@ -443,24 +443,61 @@ def delete_playlist_memory(playlist_id):
 @require_auth
 def get_collections():
     """Get all collections for the current user with song counts"""
+    import time
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     try:
         user_id = g.user.get('email')
-        logger.info(f"User {user_id} requested collections")
+        start_time = time.time()
+        logger.info(f"🔄 User {user_id} requested collections")
 
+        # Step 1: Get collections
+        fetch_start = time.time()
         collections = firestore.get_user_collections(user_id)
+        fetch_time = time.time() - fetch_start
+        logger.info(f"⏱️  Fetched {len(collections)} collections in {fetch_time:.3f}s")
 
-        # Use efficient count aggregation instead of fetching all songs and playlists
-        for collection in collections:
-            collection['song_count'] = firestore.count_songs_by_collection(collection['id'])
-            # Playlist count is already in the collection document as playlist_ids array
-            collection['playlist_count'] = len(collection.get('playlist_ids', []))
+        # Step 2: Add counts for each collection IN PARALLEL
+        count_start = time.time()
+
+        # Create a function to count songs for a single collection
+        def count_songs_for_collection(collection):
+            """Helper to count songs and add to collection dict"""
+            song_count = firestore.count_songs_by_collection(collection['id'])
+            playlist_count = len(collection.get('playlist_ids', []))
+            return collection['id'], song_count, playlist_count
+
+        # Execute all count queries in parallel (max 10 concurrent)
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            # Submit all count jobs at once
+            future_to_collection = {
+                executor.submit(count_songs_for_collection, c): c
+                for c in collections
+            }
+
+            # Collect results as they complete
+            for future in as_completed(future_to_collection):
+                collection = future_to_collection[future]
+                try:
+                    _, song_count, playlist_count = future.result()
+                    collection['song_count'] = song_count
+                    collection['playlist_count'] = playlist_count
+                except Exception as e:
+                    logger.error(f"❌ Error counting for collection {collection.get('name')}: {e}")
+                    collection['song_count'] = 0
+                    collection['playlist_count'] = 0
+
+        total_count_time = time.time() - count_start
+        total_time = time.time() - start_time
+        logger.info(f"⏱️  All count queries (PARALLEL) took {total_count_time:.3f}s")
+        logger.info(f"⏱️  TOTAL /api/collections took {total_time:.3f}s")
 
         return jsonify({
             'success': True,
             'collections': collections
         })
     except Exception as e:
-        logger.error(f"Error getting collections for user {g.user.get('email')}: {e}")
+        logger.error(f"❌ Error getting collections for user {g.user.get('email')}: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
 
 
