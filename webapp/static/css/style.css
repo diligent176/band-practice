@@ -457,6 +457,12 @@ header h1 {
   transition: all 0.2s;
 }
 
+.font-size-select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: 4px 8px;
+}
+
 .font-size-select:hover {
   color: var(--accent-primary);
 }
