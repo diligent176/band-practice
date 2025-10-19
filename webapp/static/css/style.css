@@ -824,8 +824,6 @@ header h1 i {
 .btn-primary:hover:not(:disabled) {
   background: rgba(24, 160, 73, 0.15);
   border-color: rgba(24, 160, 73, 0.35);
-  transform: none;
-  box-shadow: none;
 }
 
 .btn-primary i {
@@ -846,8 +844,6 @@ header h1 i {
 .btn-secondary:hover:not(:disabled) {
   background: rgba(68, 68, 68, 0.4);
   border-color: rgba(68, 68, 68, 0.6);
-  transform: none;
-  box-shadow: none;
 }
 
 .btn-secondary i {
@@ -873,8 +869,6 @@ header h1 i {
 .btn-badge:hover:not(:disabled) {
   background: rgba(24, 160, 73, 0.15);
   border-color: rgba(24, 160, 73, 0.35);
-  transform: none;
-  box-shadow: none;
 }
 
 .btn-badge i {
@@ -893,8 +887,6 @@ header h1 i {
 .btn-subtle:hover:not(:disabled) {
   background: rgba(24, 160, 73, 0.15);
   border-color: rgba(24, 160, 73, 0.35);
-  transform: none;
-  box-shadow: none;
 }
 
 .btn-subtle i {
@@ -929,8 +921,6 @@ header h1 i {
 .btn-icon:hover:not(:disabled) {
   background: rgba(24, 160, 73, 0.08);
   border-color: rgba(24, 160, 73, 0.25);
-  transform: none;
-  box-shadow: none;
 }
 
 .btn-icon i {
@@ -952,8 +942,6 @@ header h1 i {
 .btn-icon-danger:hover:not(:disabled) {
   background: rgba(204, 51, 51, 0.15);
   border-color: rgba(204, 51, 51, 0.35);
-  transform: none;
-  box-shadow: none;
 }
 
 .btn-icon-danger i {
