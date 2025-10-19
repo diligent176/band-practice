@@ -4882,16 +4882,11 @@ function renderSongListV2() {
 
                 if (playlistSongs.length === 0) return;
 
-                // Playlist header
+                // Playlist header - compact single line
                 html += `
                     <div class="song-list-playlist-header">
-                        <img src="${playlist.image_url || '/static/icons/playlist-placeholder.png'}" 
-                             class="song-list-playlist-header-image" 
-                             alt="${escapeHtml(playlist.name)}">
-                        <div class="song-list-playlist-header-info">
-                            <div class="song-list-playlist-header-name">${escapeHtml(playlist.name)}</div>
-                            <div class="song-list-playlist-header-meta">${playlist.owner} • ${playlistSongs.length} songs</div>
-                        </div>
+                        <span class="song-list-playlist-header-name">${escapeHtml(playlist.name)}</span>
+                        <span class="song-list-playlist-header-meta">${playlist.owner} • ${playlistSongs.length} song${playlistSongs.length !== 1 ? 's' : ''}</span>
                     </div>
                 `;
 
