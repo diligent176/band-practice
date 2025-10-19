@@ -116,8 +116,8 @@ const playlistMemorySection = document.getElementById('playlist-memory-section')
 const mainApp = document.getElementById('main-app');
 const userEmail = document.getElementById('user-email');
 
-// BPM indicator icon
-const bpmMetronomeIcon = document.getElementById('bpm-metronome-icon');
+// BPM indicator icon (updated dynamically when song metadata is rendered)
+let bpmMetronomeIcon = document.getElementById('bpm-metronome-icon');
 
 // Collection DOM elements
 const collectionBtn = document.getElementById('collection-btn');
@@ -862,7 +862,7 @@ async function deleteCurrentSong() {
 
     showConfirmDialog(
         'Delete Song?',
-        `Are you sure you want to delete "${songTitle}" from the database?\n\nThis action cannot be undone.`,
+        `Delete "${songTitle}" from the collection? Custom Lyrics will be deleted.\n\nThis cannot be undone.`,
         async () => {
             try {
                 showLoading('Deleting song...');
@@ -1251,8 +1251,10 @@ function renderMetadata() {
 
     songMetadata.innerHTML = metadataHtml;
 
-    // Re-get the BPM indicator block reference since we just recreated it
+    // Re-get the BPM indicator references since we just recreated them
     bpmIndicatorElement = document.getElementById('bpm-indicator-block');
+    // Update the metronome icon reference (it was recreated with innerHTML)
+    bpmMetronomeIcon = document.getElementById('bpm-metronome-icon');
 
     // BPM indicator is now persistent in DOM, just update its state
     updateBpmIndicator();
