@@ -1217,8 +1217,8 @@ function renderLyrics() {
     let html = '';
 
     lines.forEach(line => {
-        if (line.match(/^\*\*\[.*\]\*\*/)) {
-            // Section header
+        if (line.match(/^\*\*.*\*\*$/)) {
+            // Section header (matches **text** format produced by backend)
             const header = line.replace(/\*\*/g, '').trim();
             html += `<div class="lyrics-line section-header">${header}</div>`;
         } else if (line.match(/^\s*\d+\s+/)) {
