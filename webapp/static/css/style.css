@@ -946,18 +946,23 @@ header h1 i {
 }
 
 .btn-icon-danger {
-  background: rgba(204, 51, 51, 0.08);
-  border: 1px solid rgba(204, 51, 51, 0.2);
+  background: rgba(204, 51, 51, 0.04);
+  border: 1px solid rgba(204, 51, 51, 0.12);
 }
 
 .btn-icon-danger:hover:not(:disabled) {
   background: rgba(204, 51, 51, 0.15);
-  border-color: rgba(204, 51, 51, 0.35);
+  border-color: rgba(204, 51, 51, 0.4);
 }
 
 .btn-icon-danger i {
-  color: var(--accent-error);
+  color: rgba(255, 107, 107, 0.5);
   font-weight: 900;
+  transition: color 0.2s ease;
+}
+
+.btn-icon-danger:hover:not(:disabled) i {
+  color: var(--accent-error);
 }
 
 .icon {
