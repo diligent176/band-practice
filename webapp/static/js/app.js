@@ -604,6 +604,10 @@ async function loadSong(songId) {
 
         if (data.success) {
             currentSong = data.song;
+            
+            // Save current song to localStorage for session persistence
+            saveCurrentSong(songId);
+            
             renderSong();
             updateCurrentSongDisplay();
             refreshSongBtn.disabled = false;
@@ -879,6 +883,7 @@ async function deleteCurrentSong() {
 
                     // Clear current song
                     currentSong = null;
+                    saveCurrentSong(null); // Clear saved song from localStorage
 
                     // Show the "Lyrics" heading again
                     if (lyricsHeading) {
@@ -3117,31 +3122,41 @@ async function finishImport() {
 
 async function loadCurrentCollection() {
     try {
-        // Check localStorage for current collection ID
+        // Check localStorage for current collection ID FIRST
         const savedCollectionId = localStorage.getItem('bandPracticeCurrentCollection');
+        const savedSongId = localStorage.getItem('bandPracticeCurrentSong');
         
-        if (savedCollectionId) {
-            // Try to load the saved collection
-            const response = await authenticatedApiCall(`/api/collections/${savedCollectionId}`);
-            const data = await response.json();
-            
-            if (data.success) {
-                currentCollection = data.collection;
-                updateCollectionDisplay();
-                await loadSongs();
-                return;
-            }
-        }
+        // Determine which collection to load - prefer saved, fallback to default endpoint
+        const endpoint = savedCollectionId 
+            ? `/api/collections/${savedCollectionId}`
+            : '/api/collections/default';
         
-        // If no saved collection or failed to load, get/create default collection
-        const response = await authenticatedApiCall('/api/collections/default');
+        console.log(`📂 Loading collection from: ${endpoint}`);
+        
+        const response = await authenticatedApiCall(endpoint);
         const data = await response.json();
         
         if (data.success) {
             currentCollection = data.collection;
             saveCurrentCollection(currentCollection.id);
             updateCollectionDisplay();
+            
+            // Load songs for this collection
             await loadSongs();
+            
+            // If we have a saved song ID, try to load it
+            if (savedSongId) {
+                // Check if the saved song exists in the current collection
+                const songExists = allSongs.some(song => song.id === savedSongId);
+                if (songExists) {
+                    console.log(`🎵 Restoring last viewed song: ${savedSongId}`);
+                    await loadSong(savedSongId);
+                } else {
+                    console.log(`⚠️ Saved song ${savedSongId} not found in collection`);
+                    // Clear the invalid saved song ID
+                    localStorage.removeItem('bandPracticeCurrentSong');
+                }
+            }
         } else {
             showToast('Failed to load collection', 'error');
         }
@@ -3153,6 +3168,14 @@ async function loadCurrentCollection() {
 
 function saveCurrentCollection(collectionId) {
     localStorage.setItem('bandPracticeCurrentCollection', collectionId);
+}
+
+function saveCurrentSong(songId) {
+    if (songId) {
+        localStorage.setItem('bandPracticeCurrentSong', songId);
+    } else {
+        localStorage.removeItem('bandPracticeCurrentSong');
+    }
 }
 
 function updateCollectionDisplay() {
@@ -3387,6 +3410,7 @@ async function switchCollection(collectionId) {
             
             // Clear current song and reload songs for new collection
             currentSong = null;
+            saveCurrentSong(null); // Clear saved song since it's not in new collection
             lyricsContentInner.innerHTML = '<div class="empty-state"><p>Select a song to view lyrics</p></div>';
             notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
             songMetadata.innerHTML = '';
