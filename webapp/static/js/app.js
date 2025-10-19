@@ -1386,6 +1386,29 @@ function highlightLines(noteBlock) {
     // Add active state
     noteBlock.classList.add('active');
 
+    // Check if this is a START or END block
+    const header = noteBlock.querySelector('.note-header')?.textContent || '';
+    
+    if (header === 'START') {
+        // Highlight line 1
+        const line1 = document.querySelector('.lyrics-line[data-line="1"]');
+        if (line1) {
+            line1.classList.add('highlighted');
+            scrollIntoViewIfNeeded(line1);
+        }
+        return;
+    }
+    
+    if (header === 'END') {
+        // Highlight last line
+        const lastLine = document.querySelector('.lyrics-line[data-line]:last-of-type');
+        if (lastLine) {
+            lastLine.classList.add('highlighted');
+            scrollIntoViewIfNeeded(lastLine);
+        }
+        return;
+    }
+
     const lineStart = parseInt(noteBlock.dataset.lineStart);
     const lineEnd = parseInt(noteBlock.dataset.lineEnd);
 
@@ -1464,11 +1487,16 @@ function navigateNotes(direction) {
     } else {
         // Check if we're already at a boundary before moving
         if (direction < 0 && activeIndex === 0) {
-            // Already at first note, going up - scroll to top
+            // Already at first note, going up - highlight line 1 and scroll to top
+            highlightSingleLine(1);
             scrollToTop();
             return false;
         } else if (direction > 0 && activeIndex === noteBlocks.length - 1) {
-            // Already at last note, going down - scroll to bottom
+            // Already at last note, going down - highlight last line and scroll to bottom
+            const lastLine = document.querySelector('.lyrics-line[data-line]:last-of-type');
+            if (lastLine) {
+                highlightSingleLine(parseInt(lastLine.dataset.line));
+            }
             scrollToBottom();
             return false;
         }
@@ -1485,6 +1513,22 @@ function navigateNotes(direction) {
     nextNoteBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     return true;
+}
+
+function highlightSingleLine(lineNum) {
+    // Remove previous highlights
+    document.querySelectorAll('.lyrics-line.highlighted').forEach(el => {
+        el.classList.remove('highlighted');
+    });
+    document.querySelectorAll('.note-block.active').forEach(el => {
+        el.classList.remove('active');
+    });
+
+    // Highlight the specific line
+    const line = document.querySelector(`.lyrics-line[data-line="${lineNum}"]`);
+    if (line) {
+        line.classList.add('highlighted');
+    }
 }
 
 // Scroll lyrics and notes to bottom
@@ -1510,6 +1554,9 @@ function jumpToFirstNote() {
     const noteBlocks = Array.from(document.querySelectorAll('.note-block'));
     
     if (noteBlocks.length === 0) {
+        // No notes - just highlight line 1
+        highlightSingleLine(1);
+        scrollToTop();
         return;
     }
     
@@ -1529,6 +1576,12 @@ function jumpToLastNote() {
     const noteBlocks = Array.from(document.querySelectorAll('.note-block'));
     
     if (noteBlocks.length === 0) {
+        // No notes - highlight last line
+        const lastLine = document.querySelector('.lyrics-line[data-line]:last-of-type');
+        if (lastLine) {
+            highlightSingleLine(parseInt(lastLine.dataset.line));
+        }
+        scrollToBottom();
         return;
     }
     
