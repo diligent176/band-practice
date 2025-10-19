@@ -166,6 +166,19 @@ let lastBpmAnimationState = {
     isPaused: null
 };
 
+// Utility: Debounce function to limit how often a function can fire
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
@@ -200,8 +213,8 @@ function setupEventListeners() {
     openSongSelectorBtn.addEventListener('click', openSongSelector);
     songSelectorClose.addEventListener('click', closeSongSelector);
     toggleSortBtn.addEventListener('click', toggleSongSort);
-    songSearchInput.addEventListener('input', filterSongs);
-    songSearchInput.addEventListener('keyup', filterSongs);
+    // Debounced input for better performance during fast typing
+    songSearchInput.addEventListener('input', debounce(filterSongs, 150));
 
     editNotesBtn.addEventListener('click', enterEditMode);
     saveNotesBtn.addEventListener('click', saveNotes);
