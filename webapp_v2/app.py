@@ -460,12 +460,21 @@ def get_collections():
         # Step 2: Add counts for each collection IN PARALLEL
         count_start = time.time()
 
-        # Create a function to count songs for a single collection
+        # Create a function to count songs and get first playlist image for a single collection
         def count_songs_for_collection(collection):
-            """Helper to count songs and add to collection dict"""
+            """Helper to count songs, get playlist count, and first playlist image"""
             song_count = firestore.count_songs_by_collection(collection['id'])
-            playlist_count = len(collection.get('playlist_ids', []))
-            return collection['id'], song_count, playlist_count
+            playlist_ids = collection.get('playlist_ids', [])
+            playlist_count = len(playlist_ids)
+
+            # Get first playlist's image URL
+            first_playlist_image = None
+            if playlist_ids:
+                first_playlist = firestore.db.collection(firestore.playlist_memory_collection).document(playlist_ids[0]).get()
+                if first_playlist.exists:
+                    first_playlist_image = first_playlist.to_dict().get('image_url')
+
+            return collection['id'], song_count, playlist_count, first_playlist_image
 
         # Execute all count queries in parallel (max 10 concurrent)
         with ThreadPoolExecutor(max_workers=10) as executor:
@@ -479,13 +488,15 @@ def get_collections():
             for future in as_completed(future_to_collection):
                 collection = future_to_collection[future]
                 try:
-                    _, song_count, playlist_count = future.result()
+                    _, song_count, playlist_count, first_playlist_image = future.result()
                     collection['song_count'] = song_count
                     collection['playlist_count'] = playlist_count
+                    collection['first_playlist_image'] = first_playlist_image
                 except Exception as e:
                     logger.error(f"❌ Error counting for collection {collection.get('name')}: {e}")
                     collection['song_count'] = 0
                     collection['playlist_count'] = 0
+                    collection['first_playlist_image'] = None
 
         total_count_time = time.time() - count_start
         total_time = time.time() - start_time

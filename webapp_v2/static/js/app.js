@@ -3273,10 +3273,15 @@ function renderCollectionList() {
         countParts.push(songCount === 1 ? '1 song' : `${songCount} songs`);
         const countText = countParts.join(', ');
 
+        // Use first playlist image if available, otherwise show icon
+        const imageHtml = collection.first_playlist_image
+            ? `<img src="${collection.first_playlist_image}" alt="${escapeHtml(collection.name)}">`
+            : `<i class="fa-solid fa-layer-group"></i>`;
+
         html += `
             <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
                 <div class="collection-item-icon">
-                    <i class="fa-solid fa-layer-group"></i>
+                    ${imageHtml}
                 </div>
                 <div class="collection-item-info">
                     <div class="collection-item-header">
@@ -4823,7 +4828,7 @@ function renderSongListV2() {
                 html += `
                     <div class="song-list-playlist-header">
                         <span class="song-list-playlist-header-name">${escapeHtml(playlist.name)}</span>
-                        <span class="song-list-playlist-header-meta">${playlist.owner} • ${playlistSongs.length} song${playlistSongs.length !== 1 ? 's' : ''}</span>
+                        <span class="song-list-playlist-header-meta">${playlist.owner} • ${playlistSongs.length} track${playlistSongs.length !== 1 ? 's' : ''}</span>
                     </div>
                 `;
 
