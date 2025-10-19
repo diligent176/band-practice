@@ -141,6 +141,20 @@ const editCollectionCancelBtn = document.getElementById('edit-collection-cancel-
 // Track the collection being edited
 let editingCollectionId = null;
 
+// Event listener registration tracking (prevents duplicates)
+const eventListenerFlags = {
+    songSelector: false,
+    notesEditor: false,
+    lyricsEditor: false,
+    bpmDialog: false,
+    bpmTapDialog: false,
+    importDialog: false,
+    confirmDialog: false,
+    collectionDialog: false,
+    newCollectionDialog: false,
+    editCollectionDialog: false
+};
+
 // Player DOM elements
 const audioPlayer = document.getElementById('audio-player');
 const miniPlayer = document.getElementById('mini-player');
@@ -915,8 +929,11 @@ function openSongSelector() {
 
     songSearchInput.focus();
 
-    // Add keyboard handler for song selector
-    document.addEventListener('keydown', handleSongSelectorKeyboard);
+    // Add keyboard handler for song selector (only if not already registered)
+    if (!eventListenerFlags.songSelector) {
+        document.addEventListener('keydown', handleSongSelectorKeyboard);
+        eventListenerFlags.songSelector = true;
+    }
     
     // Add event delegation for song clicks (more efficient than individual listeners)
     songSelectorList.addEventListener('click', handleSongListClick);
@@ -935,7 +952,10 @@ function closeSongSelector() {
     selectedSongIndex = -1;
     
     // Remove keyboard handler
-    document.removeEventListener('keydown', handleSongSelectorKeyboard);
+    if (eventListenerFlags.songSelector) {
+        document.removeEventListener('keydown', handleSongSelectorKeyboard);
+        eventListenerFlags.songSelector = false;
+    }
     
     // Remove click delegation handler
     songSelectorList.removeEventListener('click', handleSongListClick);
@@ -1639,7 +1659,10 @@ function enterEditMode() {
     notesTextarea.focus();
 
     // Add keyboard shortcuts for notes editor
-    document.addEventListener('keydown', handleNotesEditorKeyboard);
+    if (!eventListenerFlags.notesEditor) {
+        document.addEventListener('keydown', handleNotesEditorKeyboard);
+        eventListenerFlags.notesEditor = true;
+    }
 }
 
 function exitEditMode() {
@@ -1651,7 +1674,10 @@ function exitEditMode() {
     cancelEditBtn.style.display = 'none';
 
     // Remove keyboard shortcuts
-    document.removeEventListener('keydown', handleNotesEditorKeyboard);
+    if (eventListenerFlags.notesEditor) {
+        document.removeEventListener('keydown', handleNotesEditorKeyboard);
+        eventListenerFlags.notesEditor = false;
+    }
 }
 
 function handleNotesEditorKeyboard(e) {
@@ -1887,7 +1913,10 @@ function openLyricsEditor() {
     setupLyricsEditorScrollSync();
 
     // Add keyboard shortcuts for lyrics editor (on dialog level, not textarea)
-    document.addEventListener('keydown', handleLyricsEditorKeyboard);
+    if (!eventListenerFlags.lyricsEditor) {
+        document.addEventListener('keydown', handleLyricsEditorKeyboard);
+        eventListenerFlags.lyricsEditor = true;
+    }
 }
 
 function updateLyricsEditorLineNumbers() {
@@ -1964,7 +1993,10 @@ function closeLyricsEditor() {
     lyricsEditorTextarea.value = '';
 
     // Remove keyboard shortcuts
-    document.removeEventListener('keydown', handleLyricsEditorKeyboard);
+    if (eventListenerFlags.lyricsEditor) {
+        document.removeEventListener('keydown', handleLyricsEditorKeyboard);
+        eventListenerFlags.lyricsEditor = false;
+    }
 }
 
 function handleLyricsEditorKeyboard(e) {
@@ -2156,10 +2188,11 @@ function showConfirmDialog(title, message, onConfirm) {
         });
     }
 
-    // Remove any existing keyboard listener first to prevent duplicates
-    document.removeEventListener('keydown', handleConfirmDialogKeyboard, true);
-    // Add keyboard shortcuts with capture phase to ensure it runs before other handlers
-    document.addEventListener('keydown', handleConfirmDialogKeyboard, true);
+    // Add keyboard shortcuts with capture phase (only if not already registered)
+    if (!eventListenerFlags.confirmDialog) {
+        document.addEventListener('keydown', handleConfirmDialogKeyboard, true);
+        eventListenerFlags.confirmDialog = true;
+    }
 }
 
 function hideConfirmDialog() {
@@ -2167,7 +2200,10 @@ function hideConfirmDialog() {
     currentConfirmCallback = null;
 
     // Remove keyboard shortcuts
-    document.removeEventListener('keydown', handleConfirmDialogKeyboard, true);
+    if (eventListenerFlags.confirmDialog) {
+        document.removeEventListener('keydown', handleConfirmDialogKeyboard, true);
+        eventListenerFlags.confirmDialog = false;
+    }
 }
 
 function handleConfirmDialogKeyboard(e) {
