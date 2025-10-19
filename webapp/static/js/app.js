@@ -179,6 +179,18 @@ function debounce(func, wait) {
     };
 }
 
+// Utility: Throttle function to limit execution rate (executes at most once per interval)
+function throttle(func, limit) {
+    let inThrottle;
+    return function(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
+
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
     console.log('🎸 Initializing app with authenticated API calls');
@@ -1043,6 +1055,12 @@ async function selectSong(songId) {
         } catch (error) {
             console.warn('Could not pause playback:', error);
         }
+    }
+    
+    // Clear progress update interval
+    if (spotifyProgressInterval) {
+        clearInterval(spotifyProgressInterval);
+        spotifyProgressInterval = null;
     }
 
     // Reset mute state when loading a new song
@@ -3667,6 +3685,7 @@ let spotifyAccessToken = null;
 let spotifyPlayerReady = false;
 let spotifyAuthWindow = null;
 let isCheckingSpotifyStatus = false;
+let spotifyProgressInterval = null;  // For updating progress bar during playback
 
 // Spotify SDK ready callback (called by SDK after loading)
 window.onSpotifyWebPlaybackSDKReady = () => {
@@ -3877,10 +3896,33 @@ async function initializeSpotifyPlayer() {
             console.log('⚠️ Device has gone offline:', device_id);
         });
 
-        // Player state changed
+        // Player state changed - update UI with smart throttling
+        // Progress bar updates frequently, BPM indicator is throttled
+        const throttledUpdateBpmIndicator = throttle(updateBpmIndicator, 100);
         spotifyPlayer.addListener('player_state_changed', state => {
             if (!state) return;
-            updatePlayerUI(state);
+            
+            updatePlayerUI(state);  // Always update progress bar immediately
+            throttledUpdateBpmIndicator();  // Throttle BPM updates only
+            
+            // Start or stop progress interval based on play state
+            if (!state.paused) {
+                // Playing - start progress update interval if not already running
+                if (!spotifyProgressInterval) {
+                    spotifyProgressInterval = setInterval(async () => {
+                        const currentState = await spotifyPlayer.getCurrentState();
+                        if (currentState && !currentState.paused) {
+                            updatePlayerUI(currentState);
+                        }
+                    }, 500);  // Update every 500ms (twice per second is smooth enough)
+                }
+            } else {
+                // Paused - stop progress interval
+                if (spotifyProgressInterval) {
+                    clearInterval(spotifyProgressInterval);
+                    spotifyProgressInterval = null;
+                }
+            }
         });
 
         // Connect to Spotify
@@ -4123,10 +4165,9 @@ function updatePlayerUI(state) {
         }
     }
 
-    // Update BPM indicator based on play state
-    updateBpmIndicator();
+    // Note: BPM indicator update is now throttled separately in the player_state_changed listener
 
-    // Update progress bar and time display
+    // Update progress bar and time display (needs to be smooth, no throttling)
     const position = state.position;
     const duration = state.duration;
     
