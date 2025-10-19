@@ -1773,6 +1773,10 @@ header h1 i {
   margin-bottom: 20px;
 }
 
+.dialog .input[type="number"] {
+  color-scheme: dark;
+}
+
 .dialog .input:focus {
   outline: none;
   border-color: var(--accent-primary);
