@@ -285,6 +285,42 @@ function setupEventListeners() {
         }
     });
 
+    importDialog.addEventListener('click', (e) => {
+        if (e.target === importDialog) {
+            closeImportDialog();
+        }
+    });
+
+    collectionDialog.addEventListener('click', (e) => {
+        if (e.target === collectionDialog) {
+            closeCollectionDialog();
+        }
+    });
+
+    newCollectionDialog.addEventListener('click', (e) => {
+        if (e.target === newCollectionDialog) {
+            closeNewCollectionDialog();
+        }
+    });
+
+    editCollectionDialog.addEventListener('click', (e) => {
+        if (e.target === editCollectionDialog) {
+            closeEditCollectionDialog();
+        }
+    });
+
+    bpmDialog.addEventListener('click', (e) => {
+        if (e.target === bpmDialog) {
+            closeBpmDialog();
+        }
+    });
+
+    bpmTapDialog.addEventListener('click', (e) => {
+        if (e.target === bpmTapDialog) {
+            closeBpmTapTrainer();
+        }
+    });
+
     toggleColumnsBtn.addEventListener('click', toggleColumns);
     fontSizeSelect.addEventListener('change', handleFontSizeChange);
 
