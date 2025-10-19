@@ -1312,16 +1312,16 @@ header h1 {
 
 .lyrics-line.section-header {
   font-weight: 600;
-  color: rgba(255, 152, 0, 0.5); /* Very subtle muted amber */
+  color: rgba(255, 152, 0, 0.5); /* Very subtle muted amber text */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: calc(9px * var(--font-scale)); /* Even smaller - 9px base */
   margin-top: 8px;
   margin-bottom: 4px;
   padding: 2px 6px 4px 6px;
-  background: rgba(255, 152, 0, 0.05); /* Very subtle tab background */
+  background: rgba(255, 255, 255, 0.03); /* Barely lighter grey background */
   border-radius: 3px 3px 0 0; /* Rounded top corners like a tab */
-  border-bottom: 2px solid rgba(255, 255, 255, 0.08); /* Subtle grey underline, thicker */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Thin subtle grey underline */
   display: block; /* Full width for underline */
   max-width: 95%; /* Nearly full column width */
   break-after: avoid;
