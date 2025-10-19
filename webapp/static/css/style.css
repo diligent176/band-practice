@@ -176,6 +176,7 @@ header h1 i {
 .header-single-row>.keyboard-shortcuts-help,
 .header-single-row>.user-info {
   margin-left: auto;
+  gap: 0;
 }
 
 .header-single-row>.player-controls {
@@ -183,7 +184,8 @@ header h1 i {
 }
 
 .header-single-row>.font-size-selector {
-  margin-left: 6px;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 /* Player Controls */
@@ -549,7 +551,8 @@ header h1 i {
   cursor: help;
   flex-shrink: 0;
   height: 28px;
-  margin-left: 4px;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .keyboard-shortcuts-help:hover {
@@ -701,7 +704,8 @@ header h1 i {
   align-items: center;
   gap: 0;
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-left: 0;
+  margin-right: 4px;
   height: 28px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -709,7 +713,6 @@ header h1 i {
   padding: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
-  overflow: hidden;
 }
 
 .user-info:hover {
@@ -718,7 +721,7 @@ header h1 i {
 }
 
 .user-email {
-  padding: 4px 8px;
+  padding: 4px 6px;
   font-size: 10px;
   color: var(--text-primary);
   white-space: nowrap;
@@ -732,15 +735,18 @@ header h1 i {
 }
 
 .signout-icon {
-  padding: 0 8px;
-  height: 100%;
+  padding: 0 6px;
+  height: 28px;
   display: flex;
   align-items: center;
-  font-size: 11px;
+  justify-content: center;
+  font-size: 10px;
   color: var(--text-secondary);
   cursor: pointer;
   border-left: 1px solid var(--card-border);
   transition: all 0.2s ease;
+  background: transparent;
+  min-width: 24px;
 }
 
 .signout-icon:hover {
