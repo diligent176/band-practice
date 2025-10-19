@@ -1288,7 +1288,7 @@ header h1 {
 }
 
 .lyrics-line.section-header {
-  font-size: calc(13px * var(--font-scale));
+  font-size: calc(10px * var(--font-scale)); /* Smaller, more subtle */
 }
 
 .note-header {
@@ -1311,10 +1311,14 @@ header h1 {
 }
 
 .lyrics-line.section-header {
-  font-weight: bold;
-  color: var(--accent-warning);
-  margin-top: 8px;
-  margin-bottom: 3px;
+  font-weight: 600;
+  color: rgba(255, 152, 0, 0.5); /* Subtle muted amber */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 12px;
+  margin-bottom: 2px;
+  padding-bottom: 1px;
+  border-bottom: 1px solid rgba(255, 152, 0, 0.15); /* Subtle tab underline */
   break-after: avoid;
 }
 

@@ -690,7 +690,9 @@ class LyricsService:
         for line in lines:
             # Check if line is a section header like [Verse 1], [Chorus]
             if re.match(r'^\[.*\]', line.strip()):
-                formatted_lines.append(f'\n**{line.strip()}**')
+                # Remove brackets and make it a subtle tab header
+                section_text = re.sub(r'[\[\]]', '', line.strip())
+                formatted_lines.append(f'\n**{section_text}**')
             elif line.strip():
                 formatted_lines.append(f'{line_num:3d}  {line}')
                 line_num += 1
