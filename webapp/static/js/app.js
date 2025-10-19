@@ -468,6 +468,13 @@ function handleGlobalKeyboard(e) {
         toggleHelpCard();
         return;
     }
+
+    // ESC to close help card
+    if (e.key === 'Escape' && helpCardVisible) {
+        e.preventDefault();
+        toggleHelpCard(); // Close it
+        return;
+    }
 }
 
 // Toggle help card visibility
