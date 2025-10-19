@@ -2663,7 +2663,11 @@ function handleImportDialogKeyboard(e) {
     }
 
     // Step 1: Navigate cached playlists with arrow keys
-    if (importStepUrl.style.display === 'flex' && importDialogState.cachedPlaylists.length > 0) {
+    if (
+        importStepUrl.style.display === 'flex' &&
+        Array.isArray(importDialogState.cachedPlaylists) &&
+        importDialogState.cachedPlaylists.length > 0
+    ) {
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             if (importDialogState.selectedPlaylistIndex < importDialogState.cachedPlaylists.length - 1) {
