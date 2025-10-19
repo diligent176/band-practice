@@ -1277,115 +1277,27 @@ header h1 {
   column-rule: 1px solid var(--border-color);
 }
 
-/* Font Size Classes */
-.font-size-small .lyrics-line {
-  font-size: 11px;
-  line-height: 1.15;
+/* Dynamic Font Sizing System - CSS Variables (replaces 112 lines of redundant classes!) */
+#main-app {
+  --font-scale: 1.0; /* Default scale multiplier */
 }
 
-.font-size-small .lyrics-line.section-header {
-  font-size: 11px;
+.lyrics-line {
+  font-size: calc(13px * var(--font-scale)); /* Base: 13px at scale 1.0 */
+  line-height: calc(1.2 + (var(--font-scale) * 0.15)); /* Dynamic line height */
 }
 
-.font-size-small .note-header {
-  font-size: 10px;
+.lyrics-line.section-header {
+  font-size: calc(13px * var(--font-scale));
 }
 
-.font-size-small .note-content {
-  font-size: 11px;
-  line-height: 1.15;
+.note-header {
+  font-size: calc(11px * var(--font-scale));
 }
 
-.font-size-medium .lyrics-line {
-  font-size: 13px;
-  line-height: 1.2;
-}
-
-.font-size-medium .lyrics-line.section-header {
-  font-size: 13px;
-}
-
-.font-size-medium .note-header {
-  font-size: 11px;
-}
-
-.font-size-medium .note-content {
-  font-size: 12px;
-  line-height: 1.25;
-}
-
-.font-size-large .lyrics-line {
-  font-size: 15px;
-  line-height: 1.3;
-}
-
-.font-size-large .lyrics-line.section-header {
-  font-size: 15px;
-}
-
-.font-size-large .note-header {
-  font-size: 13px;
-}
-
-.font-size-large .note-content {
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-.font-size-xlarge .lyrics-line {
-  font-size: 17px;
-  line-height: 1.3;
-}
-
-.font-size-xlarge .lyrics-line.section-header {
-  font-size: 17px;
-}
-
-.font-size-xlarge .note-header {
-  font-size: 15px;
-}
-
-.font-size-xlarge .note-content {
-  font-size: 16px;
-  line-height: 1.4;
-}
-
-/* XX-Large Font Size */
-.font-size-xxlarge .lyrics-line {
-  font-size: 20px;
-  line-height: 1.3;
-}
-
-.font-size-xxlarge .lyrics-line.section-header {
-  font-size: 20px;
-}
-
-.font-size-xxlarge .note-header {
-  font-size: 18px;
-}
-
-.font-size-xxlarge .note-content {
-  font-size: 19px;
-  line-height: 1.45;
-}
-
-/* XXX-Large Font Size */
-.font-size-xxxlarge .lyrics-line {
-  font-size: 24px;
-  line-height: 1.5;
-}
-
-.font-size-xxxlarge .lyrics-line.section-header {
-  font-size: 24px;
-}
-
-.font-size-xxxlarge .note-header {
-  font-size: 22px;
-}
-
-.font-size-xxxlarge .note-content {
-  font-size: 23px;
-  line-height: 1.5;
+.note-content {
+  font-size: calc(12px * var(--font-scale));
+  line-height: calc(1.25 + (var(--font-scale) * 0.15));
 }
 
 .lyrics-line {

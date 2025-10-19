@@ -249,10 +249,17 @@ function setupEventListeners() {
 
 // Global keyboard shortcut handler
 function handleGlobalKeyboard(e) {
+    // Ctrl+Up/Down for font size adjustment (works even when typing)
+    if (e.ctrlKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        adjustFontSize(e.key === 'ArrowUp' ? 1 : -1);
+        return;
+    }
+
     // Ignore if user is typing in an input field
     const activeElement = document.activeElement;
-    const isTyping = activeElement.tagName === 'INPUT' || 
-                     activeElement.tagName === 'TEXTAREA' || 
+    const isTyping = activeElement.tagName === 'INPUT' ||
+                     activeElement.tagName === 'TEXTAREA' ||
                      activeElement.isContentEditable;
 
     // Don't process simple key shortcuts if user is typing
@@ -1664,25 +1671,89 @@ function loadColumnPreference(songId) {
     }
 }
 
-// Font Size Change Function
+// Font scale mapping (name -> CSS variable value)
+const fontScales = {
+    'small': 0.846,    // 11px lyrics (13 * 0.846)
+    'medium': 1.0,     // 13px lyrics (base)
+    'large': 1.154,    // 15px lyrics
+    'xlarge': 1.308,   // 17px lyrics
+    'xxlarge': 1.538,  // 20px lyrics
+    'xxxlarge': 1.846  // 24px lyrics
+};
+
+// Set font scale via CSS variable
+function setFontScale(scale) {
+    mainApp.style.setProperty('--font-scale', scale);
+}
+
+// Adjust font size incrementally with keyboard shortcuts
+function adjustFontSize(direction) {
+    // Get current scale from CSS variable or localStorage
+    const currentScale = parseFloat(
+        getComputedStyle(mainApp).getPropertyValue('--font-scale') ||
+        localStorage.getItem('bandPracticeFontScale') ||
+        1.0
+    );
+
+    // Increment/decrement by 0.1 (smooth adjustment)
+    const step = 0.1;
+    let newScale = currentScale + (direction * step);
+
+    // Clamp between 0.5 and 2.5 (reasonable limits)
+    newScale = Math.max(0.5, Math.min(2.5, newScale));
+    newScale = Math.round(newScale * 100) / 100; // Round to 2 decimals
+
+    // Apply the new scale
+    setFontScale(newScale);
+
+    // Update localStorage
+    localStorage.setItem('bandPracticeFontScale', newScale);
+
+    // Update dropdown to closest match (optional - keeps UI in sync)
+    updateFontSizeDropdown(newScale);
+
+    // Show toast notification with current size
+    const percentage = Math.round(newScale * 100);
+    showToast(`Font size: ${percentage}%`, 'info');
+}
+
+// Update dropdown to nearest matching size
+function updateFontSizeDropdown(scale) {
+    // Find closest preset
+    let closest = 'medium';
+    let minDiff = Infinity;
+
+    for (const [name, presetScale] of Object.entries(fontScales)) {
+        const diff = Math.abs(scale - presetScale);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closest = name;
+        }
+    }
+
+    fontSizeSelect.value = closest;
+    localStorage.setItem('bandPracticeFontSize', closest);
+}
+
+// Font Size Change Function - Now uses CSS variables!
 function handleFontSizeChange(e) {
     const fontSize = e.target.value;
+    const scale = fontScales[fontSize] || 1.0;
 
-    // Remove all font size classes
-    mainApp.classList.remove('font-size-small', 'font-size-medium', 'font-size-large', 'font-size-xlarge', 'font-size-xxlarge', 'font-size-xxxlarge');
-
-    // Add the selected font size class
-    mainApp.classList.add(`font-size-${fontSize}`);
+    setFontScale(scale);
 
     // Save preference to localStorage
     localStorage.setItem('bandPracticeFontSize', fontSize);
+    localStorage.setItem('bandPracticeFontScale', scale);
 }
 
 // Load saved font size on init
 function loadFontSizePreference() {
     const savedSize = localStorage.getItem('bandPracticeFontSize') || 'medium';
+    const savedScale = localStorage.getItem('bandPracticeFontScale') || fontScales['medium'];
+
     fontSizeSelect.value = savedSize;
-    mainApp.classList.add(`font-size-${savedSize}`);
+    setFontScale(savedScale);
 }
 
 
