@@ -25,6 +25,17 @@
   --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   --card-bg: #2a2a2a;
   --card-border: #3a3a3a;
+  /* Green accent opacity variants - for buttons, borders, backgrounds */
+  --accent-green-04: rgba(24, 160, 73, 0.04);
+  --accent-green-08: rgba(24, 160, 73, 0.08);
+  --accent-green-10: rgba(24, 160, 73, 0.1);
+  --accent-green-12: rgba(24, 160, 73, 0.12);
+  --accent-green-15: rgba(24, 160, 73, 0.15);
+  --accent-green-20: rgba(24, 160, 73, 0.2);
+  --accent-green-25: rgba(24, 160, 73, 0.25);
+  --accent-green-30: rgba(24, 160, 73, 0.3);
+  --accent-green-35: rgba(24, 160, 73, 0.35);
+  --accent-green-45: rgba(24, 160, 73, 0.45);
 }
 
 body {
@@ -415,8 +426,8 @@ header h1 i {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(24, 160, 73, 0.12);
-  border: 1px solid rgba(24, 160, 73, 0.3);
+  background: var(--accent-green-12);
+  border: 1px solid var(--accent-green-30);
   border-radius: 4px;
   padding: 4px 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -431,23 +442,23 @@ header h1 i {
 }
 
 .bpm-indicator-toggle-btn:hover {
-  background: rgba(24, 160, 73, 0.2);
-  border-color: rgba(24, 160, 73, 0.45);
+  background: var(--accent-green-20);
+  border-color: var(--accent-green-45);
 }
 
 .bpm-indicator-toggle-btn.active {
-  background: rgba(24, 160, 73, 0.25);
+  background: var(--accent-green-25);
   border-color: rgba(24, 160, 73, 0.5);
   color: var(--text-primary);
 }
 
 .bpm-indicator-toggle-btn.active:hover {
-  background: rgba(24, 160, 73, 0.3);
+  background: var(--accent-green-30);
   border-color: rgba(24, 160, 73, 0.6);
 }
 
 .bpm-indicator-toggle-btn.pulse {
-  background: rgba(24, 160, 73, 0.45);
+  background: var(--accent-green-45);
   border-color: rgba(24, 160, 73, 0.75);
 }
 
@@ -810,8 +821,8 @@ header h1 i {
 }
 
 .btn-primary {
-  background: rgba(24, 160, 73, 0.1);
-  border: 1px solid rgba(24, 160, 73, 0.25);
+  background: var(--accent-green-10);
+  border: 1px solid var(--accent-green-25);
   border-radius: 4px;
   color: var(--text-primary);
   min-width: 80px;
@@ -822,8 +833,8 @@ header h1 i {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: rgba(24, 160, 73, 0.15);
-  border-color: rgba(24, 160, 73, 0.35);
+  background: var(--accent-green-15);
+  border-color: var(--accent-green-35);
 }
 
 .btn-primary i {
@@ -858,8 +869,8 @@ header h1 i {
 
 .btn-badge {
   padding: 6px 12px;
-  background: rgba(24, 160, 73, 0.1);
-  border: 1px solid rgba(24, 160, 73, 0.25);
+  background: var(--accent-green-10);
+  border: 1px solid var(--accent-green-25);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
@@ -867,8 +878,8 @@ header h1 i {
 }
 
 .btn-badge:hover:not(:disabled) {
-  background: rgba(24, 160, 73, 0.15);
-  border-color: rgba(24, 160, 73, 0.35);
+  background: var(--accent-green-15);
+  border-color: var(--accent-green-35);
 }
 
 .btn-badge i {
@@ -877,16 +888,16 @@ header h1 i {
 }
 
 .btn-subtle {
-  background: rgba(24, 160, 73, 0.08);
+  background: var(--accent-green-08);
   color: var(--text-primary);
-  border: 1px solid rgba(24, 160, 73, 0.2);
+  border: 1px solid var(--accent-green-20);
   padding: 2px 8px;
   font-size: 10px;
 }
 
 .btn-subtle:hover:not(:disabled) {
-  background: rgba(24, 160, 73, 0.15);
-  border-color: rgba(24, 160, 73, 0.35);
+  background: var(--accent-green-15);
+  border-color: var(--accent-green-35);
 }
 
 .btn-subtle i {
@@ -898,14 +909,14 @@ header h1 i {
   padding: 4px 12px;
   font-size: 11px;
   font-weight: 600;
-  background: rgba(24, 160, 73, 0.12);
-  border: 1px solid rgba(24, 160, 73, 0.3);
+  background: var(--accent-green-12);
+  border: 1px solid var(--accent-green-30);
   flex-shrink: 0;
 }
 
 .status-bar .btn-subtle:hover:not(:disabled) {
-  background: rgba(24, 160, 73, 0.2);
-  border-color: rgba(24, 160, 73, 0.45);
+  background: var(--accent-green-20);
+  border-color: var(--accent-green-45);
 }
 
 .btn-icon {
@@ -913,14 +924,14 @@ header h1 i {
   font-size: 15px;
   min-width: auto;
   border-radius: 4px;
-  background: rgba(24, 160, 73, 0.04);
+  background: var(--accent-green-04);
   color: var(--text-primary);
-  border: 1px solid rgba(24, 160, 73, 0.15);
+  border: 1px solid var(--accent-green-15);
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: rgba(24, 160, 73, 0.08);
-  border-color: rgba(24, 160, 73, 0.25);
+  background: var(--accent-green-08);
+  border-color: var(--accent-green-25);
 }
 
 .btn-icon i {
@@ -1237,8 +1248,8 @@ header h1 i {
   padding: 4px 10px;
   margin-left: 12px;
   border-radius: 4px;
-  background: rgba(24, 160, 73, 0.15);
-  border: 1px solid rgba(24, 160, 73, 0.3);
+  background: var(--accent-green-15);
+  border: 1px solid var(--accent-green-30);
   font-size: 13px;
   color: var(--text-primary);
   transition: background 0.1s ease, border-color 0.1s ease;
@@ -1256,23 +1267,23 @@ header h1 i {
 
 @keyframes bpm-block-pulse {
   0% {
-    background: rgba(24, 160, 73, 0.25);
+    background: var(--accent-green-25);
     border-color: rgba(24, 160, 73, 0.5);
   }
 
   50% {
-    background: rgba(24, 160, 73, 0.25);
+    background: var(--accent-green-25);
     border-color: rgba(24, 160, 73, 0.5);
   }
 
   51% {
-    background: rgba(24, 160, 73, 0.15);
-    border-color: rgba(24, 160, 73, 0.3);
+    background: var(--accent-green-15);
+    border-color: var(--accent-green-30);
   }
 
   100% {
-    background: rgba(24, 160, 73, 0.15);
-    border-color: rgba(24, 160, 73, 0.3);
+    background: var(--accent-green-15);
+    border-color: var(--accent-green-30);
   }
 }
 
@@ -2536,7 +2547,7 @@ header h1 i {
   width: 36px;
   height: 36px;
   border-radius: 6px;
-  background: rgba(24, 160, 73, 0.15);
+  background: var(--accent-green-15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2633,15 +2644,15 @@ header h1 i {
 
 /* Tone down New Collection button */
 #new-collection-btn {
-  background: rgba(24, 160, 73, 0.08);
-  border-color: rgba(24, 160, 73, 0.2);
+  background: var(--accent-green-08);
+  border-color: var(--accent-green-20);
   font-size: 12px;
   padding: 6px 12px;
 }
 
 #new-collection-btn:hover:not(:disabled) {
-  background: rgba(24, 160, 73, 0.12);
-  border-color: rgba(24, 160, 73, 0.3);
+  background: var(--accent-green-12);
+  border-color: var(--accent-green-30);
 }
 
 /* Back to Top Button */
@@ -2653,9 +2664,9 @@ header h1 i {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(24, 160, 73, 0.25);
+  background: var(--accent-green-25);
   color: var(--text-secondary);
-  border: 1px solid rgba(24, 160, 73, 0.35);
+  border: 1px solid var(--accent-green-35);
   font-size: 20px;
   cursor: pointer;
   z-index: 1000;
@@ -2668,11 +2679,11 @@ header h1 i {
 }
 
 .back-to-top-btn:hover {
-  background: rgba(24, 160, 73, 0.45);
+  background: var(--accent-green-45);
   color: var(--text-primary);
   opacity: 1;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(24, 160, 73, 0.25);
+  box-shadow: 0 4px 12px var(--accent-green-25);
 }
 
 .back-to-top-btn:active {
