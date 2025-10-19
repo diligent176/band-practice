@@ -130,7 +130,7 @@ class LyricsService:
             bpm = 'N/A'
 
             # Create song ID with collection context for conflict detection
-            song_id = self._create_song_id(title, artist, collection_id)
+            song_id = self._create_song_id(track['id'], collection_id)
 
             # Check if song exists and has conflicts (using in-memory lookup instead of Firestore calls)
             status = 'new'
