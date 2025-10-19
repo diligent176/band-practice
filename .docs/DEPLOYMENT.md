@@ -11,10 +11,12 @@ Complete guide for deploying the Band Practice app to Google Cloud Platform from
 ## Deployment Philosophy
 
 **GitHub Actions does everything.** Manual steps are ONLY for:
-1. Initial GCP project creation
-2. Service account creation for GitHub Actions
-3. Configuring GitHub secrets/variables
-4. Firebase initial setup (one-time)
+1. Initial GCP project creation + billing
+2. Terraform state bucket (required before Terraform can run)
+3. Service account creation for GitHub Actions
+4. Configuring GitHub secrets/variables
+5. Firebase initial setup (one-time)
+6. Authorized domains after first deploy (one-time)
 
 Everything else (APIs, Firestore, Terraform, deployment) is automated.
 
@@ -34,9 +36,21 @@ gcloud config set project YOUR-PROJECT-ID
 # Link billing account to YOUR-PROJECT-ID
 ```
 
-**That's it for GCP setup.** GitHub Actions will enable all APIs.
+### 2. Create Terraform State Bucket
 
-### 2. Create Service Account for GitHub Actions
+Terraform needs this bucket to store its state BEFORE it can run.
+
+```bash
+# Create bucket for Terraform state
+gcloud storage buckets create gs://YOUR-PROJECT-ID-terraform-state --location=us-west1
+
+# Enable versioning
+gcloud storage buckets update gs://YOUR-PROJECT-ID-terraform-state --versioning
+```
+
+**That's it for GCP setup.** GitHub Actions will enable all APIs and create Firestore.
+
+### 3. Create Service Account for GitHub Actions
 
 This allows GitHub Actions to manage everything in your GCP project.
 
@@ -79,7 +93,7 @@ gcloud iam service-accounts keys create github-actions-key.json \
 rm github-actions-key.json
 ```
 
-### 3. Configure GitHub Repository
+### 4. Configure GitHub Repository
 
 #### a. Set GitHub Actions Variables
 
@@ -115,7 +129,7 @@ Add these **Secrets**:
 
 See [API_SETUP.md](API_SETUP.md) for detailed instructions on getting API keys.
 
-### 4. Set Up Firebase Authentication
+### 5. Set Up Firebase Authentication
 
 ```bash
 # Open Firebase Console
@@ -135,7 +149,7 @@ In Firebase Console:
 9. Copy **API Key** → Add to GitHub secret `FIREBASE_API_KEY`
 10. Copy **Auth Domain** → Add to GitHub secret `FIREBASE_AUTH_DOMAIN`
 
-### 5. Deploy Everything via GitHub Actions
+### 6. Deploy Everything via GitHub Actions
 
 ```bash
 # Commit and push to trigger deployment
@@ -146,18 +160,17 @@ git push origin main
 
 **GitHub Actions will now:**
 1. ✅ Enable all required GCP APIs (run, firestore, cloudbuild, etc.)
-2. ✅ Create Firestore database
-3. ✅ Create Terraform state bucket
-4. ✅ Run Terraform to create all infrastructure
-5. ✅ Build Docker image
-6. ✅ Deploy to Cloud Run
-7. ✅ Configure all secrets in Secret Manager
+2. ✅ Create Firestore database (via Terraform)
+3. ✅ Run Terraform to create all infrastructure
+4. ✅ Build Docker image
+5. ✅ Deploy to Cloud Run
+6. ✅ Configure all secrets in Secret Manager
 
 **Wait ~5-10 minutes** for workflows to complete.
 
 Check status: GitHub repo → **Actions** tab
 
-### 6. Post-Deployment Configuration
+### 7. Post-Deployment Configuration
 
 After deployment completes, you need to configure authorized domains.
 
@@ -275,7 +288,6 @@ Everything except the initial bootstrapping:
 
 - ✅ Enabling GCP APIs
 - ✅ Creating Firestore database
-- ✅ Creating Terraform state bucket
 - ✅ Running Terraform (infrastructure)
 - ✅ Creating Artifact Registry
 - ✅ Building Docker images
@@ -283,11 +295,12 @@ Everything except the initial bootstrapping:
 - ✅ Managing Secret Manager secrets
 - ✅ Creating Firestore indexes
 
-**You only do:**
-- ❌ Create GCP project + enable billing (one-time)
-- ❌ Create service account for GitHub Actions (one-time)
-- ❌ Configure GitHub secrets/variables (one-time)
-- ❌ Set up Firebase (one-time)
+**You only do manually:**
+- ❌ Create GCP project + enable billing (one-time, bootstrapping)
+- ❌ Create Terraform state bucket (one-time, required before Terraform can run)
+- ❌ Create service account for GitHub Actions (one-time, bootstrapping)
+- ❌ Configure GitHub secrets/variables (one-time, bootstrapping)
+- ❌ Set up Firebase auth (one-time, bootstrapping)
 - ❌ Configure authorized domains (one-time, after first deploy)
 
 ## Troubleshooting
