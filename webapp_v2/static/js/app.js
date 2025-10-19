@@ -4651,8 +4651,7 @@ async function syncCollectionInBackground(collectionId) {
                     } else if (data.type === 'complete') {
                         console.log(`✅ Sync complete: ${data.message}`);
                         setStatus(data.message, 'success');
-                        // Reload songs to reflect changes
-                        await loadSongs();
+                        // Do NOT reload songs or interrupt main UI
                     } else if (data.type === 'error') {
                         console.error(`❌ Sync error: ${data.error}`);
                         showToast('Sync error: ' + data.error, 'error');
