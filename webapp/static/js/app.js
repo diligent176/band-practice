@@ -69,6 +69,43 @@ const bpmDialogSongInfo = document.getElementById('bpm-dialog-song-info');
 const bpmInput = document.getElementById('bpm-input');
 const bpmDialogSaveBtn = document.getElementById('bpm-dialog-save-btn');
 const bpmDialogCancelBtn = document.getElementById('bpm-dialog-cancel-btn');
+const setBpmBtn = document.getElementById('set-bpm-btn');
+
+// BPM Tap Trainer DOM elements
+const bpmTapDialog = document.getElementById('bpm-tap-dialog');
+const bpmTapSongInfo = document.getElementById('bpm-tap-song-info');
+const bpmTapDisplay = document.getElementById('bpm-tap-display');
+const bpmTapCount = document.getElementById('bpm-tap-count');
+const bpmTapResetBtn = document.getElementById('bpm-tap-reset-btn');
+const bpmTapSaveBtn = document.getElementById('bpm-tap-save-btn');
+const bpmTapCancelBtn = document.getElementById('bpm-tap-cancel-btn');
+
+// Loading overlay DOM elements
+const loadingOverlay = document.getElementById('loading-overlay');
+const loadingMessage = document.getElementById('loading-message');
+const loadingDetails = document.getElementById('loading-details');
+
+// Import dialog DOM elements
+const importPlaylistBtn = document.getElementById('import-playlist-btn');
+const importDialog = document.getElementById('import-dialog');
+const importDialogClose = document.getElementById('import-dialog-close');
+const importStepUrl = document.getElementById('import-step-url');
+const importStepSelect = document.getElementById('import-step-select');
+const importStepProgress = document.getElementById('import-step-progress');
+const importPlaylistUrl = document.getElementById('import-playlist-url');
+const importLoadBtn = document.getElementById('import-load-btn');
+const importPlaylistDetails = document.getElementById('import-playlist-details');
+const importSongsList = document.getElementById('import-songs-list');
+const importSelectAllBtn = document.getElementById('import-select-all-btn');
+const importSelectNewBtn = document.getElementById('import-select-new-btn');
+const importSelectNoneBtn = document.getElementById('import-select-none-btn');
+const importSelectionCount = document.getElementById('import-selection-count');
+const importBackBtn = document.getElementById('import-back-btn');
+const importStartBtn = document.getElementById('import-start-btn');
+const importProgressFill = document.getElementById('import-progress-fill');
+const importProgressText = document.getElementById('import-progress-text');
+const importProgressList = document.getElementById('import-progress-list');
+const importDoneBtn = document.getElementById('import-done-btn');
 
 // Collection DOM elements
 const collectionBtn = document.getElementById('collection-btn');
@@ -159,7 +196,7 @@ function setupEventListeners() {
     cancelEditBtn.addEventListener('click', exitEditMode);
     refreshSongBtn.addEventListener('click', refreshCurrentSong);
     fetchBpmBtn.addEventListener('click', manuallyFetchBpm);
-    document.getElementById('set-bpm-btn').addEventListener('click', openBpmDialog);
+    setBpmBtn.addEventListener('click', openBpmDialog);
     editLyricsBtn.addEventListener('click', openLyricsEditor);
     deleteSongBtn.addEventListener('click', deleteCurrentSong);
     lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
@@ -290,7 +327,6 @@ function handleGlobalKeyboard(e) {
 
     // B to set BPM
     if (e.key === 'b' || e.key === 'B') {
-        const setBpmBtn = document.getElementById('set-bpm-btn');
         if (setBpmBtn && !setBpmBtn.disabled) {
             e.preventDefault();
             setBpmBtn.click();
@@ -300,7 +336,6 @@ function handleGlobalKeyboard(e) {
 
     // F to fetch BPM online
     if (e.key === 'f' || e.key === 'F') {
-        const fetchBpmBtn = document.getElementById('fetch-bpm-btn');
         if (fetchBpmBtn && !fetchBpmBtn.disabled) {
             e.preventDefault();
             fetchBpmBtn.click();
@@ -508,7 +543,7 @@ async function loadSong(songId) {
             editLyricsBtn.disabled = false;
             deleteSongBtn.disabled = false;
             fetchBpmBtn.disabled = false;
-            document.getElementById('set-bpm-btn').disabled = false;
+            setBpmBtn.disabled = false;
             setStatus('Song loaded', 'success');
 
             // Load saved preferences for this song
@@ -1530,22 +1565,21 @@ function handleNotesEditorKeyboard(e) {
 // Event Handlers
 // UI Helper Functions
 function showLoading(message = 'Loading...') {
-    document.getElementById('loading-overlay').style.display = 'flex';
-    document.getElementById('loading-message').textContent = message;
+    loadingOverlay.style.display = 'flex';
+    loadingMessage.textContent = message;
     // Hide details by default
-    document.getElementById('loading-details').style.display = 'none';
+    loadingDetails.style.display = 'none';
 }
 
 function hideLoading() {
-    document.getElementById('loading-overlay').style.display = 'none';
-    document.getElementById('loading-details').style.display = 'none';
+    loadingOverlay.style.display = 'none';
+    loadingDetails.style.display = 'none';
 }
 
 function showLoadingDetails(playlistInfo) {
-    const detailsEl = document.getElementById('loading-details');
     const playlistInfoEl = document.getElementById('playlist-info');
     playlistInfoEl.innerHTML = playlistInfo;
-    detailsEl.style.display = 'block';
+    loadingDetails.style.display = 'block';
 }
 
 function updateSyncProgress(message) {
@@ -2089,14 +2123,6 @@ async function saveBpm() {
 // BPM Tap Trainer Dialog
 //=============================================================================
 
-const bpmTapDialog = document.getElementById('bpm-tap-dialog');
-const bpmTapSongInfo = document.getElementById('bpm-tap-song-info');
-const bpmTapDisplay = document.getElementById('bpm-tap-display');
-const bpmTapCount = document.getElementById('bpm-tap-count');
-const bpmTapResetBtn = document.getElementById('bpm-tap-reset-btn');
-const bpmTapCancelBtn = document.getElementById('bpm-tap-cancel-btn');
-const bpmTapSaveBtn = document.getElementById('bpm-tap-save-btn');
-
 let tapTimes = [];
 let detectedBpm = null;
 
@@ -2302,22 +2328,6 @@ let importDialogState = {
     cachedPlaylists: [],
     selectedPlaylistIndex: -1
 };
-
-// DOM Elements for Import Dialog
-const importDialog = document.getElementById('import-dialog');
-const importDialogClose = document.getElementById('import-dialog-close');
-const importStepUrl = document.getElementById('import-step-url');
-const importStepSelect = document.getElementById('import-step-select');
-const importStepProgress = document.getElementById('import-step-progress');
-const importPlaylistUrl = document.getElementById('import-playlist-url');
-const importLoadBtn = document.getElementById('import-load-btn');
-const importPlaylistBtn = document.getElementById('import-playlist-btn');
-const importSelectAllBtn = document.getElementById('import-select-all-btn');
-const importSelectNewBtn = document.getElementById('import-select-new-btn');
-const importSelectNoneBtn = document.getElementById('import-select-none-btn');
-const importBackBtn = document.getElementById('import-back-btn');
-const importStartBtn = document.getElementById('import-start-btn');
-const importDoneBtn = document.getElementById('import-done-btn');
 
 // Set up import dialog event listeners in the main setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -2622,9 +2632,9 @@ async function startImport() {
 
     try {
         // Reset progress
-        document.getElementById('import-progress-fill').style.width = '0%';
-        document.getElementById('import-progress-text').textContent = `0 / ${selectedIds.length}`;
-        document.getElementById('import-progress-list').innerHTML = '';
+        importProgressFill.style.width = '0%';
+        importProgressText.textContent = `0 / ${selectedIds.length}`;
+        importProgressList.innerHTML = '';
 
         // Create progress items for each song
         const progressItems = {};
@@ -2640,7 +2650,7 @@ async function startImport() {
                     </div>
                     <span class="import-progress-status">Waiting...</span>
                 `;
-                document.getElementById('import-progress-list').appendChild(itemDiv);
+                importProgressList.appendChild(itemDiv);
                 progressItems[song.id] = itemDiv;
             }
         });
@@ -2691,8 +2701,8 @@ async function startImport() {
                                     if (update.type === 'progress') {
                                         // Update progress bar
                                         const percentage = (update.completed / update.total) * 100;
-                                        document.getElementById('import-progress-fill').style.width = `${percentage}%`;
-                                        document.getElementById('import-progress-text').textContent = `${update.completed} / ${update.total}`;
+                                        importProgressFill.style.width = `${percentage}%`;
+                                        importProgressText.textContent = `${update.completed} / ${update.total}`;
 
                                         // Update individual song status
                                         const result = update.result;
