@@ -938,12 +938,12 @@ async function deleteCurrentSong() {
     );
 }
 
-function openSongSelector() {
+async function openSongSelector() {
     songSelectorDialog.style.display = 'flex';
     songSearchInput.value = '';
 
-    // V2: Use filterSongsV2 to get proper rendering with trash icons
-    filterSongsV2();
+    // Always reload songs from backend before rendering chooser
+    await loadSongs();
 
     songSearchInput.focus();
 
@@ -952,7 +952,7 @@ function openSongSelector() {
         document.addEventListener('keydown', handleSongSelectorKeyboard);
         eventListenerFlags.songSelector = true;
     }
-    
+
     // Add event delegation for song clicks (more efficient than individual listeners)
     songSelectorList.addEventListener('click', handleSongListClick);
 }
