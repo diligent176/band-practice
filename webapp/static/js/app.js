@@ -49,6 +49,7 @@ const fontSizeSelect = document.getElementById('font-size-select');
 const lyricsEditorDialog = document.getElementById('lyrics-editor-dialog');
 const lyricsEditorTitle = document.getElementById('lyrics-editor-title');
 const lyricsEditorTextarea = document.getElementById('lyrics-editor-textarea');
+const lyricsEditorLineNumbers = document.getElementById('lyrics-editor-line-numbers');
 const lyricsEditorSaveBtn = document.getElementById('lyrics-editor-save-btn');
 const lyricsEditorCancelBtn = document.getElementById('lyrics-editor-cancel-btn');
 const customizationBadge = document.getElementById('customization-badge');
@@ -106,6 +107,14 @@ const importProgressFill = document.getElementById('import-progress-fill');
 const importProgressText = document.getElementById('import-progress-text');
 const importProgressList = document.getElementById('import-progress-list');
 const importDoneBtn = document.getElementById('import-done-btn');
+const playlistMemorySection = document.getElementById('playlist-memory-section');
+
+// User info DOM elements
+const mainApp = document.getElementById('main-app');
+const userEmail = document.getElementById('user-email');
+
+// BPM indicator icon
+const bpmMetronomeIcon = document.getElementById('bpm-metronome-icon');
 
 // Collection DOM elements
 const collectionBtn = document.getElementById('collection-btn');
@@ -486,12 +495,12 @@ async function loadUserInfo() {
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.user) {
-                document.getElementById('user-email').textContent = data.user.email;
+                userEmail.textContent = data.user.email;
             }
         }
     } catch (error) {
         console.error('Error loading user info:', error);
-        document.getElementById('user-email').textContent = 'User';
+        userEmail.textContent = 'User';
     }
 }
 
@@ -1658,7 +1667,6 @@ function loadColumnPreference(songId) {
 // Font Size Change Function
 function handleFontSizeChange(e) {
     const fontSize = e.target.value;
-    const mainApp = document.getElementById('main-app');
 
     // Remove all font size classes
     mainApp.classList.remove('font-size-small', 'font-size-medium', 'font-size-large', 'font-size-xlarge', 'font-size-xxlarge', 'font-size-xxxlarge');
@@ -1674,7 +1682,6 @@ function handleFontSizeChange(e) {
 function loadFontSizePreference() {
     const savedSize = localStorage.getItem('bandPracticeFontSize') || 'medium';
     fontSizeSelect.value = savedSize;
-    const mainApp = document.getElementById('main-app');
     mainApp.classList.add(`font-size-${savedSize}`);
 }
 
@@ -1720,7 +1727,6 @@ function openLyricsEditor() {
 }
 
 function updateLyricsEditorLineNumbers() {
-    const lineNumbersDiv = document.getElementById('lyrics-editor-line-numbers');
     const lines = lyricsEditorTextarea.value.split('\n');
 
     let lineNumbersText = '';
@@ -1746,7 +1752,7 @@ function updateLyricsEditorLineNumbers() {
         }
     }
 
-    lineNumbersDiv.textContent = lineNumbersText;
+    lyricsEditorLineNumbers.textContent = lineNumbersText;
 }
 
 function populateLyricsEditorNotes() {
@@ -1786,8 +1792,7 @@ function setupLyricsEditorScrollSync() {
 }
 
 function syncLyricsEditorScroll() {
-    const lineNumbersDiv = document.getElementById('lyrics-editor-line-numbers');
-    lineNumbersDiv.scrollTop = lyricsEditorTextarea.scrollTop;
+    lyricsEditorLineNumbers.scrollTop = lyricsEditorTextarea.scrollTop;
 }
 
 function closeLyricsEditor() {
@@ -2778,8 +2783,7 @@ async function loadPlaylistMemory() {
             importDialogState.cachedPlaylists = [];
             importDialogState.selectedPlaylistIndex = -1;
             // Hide the section if no playlists
-            const section = document.getElementById('playlist-memory-section');
-            if (section) section.style.display = 'none';
+            if (playlistMemorySection) playlistMemorySection.style.display = 'none';
         }
     } catch (error) {
         console.error('Error loading playlist memory:', error);
@@ -2787,10 +2791,9 @@ async function loadPlaylistMemory() {
 }
 
 function renderPlaylistMemory(playlists) {
-    const section = document.getElementById('playlist-memory-section');
     const listDiv = document.getElementById('playlist-memory-list');
 
-    if (!section || !listDiv) return;
+    if (!playlistMemorySection || !listDiv) return;
 
     let html = '';
     playlists.forEach((playlist, index) => {
@@ -2811,7 +2814,7 @@ ${imageHtml}
     });
 
     listDiv.innerHTML = html;
-    section.style.display = 'block';
+    playlistMemorySection.style.display = 'block';
 
     // Add click handlers to playlist items
     document.querySelectorAll('.playlist-memory-item').forEach(item => {
@@ -4205,9 +4208,8 @@ function stopBpmIndicatorPulsing() {
     }
 
     // Remove CSS animation from metronome icon
-    const metronomeIcon = document.getElementById('bpm-metronome-icon');
-    if (metronomeIcon) {
-        metronomeIcon.classList.remove('animating');
+    if (bpmMetronomeIcon) {
+        bpmMetronomeIcon.classList.remove('animating');
     }
 }
 
@@ -4222,25 +4224,22 @@ function startBpmIndicator(bpm) {
     const animationDuration = beatDuration * 2;
     const durationString = `${animationDuration}s`;
 
-    // Get the metronome icon
-    const metronomeIcon = document.getElementById('bpm-metronome-icon');
-
     // Check if duration changed (BPM changed) - only restart if needed
     const currentDuration = bpmIndicatorElement.style.animationDuration;
     const needsRestart = currentDuration !== durationString;
 
     // Set animation duration
     bpmIndicatorElement.style.animationDuration = durationString;
-    if (metronomeIcon) {
-        metronomeIcon.style.animationDuration = durationString;
+    if (bpmMetronomeIcon) {
+        bpmMetronomeIcon.style.animationDuration = durationString;
     }
 
     // Only force restart if BPM changed, otherwise let it continue smoothly
     if (needsRestart) {
         // Force synchronization: remove animations, trigger reflow, then add them back
         bpmIndicatorElement.classList.remove('animating');
-        if (metronomeIcon) {
-            metronomeIcon.classList.remove('animating');
+        if (bpmMetronomeIcon) {
+            bpmMetronomeIcon.classList.remove('animating');
         }
 
         // Trigger reflow to restart animations
@@ -4248,16 +4247,16 @@ function startBpmIndicator(bpm) {
 
         // Add animations back - they will now be in sync
         bpmIndicatorElement.classList.add('animating');
-        if (metronomeIcon) {
-            metronomeIcon.classList.add('animating');
+        if (bpmMetronomeIcon) {
+            bpmMetronomeIcon.classList.add('animating');
         }
     } else {
         // Just ensure animations are running (no restart needed)
         if (!bpmIndicatorElement.classList.contains('animating')) {
             bpmIndicatorElement.classList.add('animating');
         }
-        if (metronomeIcon && !metronomeIcon.classList.contains('animating')) {
-            metronomeIcon.classList.add('animating');
+        if (bpmMetronomeIcon && !bpmMetronomeIcon.classList.contains('animating')) {
+            bpmMetronomeIcon.classList.add('animating');
         }
     }
 }
