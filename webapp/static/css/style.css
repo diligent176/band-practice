@@ -1051,22 +1051,22 @@ header h1 {
   flex-shrink: 0;
 }
 
-/* Customization Badge in Main View */
+/* Customization Badge in Main View - Minimal pencil icon */
 .customization-badge-main {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  background: rgba(255, 152, 0, 0.15);
-  border: 1px solid var(--accent-secondary);
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--accent-secondary);
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 2px;
+  color: rgba(255, 152, 0, 0.7);
+  font-size: 13px;
+  cursor: help;
+  transition: color 0.2s ease;
 }
 
-.customization-badge-main span {
-  font-size: 12px;
+.customization-badge-main:hover {
+  color: rgba(255, 152, 0, 0.9);
 }
 
 /* Song Metadata */
