@@ -2499,10 +2499,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (importPlaylistBtn) {
         importPlaylistBtn.addEventListener('click', showImportDialog);
         importDialogClose.addEventListener('click', closeImportDialog);
-        importLoadBtn.addEventListener('click', async () => {
-            const url = importPlaylistUrl.value.trim();
-            if (url) await linkPlaylist(url);
-        });
+        // The import button may be named/imported differently in V2 HTML.
+        // Try to find by id first, then by class; add listener only if present.
+        const importLoadBtn = document.getElementById('import-load-btn') || document.querySelector('.import-playlist-link-btn');
+        if (importLoadBtn) {
+            importLoadBtn.addEventListener('click', async () => {
+                const url = importPlaylistUrl.value.trim();
+                if (url) await linkPlaylist(url);
+            });
+        }
         // importSelectAllBtn.addEventListener('click', selectAllSongs);
         // importSelectNewBtn.addEventListener('click', selectNewSongs);
         // importSelectNoneBtn.addEventListener('click', selectNoneSongs);
@@ -2514,9 +2519,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function showImportDialog() {
     importDialog.style.display = 'flex';
+    // Only show the single-step URL input in V2
     importStepUrl.style.display = 'flex';
-    importStepSelect.style.display = 'none';
-    importStepProgress.style.display = 'none';
 
     // Clear the URL input field
     importPlaylistUrl.value = '';
@@ -2524,6 +2528,7 @@ async function showImportDialog() {
     // V2: Load linked and other playlists
     await loadPlaylistsForDialog();
 
+    // Focus the input so user can paste and press Enter
     importPlaylistUrl.focus();
 
     // Add keyboard shortcuts
@@ -2549,7 +2554,7 @@ function closeImportDialog() {
     }
 }
 
-function handleImportDialogKeyboard(e) {
+async function handleImportDialogKeyboard(e) {
     // Only handle if import dialog is visible
     if (importDialog.style.display !== 'flex') return;
 
@@ -2594,32 +2599,24 @@ function handleImportDialogKeyboard(e) {
         }
     }
 
-    // ENTER to proceed based on current step
+    // ENTER should import the playlist URL directly (V2 single-step)
     if (e.key === 'Enter') {
         e.preventDefault();
         e.stopPropagation();
 
-        // Step 1: Load playlist (Enter in URL field triggers load OR select cached playlist)
         if (importStepUrl.style.display === 'flex') {
-            // If a cached playlist is selected, load it
-            if (importDialogState.selectedPlaylistIndex >= 0) {
-                const selectedPlaylist = importDialogState.cachedPlaylists[importDialogState.selectedPlaylistIndex];
-                if (selectedPlaylist) {
-                    importPlaylistUrl.value = selectedPlaylist.playlist_url;
-                }
+            const url = importPlaylistUrl.value.trim();
+            if (!url) {
+                showToast('Please enter a playlist URL', 'error');
+                return;
             }
-            loadPlaylistDetails();
-        }
-        // Step 2: Start import (but not if user is in the songs list)
-        else if (importStepSelect.style.display === 'flex') {
-            if (!importStartBtn.disabled) {
-                startImport();
-            }
-        }
-        // Step 3: Finish import
-        else if (importStepProgress.style.display === 'flex') {
-            if (importDoneBtn.style.display !== 'none') {
-                finishImport();
+
+            // If an import button exists, trigger it; otherwise call linkPlaylist directly
+            const importLoadBtn = document.getElementById('import-load-btn') || document.querySelector('.import-playlist-link-btn');
+            if (importLoadBtn) {
+                importLoadBtn.click();
+            } else {
+                await linkPlaylist(url);
             }
         }
         return;
