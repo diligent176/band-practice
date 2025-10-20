@@ -98,6 +98,26 @@ resource "google_firestore_index" "collections_v2_user_name" {
   depends_on = [google_firestore_database.database]
 }
 
+# Composite index for collections_v2 - shared collections
+# Enables efficient querying of shared collections, sorted by name
+resource "google_firestore_index" "collections_v2_shared_name" {
+  project    = var.project_id
+  database   = google_firestore_database.database.name
+  collection = "collections_v2"
+
+  fields {
+    field_path = "is_shared"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "name"
+    order      = "ASCENDING"
+  }
+
+  depends_on = [google_firestore_database.database]
+}
+
 # Composite index for songs_v2 collection by collection_id
 # Enables efficient querying of songs by collection_id, sorted by artist and title
 resource "google_firestore_index" "songs_v2_collection_artist_title" {
