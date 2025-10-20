@@ -96,8 +96,22 @@ const importPlaylistBtn = document.getElementById('import-playlist-btn');
 const importDialog = document.getElementById('import-dialog');
 const importDialogClose = document.getElementById('import-dialog-close');
 const importStepUrl = document.getElementById('import-step-url');
-// REMOVED: Const declarations for deleted Step 2/3 import elements
-// (importStepSelect, importStepProgress, importPlaylistUrl, importLoadBtn, etc.)
+const importStepSelect = document.getElementById('import-step-select');
+const importStepProgress = document.getElementById('import-step-progress');
+const importPlaylistUrl = document.getElementById('import-playlist-url');
+const importLoadBtn = document.getElementById('import-load-btn');
+const importPlaylistDetails = document.getElementById('import-playlist-details');
+const importSongsList = document.getElementById('import-songs-list');
+const importSelectAllBtn = document.getElementById('import-select-all-btn');
+const importSelectNewBtn = document.getElementById('import-select-new-btn');
+const importSelectNoneBtn = document.getElementById('import-select-none-btn');
+const importSelectionCount = document.getElementById('import-selection-count');
+const importBackBtn = document.getElementById('import-back-btn');
+const importStartBtn = document.getElementById('import-start-btn');
+const importProgressFill = document.getElementById('import-progress-fill');
+const importProgressText = document.getElementById('import-progress-text');
+const importProgressList = document.getElementById('import-progress-list');
+const importDoneBtn = document.getElementById('import-done-btn');
 const playlistMemorySection = document.getElementById('playlist-memory-section');
 
 // User info DOM elements
@@ -2485,18 +2499,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (importPlaylistBtn) {
         importPlaylistBtn.addEventListener('click', showImportDialog);
         importDialogClose.addEventListener('click', closeImportDialog);
-        // REMOVED: Dead event listeners for Step 2/3 workflow
-        // (importSelectAllBtn, importSelectNewBtn, importSelectNoneBtn,
-        //  importBackBtn, importStartBtn, importDoneBtn)
+        importLoadBtn.addEventListener('click', async () => {
+            const url = importPlaylistUrl.value.trim();
+            if (url) await linkPlaylist(url);
+        });
+        // importSelectAllBtn.addEventListener('click', selectAllSongs);
+        // importSelectNewBtn.addEventListener('click', selectNewSongs);
+        // importSelectNoneBtn.addEventListener('click', selectNoneSongs);
+        // importBackBtn.addEventListener('click', backToUrlStep);
+        // importStartBtn.addEventListener('click', startImport);
+        // importDoneBtn.addEventListener('click', finishImport);
     }
 });
 
 async function showImportDialog() {
     importDialog.style.display = 'flex';
     importStepUrl.style.display = 'flex';
+    importStepSelect.style.display = 'none';
+    importStepProgress.style.display = 'none';
+
+    // Clear the URL input field
+    importPlaylistUrl.value = '';
 
     // V2: Load linked and other playlists
     await loadPlaylistsForDialog();
+
+    importPlaylistUrl.focus();
 
     // Add keyboard shortcuts
     if (!eventListenerFlags.importDialog) {
@@ -2533,7 +2561,7 @@ function handleImportDialogKeyboard(e) {
         return;
     }
 
-    // Navigate cached playlists with arrow keys
+    // Step 1: Navigate cached playlists with arrow keys
     if (
         importStepUrl.style.display === 'flex' &&
         Array.isArray(importDialogState.cachedPlaylists) &&
@@ -2564,6 +2592,37 @@ function handleImportDialogKeyboard(e) {
             }
             return;
         }
+    }
+
+    // ENTER to proceed based on current step
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Step 1: Load playlist (Enter in URL field triggers load OR select cached playlist)
+        if (importStepUrl.style.display === 'flex') {
+            // If a cached playlist is selected, load it
+            if (importDialogState.selectedPlaylistIndex >= 0) {
+                const selectedPlaylist = importDialogState.cachedPlaylists[importDialogState.selectedPlaylistIndex];
+                if (selectedPlaylist) {
+                    importPlaylistUrl.value = selectedPlaylist.playlist_url;
+                }
+            }
+            loadPlaylistDetails();
+        }
+        // Step 2: Start import (but not if user is in the songs list)
+        else if (importStepSelect.style.display === 'flex') {
+            if (!importStartBtn.disabled) {
+                startImport();
+            }
+        }
+        // Step 3: Finish import
+        else if (importStepProgress.style.display === 'flex') {
+            if (importDoneBtn.style.display !== 'none') {
+                finishImport();
+            }
+        }
+        return;
     }
 }
 
