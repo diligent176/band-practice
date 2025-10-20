@@ -2535,7 +2535,9 @@ header h1 i {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 5px 8px;
+  padding: 4px 8px;
+  min-height: 42px;
+  max-height: 42px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -2582,12 +2584,17 @@ header h1 i {
 .collection-item-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .collection-item-header {
   display: flex;
   align-items: center;
   gap: 8px;
+  line-height: 1;
 }
 
 .collection-item-name {
@@ -2615,8 +2622,8 @@ header h1 i {
   text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 0.75;
-  line-height: 1.2;
-  margin-top: 2px;
+  line-height: 1;
+  margin-top: 3px;
 }
 
 .collection-item-active {
@@ -2634,58 +2641,109 @@ header h1 i {
   opacity: 0.85;
 }
 
+.collection-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  align-self: stretch;
+  justify-content: center;
+}
+
 .collection-item-edit {
-  padding: 5px 10px;
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 4px;
-  color: #3b82f6;
+  padding: 2px 5px;
+  background: transparent;
+  border: 1px solid rgba(128, 128, 128, 0.15);
+  border-radius: 3px;
+  color: rgba(128, 128, 128, 0.6);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   flex-shrink: 0;
-  opacity: 0.8;
+  width: 24px;
+  height: 17px;
 }
 
 .collection-item-edit:hover {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #3b82f6;
-  opacity: 1;
+  background: rgba(128, 128, 128, 0.1);
+  border-color: rgba(128, 128, 128, 0.3);
+  color: rgba(128, 128, 128, 0.9);
 }
 
 .collection-item-edit i {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .collection-item-delete {
-  padding: 5px 10px;
-  background: rgba(220, 38, 38, 0.08);
-  border: 1px solid rgba(220, 38, 38, 0.2);
-  border-radius: 4px;
-  color: #dc2626;
+  padding: 2px 5px;
+  background: transparent;
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  border-radius: 3px;
+  color: rgba(220, 38, 38, 0.5);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   flex-shrink: 0;
-  opacity: 0.8;
+  width: 24px;
+  height: 17px;
 }
 
 .collection-item-delete:hover {
-  background: rgba(220, 38, 38, 0.15);
+  background: rgba(220, 38, 38, 0.12);
   border-color: rgba(220, 38, 38, 0.4);
   color: #dc2626;
-  opacity: 1;
 }
 
 .collection-item-delete i {
-  font-size: 11px;
+  font-size: 12px;
+}
+
+.collection-item-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.collection-badge {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.collection-badge i {
+  font-size: 8px;
+}
+
+.collection-badge-shared {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+}
+
+.collection-badge-owner {
+  background: rgba(255, 152, 0, 0.12);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  color: #ff9800;
+}
+
+.collection-badge-collaborator {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
 }
 
 .collection-selector-content {

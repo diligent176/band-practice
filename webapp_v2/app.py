@@ -34,6 +34,39 @@ lyrics_service = LyricsService(firestore)
 spotify_auth = SpotifyAuthService(firestore)
 
 
+# Helper function for song permissions
+def check_song_permission(song_id, user_email, permission_type='write'):
+    """
+    Check if user has permission to access a song
+
+    Args:
+        song_id: Song document ID
+        user_email: User's email
+        permission_type: 'read', 'write', or 'admin'
+
+    Returns:
+        Tuple of (has_permission: bool, song: dict, collection: dict)
+    """
+    song = firestore.get_song(song_id)
+    if not song:
+        return False, None, None
+
+    collection_id = song.get('collection_id')
+    if not collection_id:
+        return False, song, None
+
+    collection = firestore.get_collection(collection_id)
+    if not collection:
+        return False, song, None
+
+    if permission_type == 'admin':
+        return firestore.can_admin_collection(collection_id, user_email), song, collection
+    elif permission_type == 'write':
+        return firestore.can_write_collection(collection_id, user_email), song, collection
+    else:  # read
+        return firestore.can_read_collection(collection_id, user_email), song, collection
+
+
 @app.route('/')
 def index():
     """Main viewer page with Firebase auth"""
@@ -88,12 +121,18 @@ def get_song(song_id):
 @app.route('/api/songs/<song_id>/notes', methods=['PUT'])
 @require_auth
 def update_notes(song_id):
-    """Update drummer notes for a song"""
+    """Update drummer notes for a song (owner or collaborator)"""
     try:
+        user_email = g.user.get('email')
         data = request.get_json()
         notes = data.get('notes', '')
 
-        logger.info(f"User {g.user.get('email')} updating notes for song {song_id}")
+        # Check write permission
+        has_permission, _, _ = check_song_permission(song_id, user_email, 'write')
+        if not has_permission:
+            return jsonify({'error': 'You do not have permission to edit this song', 'success': False}), 403
+
+        logger.info(f"User {user_email} updating notes for song {song_id}")
         firestore.update_notes(song_id, notes)
         return jsonify({'success': True, 'message': 'Notes updated successfully'})
     except Exception as e:
@@ -104,12 +143,18 @@ def update_notes(song_id):
 @app.route('/api/songs/<song_id>/lyrics', methods=['PUT'])
 @require_auth
 def update_lyrics(song_id):
-    """Update lyrics for a song and mark as customized"""
+    """Update lyrics for a song and mark as customized (owner or collaborator)"""
     try:
+        user_email = g.user.get('email')
         data = request.get_json()
         lyrics = data.get('lyrics', '')
 
-        logger.info(f"User {g.user.get('email')} updating lyrics for song {song_id}")
+        # Check write permission
+        has_permission, _, _ = check_song_permission(song_id, user_email, 'write')
+        if not has_permission:
+            return jsonify({'error': 'You do not have permission to edit this song', 'success': False}), 403
+
+        logger.info(f"User {user_email} updating lyrics for song {song_id}")
 
         # Update lyrics and mark as customized
         firestore.update_lyrics(song_id, lyrics, is_customized=True)
@@ -302,13 +347,20 @@ def refresh_song(song_id):
 @app.route('/api/songs/<song_id>/bpm', methods=['POST'])
 @require_auth
 def fetch_bpm(song_id):
-    """Fetch BPM for a specific song (called asynchronously from frontend)"""
+    """Fetch BPM for a specific song (owner or collaborator)"""
     try:
+        user_email = g.user.get('email')
+
+        # Check write permission
+        has_permission, _, _ = check_song_permission(song_id, user_email, 'write')
+        if not has_permission:
+            return jsonify({'error': 'You do not have permission to edit this song', 'success': False}), 403
+
         song = firestore.get_song(song_id)
         if not song:
             return jsonify({'error': 'Song not found', 'success': False}), 404
 
-        logger.info(f"User {g.user.get('email')} fetching BPM for song {song_id}")
+        logger.info(f"User {user_email} fetching BPM for song {song_id}")
         result = lyrics_service.fetch_and_update_bpm(
             song_id,
             song['title'],
@@ -327,13 +379,19 @@ def fetch_bpm(song_id):
 @app.route('/api/songs/<song_id>/bpm', methods=['PUT'])
 @require_auth
 def update_bpm(song_id):
-    """Manually update BPM for a song (user override)"""
+    """Manually update BPM for a song (owner or collaborator)"""
     try:
+        user_email = g.user.get('email')
         data = request.get_json()
         bpm_value = data.get('bpm')
 
         if bpm_value is None:
             return jsonify({'error': 'BPM value is required', 'success': False}), 400
+
+        # Check write permission
+        has_permission, _, _ = check_song_permission(song_id, user_email, 'write')
+        if not has_permission:
+            return jsonify({'error': 'You do not have permission to edit this song', 'success': False}), 403
 
         # Validate BPM value
         if isinstance(bpm_value, str):
@@ -353,7 +411,7 @@ def update_bpm(song_id):
         if not song:
             return jsonify({'error': 'Song not found', 'success': False}), 404
 
-        logger.info(f"User {g.user.get('email')} manually updating BPM for song {song_id} to {bpm_value}")
+        logger.info(f"User {user_email} manually updating BPM for song {song_id} to {bpm_value}")
         firestore.update_bpm(song_id, bpm_value, is_manual=True)
 
         # Get updated song
@@ -372,13 +430,20 @@ def update_bpm(song_id):
 @app.route('/api/songs/<song_id>', methods=['DELETE'])
 @require_auth
 def delete_song(song_id):
-    """Delete a song from the database"""
+    """Delete a song from the database (owner only)"""
     try:
+        user_email = g.user.get('email')
+
+        # Check admin permission (owner only can delete)
+        has_permission, _, _ = check_song_permission(song_id, user_email, 'admin')
+        if not has_permission:
+            return jsonify({'error': 'Only collection owner can delete songs', 'success': False}), 403
+
         song = firestore.get_song(song_id)
         if not song:
             return jsonify({'error': 'Song not found', 'success': False}), 404
 
-        logger.info(f"User {g.user.get('email')} deleting song {song_id}: {song.get('title')} by {song.get('artist')}")
+        logger.info(f"User {user_email} deleting song {song_id}: {song.get('title')} by {song.get('artist')}")
         firestore.delete_song(song_id)
 
         return jsonify({
@@ -442,7 +507,7 @@ def delete_playlist_memory(playlist_id):
 @app.route('/api/collections', methods=['GET'])
 @require_auth
 def get_collections():
-    """Get all collections for the current user with song counts"""
+    """Get all collections for the current user + shared collections"""
     import time
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -451,11 +516,17 @@ def get_collections():
         start_time = time.time()
         logger.info(f"🔄 User {user_id} requested collections")
 
-        # Step 1: Get collections
+        # Step 1: Get user's own collections + all shared collections
         fetch_start = time.time()
-        collections = firestore.get_user_collections(user_id)
+        user_collections = firestore.get_user_collections(user_id)
+        shared_collections = firestore.get_shared_collections()
+
+        # Combine and deduplicate (user's own collections take precedence)
+        user_collection_ids = {c['id'] for c in user_collections}
+        collections = user_collections + [c for c in shared_collections if c['id'] not in user_collection_ids]
+
         fetch_time = time.time() - fetch_start
-        logger.info(f"⏱️  Fetched {len(collections)} collections in {fetch_time:.3f}s")
+        logger.info(f"⏱️  Fetched {len(user_collections)} user collections + {len(shared_collections)} shared collections in {fetch_time:.3f}s")
 
         # Step 2: Add counts for each collection IN PARALLEL
         count_start = time.time()
@@ -553,8 +624,8 @@ def get_collection(collection_id):
         if not collection:
             return jsonify({'error': 'Collection not found', 'success': False}), 404
 
-        # Verify the collection belongs to this user
-        if collection.get('user_id') != user_id:
+        # Check read permission (owner or shared collection)
+        if not firestore.can_read_collection(collection_id, user_id):
             return jsonify({'error': 'Unauthorized', 'success': False}), 403
 
         return jsonify({
@@ -569,25 +640,52 @@ def get_collection(collection_id):
 @app.route('/api/collections/<collection_id>', methods=['PUT'])
 @require_auth
 def update_collection(collection_id):
-    """Update a collection's name and/or description"""
+    """Update a collection's metadata (owner only)"""
     try:
         user_id = g.user.get('email')
         data = request.get_json()
 
-        # Verify the collection belongs to this user
+        # Check admin permission (owner only)
         collection = firestore.get_collection(collection_id)
         if not collection:
             return jsonify({'error': 'Collection not found', 'success': False}), 404
 
-        if collection.get('user_id') != user_id:
-            return jsonify({'error': 'Unauthorized', 'success': False}), 403
+        if not firestore.can_admin_collection(collection_id, user_id):
+            return jsonify({'error': 'Only collection owner can edit settings', 'success': False}), 403
+
+        # Prevent making Default collection shared
+        if collection.get('name') == 'Default' and data.get('is_shared'):
+            return jsonify({'error': 'Default collection cannot be shared', 'success': False}), 400
 
         name = data.get('name')
         description = data.get('description')
+        is_shared = data.get('is_shared')
+        collaborators = data.get('collaborators')
+
+        # Validate collaborators (if provided)
+        if collaborators is not None:
+            if not isinstance(collaborators, list):
+                return jsonify({'error': 'Collaborators must be a list', 'success': False}), 400
+            if len(collaborators) > 10:
+                return jsonify({'error': 'Maximum 10 collaborators allowed', 'success': False}), 400
+            # Validate email format and prevent self-collaboration
+            import re
+            email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            for email in collaborators:
+                if not re.match(email_regex, email):
+                    return jsonify({'error': f'Invalid email format: {email}', 'success': False}), 400
+                if email == user_id:
+                    return jsonify({'error': 'Cannot add yourself as collaborator', 'success': False}), 400
 
         logger.info(f"User {user_id} updating collection {collection_id}")
 
-        firestore.update_collection(collection_id, name=name, description=description)
+        firestore.update_collection(
+            collection_id,
+            name=name,
+            description=description,
+            is_shared=is_shared,
+            collaborators=collaborators
+        )
 
         # Get updated collection
         updated_collection = firestore.get_collection(collection_id)
@@ -605,17 +703,17 @@ def update_collection(collection_id):
 @app.route('/api/collections/<collection_id>', methods=['DELETE'])
 @require_auth
 def delete_collection(collection_id):
-    """Delete a collection and all its associated songs"""
+    """Delete a collection and all its associated songs (owner only)"""
     try:
         user_id = g.user.get('email')
 
-        # Verify the collection belongs to this user
+        # Check admin permission (owner only)
         collection = firestore.get_collection(collection_id)
         if not collection:
             return jsonify({'error': 'Collection not found', 'success': False}), 404
 
-        if collection.get('user_id') != user_id:
-            return jsonify({'error': 'Unauthorized', 'success': False}), 403
+        if not firestore.can_admin_collection(collection_id, user_id):
+            return jsonify({'error': 'Only collection owner can delete', 'success': False}), 403
 
         # Prevent deletion of Default collection
         if collection.get('name') == 'Default':

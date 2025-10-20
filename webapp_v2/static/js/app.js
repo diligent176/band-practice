@@ -134,6 +134,11 @@ const collectionNameInput = document.getElementById('collection-name-input');
 const collectionDescriptionInput = document.getElementById('collection-description-input');
 const editCollectionNameInput = document.getElementById('edit-collection-name-input');
 const editCollectionDescriptionInput = document.getElementById('edit-collection-description-input');
+const editCollectionSharedCheckbox = document.getElementById('edit-collection-shared-checkbox');
+const collaboratorsSection = document.getElementById('collaborators-section');
+const collaboratorList = document.getElementById('collaborator-list');
+const addCollaboratorInput = document.getElementById('add-collaborator-input');
+const addCollaboratorBtn = document.getElementById('add-collaborator-btn');
 const newCollectionSaveBtn = document.getElementById('new-collection-save-btn');
 const newCollectionCancelBtn = document.getElementById('new-collection-cancel-btn');
 const editCollectionSaveBtn = document.getElementById('edit-collection-save-btn');
@@ -234,7 +239,32 @@ function setupEventListeners() {
     newCollectionCancelBtn.addEventListener('click', closeNewCollectionDialog);
     editCollectionSaveBtn.addEventListener('click', saveEditedCollection);
     editCollectionCancelBtn.addEventListener('click', closeEditCollectionDialog);
-    
+
+    // Edit collection shared checkbox toggle
+    if (editCollectionSharedCheckbox) {
+        editCollectionSharedCheckbox.addEventListener('change', () => {
+            const isShared = editCollectionSharedCheckbox.checked;
+            const collection = allCollections[selectedCollectionIndex];
+            const isDefault = collection && collection.name === 'Default';
+            collaboratorsSection.style.display = (isShared && !isDefault) ? 'block' : 'none';
+        });
+    }
+
+    // Add collaborator button
+    if (addCollaboratorBtn) {
+        addCollaboratorBtn.addEventListener('click', addCollaborator);
+    }
+
+    // Add collaborator on Enter key
+    if (addCollaboratorInput) {
+        addCollaboratorInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCollaborator();
+            }
+        });
+    }
+
     // Song selector
     openSongSelectorBtn.addEventListener('click', openSongSelector);
     songSelectorClose.addEventListener('click', closeSongSelector);
@@ -641,6 +671,23 @@ async function loadSongs() {
     }
 }
 
+// Check if current user can edit the current collection
+function canEditCurrentCollection() {
+    if (!currentCollection || !currentUser) return false;
+
+    const userEmail = currentUser.email;
+    const isOwner = currentCollection.user_id === userEmail;
+    const isCollaborator = currentCollection.collaborators && currentCollection.collaborators.includes(userEmail);
+
+    return isOwner || (currentCollection.is_shared && isCollaborator);
+}
+
+// Check if current user is owner of current collection
+function isOwnerOfCurrentCollection() {
+    if (!currentCollection || !currentUser) return false;
+    return currentCollection.user_id === currentUser.email;
+}
+
 async function loadSong(songId) {
     try {
         showLoading('Loading song...');
@@ -649,18 +696,37 @@ async function loadSong(songId) {
 
         if (data.success) {
             currentSong = data.song;
-            
+
             // Save current song to localStorage for session persistence
             saveCurrentSong(songId);
-            
+
             renderSong();
             updateCurrentSongDisplay();
-            refreshSongBtn.disabled = false;
-            editNotesBtn.disabled = false;
-            editLyricsBtn.disabled = false;
-            fetchBpmBtn.disabled = false;
-            setBpmBtn.disabled = false;
-            setStatus('Song loaded', 'success');
+
+            // Enable/disable buttons based on permissions
+            const canEdit = canEditCurrentCollection();
+            const isOwner = isOwnerOfCurrentCollection();
+
+            refreshSongBtn.disabled = !canEdit;
+            editNotesBtn.disabled = !canEdit;
+            editLyricsBtn.disabled = !canEdit;
+            fetchBpmBtn.disabled = !canEdit;
+            setBpmBtn.disabled = !canEdit;
+
+            // Update button titles to show permission status
+            if (!canEdit) {
+                editNotesBtn.title = 'Edit notes (read-only)';
+                editLyricsBtn.title = 'Edit lyrics (read-only)';
+                fetchBpmBtn.title = 'Fetch BPM (read-only)';
+                setBpmBtn.title = 'Set BPM (read-only)';
+            } else {
+                editNotesBtn.title = 'Edit notes (N)';
+                editLyricsBtn.title = 'Edit lyrics (E)';
+                fetchBpmBtn.title = 'Fetch BPM from API';
+                setBpmBtn.title = 'Set BPM manually';
+            }
+
+            setStatus('Song loaded' + (canEdit ? '' : ' (read-only)'), 'success');
 
             // Load saved preferences for this song
             loadColumnPreference(currentSong.id);
@@ -3275,6 +3341,34 @@ function renderCollectionList() {
             ? `<img src="${collection.first_playlist_image}" alt="${escapeHtml(collection.name)}">`
             : `<i class="fa-solid fa-layer-group"></i>`;
 
+        // Determine user's role in this collection
+        const userEmail = currentUser?.email;
+        const isOwner = collection.user_id === userEmail;
+        const isCollaborator = collection.collaborators && collection.collaborators.includes(userEmail);
+        const isShared = collection.is_shared;
+
+        // Build badges HTML
+        let badgesHtml = '';
+        if (isShared) {
+            badgesHtml += '<span class="collection-badge collection-badge-shared" title="Visible to all users"><i class="fa-solid fa-share-nodes"></i> Shared</span>';
+        }
+        if (isOwner && isShared) {
+            badgesHtml += '<span class="collection-badge collection-badge-owner" title="You own this collection"><i class="fa-solid fa-crown"></i> Owner</span>';
+        } else if (isCollaborator) {
+            badgesHtml += '<span class="collection-badge collection-badge-collaborator" title="You can edit songs"><i class="fa-solid fa-user-edit"></i> Collaborator</span>';
+        }
+
+        // Build action buttons (stacked vertically)
+        let actionButtonsHtml = '';
+        if (isOwner) {
+            actionButtonsHtml = `
+                <div class="collection-item-actions">
+                    <button class="collection-item-edit" data-collection-id="${collection.id}" title="Edit collection settings"><i class="fa-solid fa-gear"></i></button>
+                    ${canEdit ? `<button class="collection-item-delete" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Del)"><i class="fa-solid fa-trash"></i></button>` : ''}
+                </div>
+            `;
+        }
+
         html += `
             <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
                 <div class="collection-item-icon">
@@ -3287,9 +3381,9 @@ function renderCollectionList() {
                     </div>
                     ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
                 </div>
+                ${badgesHtml ? `<div class="collection-item-badges">${badgesHtml}</div>` : ''}
                 ${isActive ? '<span class="collection-item-active"><i class="fa-solid fa-check"></i> Active</span>' : ''}
-                ${canEdit ? `<button class="collection-item-edit" data-collection-id="${collection.id}" title="Edit collection settings"><i class="fa-solid fa-gear"></i></button>` : ''}
-                ${canEdit ? `<button class="collection-item-delete" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Del)"><i class="fa-solid fa-trash"></i></button>` : ''}
+                ${actionButtonsHtml}
             </div>
         `;
     });
@@ -3493,18 +3587,112 @@ async function createNewCollection() {
 function showEditCollectionDialog() {
     const collection = allCollections[selectedCollectionIndex];
     if (!collection) return;
-    
+
     editingCollectionId = collection.id;
     editCollectionDialog.style.display = 'flex';
     editCollectionNameInput.value = collection.name || '';
     editCollectionDescriptionInput.value = collection.description || '';
+
+    // Set shared checkbox (Default collection can't be shared)
+    const isDefault = collection.name === 'Default';
+    editCollectionSharedCheckbox.checked = collection.is_shared || false;
+    editCollectionSharedCheckbox.disabled = isDefault;
+    if (isDefault) {
+        editCollectionSharedCheckbox.parentElement.parentElement.style.opacity = '0.5';
+        editCollectionSharedCheckbox.parentElement.parentElement.title = 'Default collection is always private';
+    } else {
+        editCollectionSharedCheckbox.parentElement.parentElement.style.opacity = '1';
+        editCollectionSharedCheckbox.parentElement.parentElement.title = '';
+    }
+
+    // Show/hide collaborators section based on shared status
+    collaboratorsSection.style.display = (collection.is_shared && !isDefault) ? 'block' : 'none';
+
+    // Populate collaborator list
+    renderCollaboratorList(collection.collaborators || []);
+
+    // Clear add collaborator input
+    addCollaboratorInput.value = '';
+
     editCollectionNameInput.focus();
     editCollectionNameInput.select();
-    
+
     // Add keyboard shortcuts
     if (!eventListenerFlags.editCollectionDialog) {
         document.addEventListener('keydown', handleEditCollectionDialogKeyboard);
         eventListenerFlags.editCollectionDialog = true;
+    }
+}
+
+// Render collaborator chips
+function renderCollaboratorList(collaborators) {
+    collaboratorList.innerHTML = '';
+
+    if (!collaborators || collaborators.length === 0) {
+        collaboratorList.innerHTML = '<div style="color: var(--text-secondary); font-size: 13px; font-style: italic;">No collaborators yet</div>';
+        return;
+    }
+
+    collaborators.forEach(email => {
+        const chip = document.createElement('div');
+        chip.style.cssText = 'display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--accent); color: white; border-radius: 16px; margin: 4px; font-size: 13px;';
+        chip.innerHTML = `
+            <span>${email}</span>
+            <button onclick="removeCollaborator('${email}')" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px; line-height: 1;" title="Remove collaborator">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        `;
+        collaboratorList.appendChild(chip);
+    });
+}
+
+// Add collaborator
+function addCollaborator() {
+    const collection = allCollections[selectedCollectionIndex];
+    if (!collection) return;
+
+    const email = addCollaboratorInput.value.trim().toLowerCase();
+    if (!email) return;
+
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+        showToast('Invalid email format', 'error');
+        return;
+    }
+
+    // Check if already in list
+    const collaborators = collection.collaborators || [];
+    if (collaborators.includes(email)) {
+        showToast('This collaborator is already added', 'error');
+        return;
+    }
+
+    // Check limit
+    if (collaborators.length >= 10) {
+        showToast('Maximum 10 collaborators allowed', 'error');
+        return;
+    }
+
+    // Add to list
+    collaborators.push(email);
+    collection.collaborators = collaborators;
+    renderCollaboratorList(collaborators);
+    addCollaboratorInput.value = '';
+    addCollaboratorInput.focus();
+}
+
+// Remove collaborator
+function removeCollaborator(email) {
+    const collection = allCollections[selectedCollectionIndex];
+    if (!collection) return;
+
+    const collaborators = collection.collaborators || [];
+    const index = collaborators.indexOf(email);
+    if (index > -1) {
+        collaborators.splice(index, 1);
+        collection.collaborators = collaborators;
+        renderCollaboratorList(collaborators);
     }
 }
 
@@ -3533,36 +3721,41 @@ function handleEditCollectionDialogKeyboard(e) {
 async function saveEditedCollection() {
     const name = editCollectionNameInput.value.trim();
     const description = editCollectionDescriptionInput.value.trim();
-    
+    const is_shared = editCollectionSharedCheckbox.checked;
+    const collection = allCollections[selectedCollectionIndex];
+    const collaborators = collection ? (collection.collaborators || []) : [];
+
     if (!name) {
         showToast('Collection name is required', 'error');
         editCollectionNameInput.focus();
         return;
     }
-    
+
     if (!editingCollectionId) {
         showToast('No collection selected', 'error');
         return;
     }
-    
+
     try {
         showLoading('Updating collection...');
-        
+
         const response = await authenticatedApiCall(`/api/collections/${editingCollectionId}`, {
             method: 'PUT',
-            body: JSON.stringify({ name, description })
+            body: JSON.stringify({ name, description, is_shared, collaborators })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             closeEditCollectionDialog();
             showToast(`Collection '${name}' updated!`, 'success');
-            
+
             // Update the current collection display if we edited the active one
             if (currentCollection && currentCollection.id === editingCollectionId) {
                 currentCollection.name = name;
                 currentCollection.description = description;
+                currentCollection.is_shared = is_shared;
+                currentCollection.collaborators = collaborators;
                 updateCollectionDisplay();
             }
             
@@ -4874,11 +5067,12 @@ function renderSongItem(song, index) {
         bpmDisplay = `${song.bpm}<span class="bpm-manual-badge-small" title="Custom bpm/tempo (B)"><i class="fa-solid fa-pen"></i></span>`;
     }
 
-    // Show trash icon if flagged removed or not in any playlist
+    // Show trash icon if flagged removed or not in any playlist (owner only)
+    const isOwner = isOwnerOfCurrentCollection();
     const isFlaggedRemoved = song.is_removed_from_spotify === true;
     const isOrphaned = !song.source_playlist_ids || song.source_playlist_ids.length === 0;
     let trashIconHtml = '';
-    if (isFlaggedRemoved || isOrphaned) {
+    if (isOwner && (isFlaggedRemoved || isOrphaned)) {
         const trashClass = isFlaggedRemoved ? 'song-item-trash-icon trash-flagged' : 'song-item-trash-icon';
         const trashTitle = isFlaggedRemoved
             ? 'This song was removed from the playlist on Spotify. Click to remove from collection.'

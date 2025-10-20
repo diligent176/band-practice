@@ -40,16 +40,11 @@ class AuthService:
                 firebase_admin.initialize_app()
                 logger.info("Firebase initialized with ADC")
 
-        allowed_users_str = os.getenv('ALLOWED_USERS', '')
-        if allowed_users_str:
-            self.allowed_users = [email.strip() for email in allowed_users_str.split(',')]
-        else:
-            self.allowed_users = []
-            logger.warning("ALLOWED_USERS environment variable not set - no users will be authorized!")
-        logger.info(f"AuthService initialized. Allowed users: {self.allowed_users}")
+        # Multi-user collaboration enabled - any Google user can log in
+        logger.info("AuthService initialized with multi-user collaboration enabled (no allowlist)")
 
     def verify_token(self, id_token):
-        """Verify Firebase ID token and check if user is allowed"""
+        """Verify Firebase ID token - any verified Google user is allowed"""
         try:
             logger.info(f"=== VERIFYING TOKEN ===")
             logger.info(f"Token (first 50 chars): {id_token[:50] if id_token else 'None'}...")
@@ -57,14 +52,13 @@ class AuthService:
             # Allow up to 60 seconds of clock skew (Firebase's maximum allowed value)
             decoded_token = auth.verify_id_token(id_token, clock_skew_seconds=60)
             email = decoded_token.get('email')
+            email_verified = decoded_token.get('email_verified', False)
 
-            logger.info(f"Token verified for email: {email}")
-            logger.info(f"Allowed users: {self.allowed_users}")
-            logger.info(f"Email in allowed users? {email in self.allowed_users}")
+            logger.info(f"Token verified for email: {email} (verified: {email_verified})")
 
-            # Check if user is in allowed list
-            if email not in self.allowed_users:
-                logger.warning(f"Unauthorized user attempted access: {email}. Allowed: {self.allowed_users}")
+            # Multi-user collaboration: allow any verified Google user
+            if not email_verified:
+                logger.warning(f"User {email} has unverified email")
                 return None
 
             logger.info(f"User {email} authorized successfully")
@@ -72,7 +66,7 @@ class AuthService:
                 'email': email,
                 'uid': decoded_token.get('uid'),
                 'name': decoded_token.get('name'),
-                'verified': decoded_token.get('email_verified', False)
+                'verified': email_verified
             }
         except Exception as e:
             logger.error(f"Token verification failed: {e}", exc_info=True)

@@ -351,13 +351,52 @@ END: Third repetition of chorus is acapella"></textarea>
                 <h3>Edit Collection</h3>
                 <div style="margin-bottom: 20px;">
                     <label for="edit-collection-name-input" style="display: block; margin-bottom: 8px; color: var(--text-primary);">Collection Name:</label>
-                    <input type="text" id="edit-collection-name-input" class="input" 
-                           placeholder="e.g., Reggae Band, Rock Band" 
+                    <input type="text" id="edit-collection-name-input" class="input"
+                           placeholder="e.g., Reggae Band, Rock Band"
                            style="width: 100%; padding: 8px; font-size: 16px; margin-bottom: 10px;">
+
                     <label for="edit-collection-description-input" style="display: block; margin-bottom: 8px; color: var(--text-primary);">Description (optional):</label>
-                    <input type="text" id="edit-collection-description-input" class="input" 
-                           placeholder="e.g., Songs for my weekend gigs" 
-                           style="width: 100%; padding: 8px; font-size: 14px;">
+                    <input type="text" id="edit-collection-description-input" class="input"
+                           placeholder="e.g., Songs for my weekend gigs"
+                           style="width: 100%; padding: 8px; font-size: 14px; margin-bottom: 15px;">
+
+                    <!-- Shared Collection Toggle -->
+                    <div style="margin-bottom: 15px; padding: 12px; background: var(--surface); border-radius: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; user-select: none;">
+                            <input type="checkbox" id="edit-collection-shared-checkbox" style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;">
+                            <div>
+                                <div style="font-weight: 500; color: var(--text-primary);">
+                                    <i class="fa-solid fa-share-nodes"></i> Shared Collection
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                                    Make this collection visible to all users (read-only by default)
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Collaborators Section -->
+                    <div id="collaborators-section" style="margin-bottom: 15px; padding: 12px; background: var(--surface); border-radius: 8px; display: none;">
+                        <label style="display: block; margin-bottom: 8px; color: var(--text-primary); font-weight: 500;">
+                            <i class="fa-solid fa-user-plus"></i> Collaborators (can edit songs)
+                        </label>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+                            Add up to 10 collaborators by email address. They can edit lyrics, notes, and BPM.
+                        </div>
+                        <div id="collaborator-list" style="margin-bottom: 10px;">
+                            <!-- Dynamic collaborator chips will be added here -->
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="email"
+                                   id="add-collaborator-input"
+                                   class="input"
+                                   placeholder="email@example.com"
+                                   style="flex: 1; padding: 8px; font-size: 14px;">
+                            <button id="add-collaborator-btn" class="btn btn-small btn-secondary">
+                                <i class="fa-solid fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="dialog-actions">
                     <button id="edit-collection-cancel-btn" class="btn btn-secondary">

@@ -282,15 +282,16 @@ class FirestoreService:
         collection_data['id'] = doc.id
         return collection_data
 
-    def create_collection(self, user_id, name, description=''):
+    def create_collection(self, user_id, name, description='', is_shared=False):
         """
         Create a new collection for a user
-        
+
         Args:
             user_id: User's email or ID
             name: Name of the collection
             description: Optional description
-            
+            is_shared: Whether collection is visible to all users (default: False)
+
         Returns:
             Dict containing the created collection data with 'id' field
         """
@@ -299,37 +300,45 @@ class FirestoreService:
             'name': name,
             'description': description,
             'playlist_ids': [],  # V2: Track linked Spotify playlist IDs
+            'is_shared': is_shared,  # Multi-user: shared collections visible to all
+            'collaborators': [],  # Multi-user: list of emails with edit access
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow()
         }
-        
+
         doc_ref = self.db.collection(self.collections_collection).document()
         doc_ref.set(collection_data)
-        
+
         collection_data['id'] = doc_ref.id
         return collection_data
 
-    def update_collection(self, collection_id, name=None, description=None):
+    def update_collection(self, collection_id, name=None, description=None, is_shared=None, collaborators=None):
         """
-        Update a collection's name and/or description
-        
+        Update a collection's metadata
+
         Args:
             collection_id: Collection document ID
             name: New name (optional)
             description: New description (optional)
+            is_shared: Shared flag (optional)
+            collaborators: List of collaborator emails (optional)
         """
         doc_ref = self.db.collection(self.collections_collection).document(collection_id)
-        
+
         if not doc_ref.get().exists:
             raise ValueError(f"Collection {collection_id} not found")
-        
+
         update_data = {'updated_at': datetime.utcnow()}
-        
+
         if name is not None:
             update_data['name'] = name
         if description is not None:
             update_data['description'] = description
-        
+        if is_shared is not None:
+            update_data['is_shared'] = is_shared
+        if collaborators is not None:
+            update_data['collaborators'] = collaborators
+
         doc_ref.update(update_data)
 
     def delete_collection(self, collection_id):
@@ -774,3 +783,125 @@ class FirestoreService:
         
         logger.error(f"❌ State verification failed for token: {state[:20]}...")
         return None
+
+    # =========================================================================
+    # Multi-User Collaboration Methods
+    # =========================================================================
+
+    def get_shared_collections(self):
+        """
+        Get all collections where is_shared == True
+
+        Returns:
+            List of shared collection documents
+        """
+        docs = (self.db.collection(self.collections_collection)
+                .where('is_shared', '==', True)
+                .order_by('name', direction=firestore.Query.ASCENDING)
+                .stream())
+
+        collections = []
+        for doc in docs:
+            collection_data = doc.to_dict()
+            collection_data['id'] = doc.id
+            collections.append(collection_data)
+
+        return collections
+
+    def is_collection_owner(self, collection_id, user_email):
+        """
+        Check if user is the owner of a collection
+
+        Args:
+            collection_id: Collection document ID
+            user_email: User's email address
+
+        Returns:
+            bool: True if user owns the collection
+        """
+        collection = self.get_collection(collection_id)
+        if not collection:
+            return False
+        return collection.get('user_id') == user_email
+
+    def is_collection_collaborator(self, collection_id, user_email):
+        """
+        Check if user is a collaborator on a collection
+
+        Args:
+            collection_id: Collection document ID
+            user_email: User's email address
+
+        Returns:
+            bool: True if user is in collaborators list
+        """
+        collection = self.get_collection(collection_id)
+        if not collection:
+            return False
+        collaborators = collection.get('collaborators', [])
+        return user_email in collaborators
+
+    def can_read_collection(self, collection_id, user_email):
+        """
+        Check if user can VIEW a collection
+
+        Args:
+            collection_id: Collection document ID
+            user_email: User's email address
+
+        Returns:
+            bool: True if user can read the collection
+        """
+        collection = self.get_collection(collection_id)
+        if not collection:
+            return False
+
+        # Owner can always read
+        if collection.get('user_id') == user_email:
+            return True
+
+        # Shared collections are readable by everyone
+        if collection.get('is_shared', False):
+            return True
+
+        return False
+
+    def can_write_collection(self, collection_id, user_email):
+        """
+        Check if user can EDIT songs in a collection
+
+        Args:
+            collection_id: Collection document ID
+            user_email: User's email address
+
+        Returns:
+            bool: True if user can edit songs (owner or collaborator)
+        """
+        collection = self.get_collection(collection_id)
+        if not collection:
+            return False
+
+        # Owner can always write
+        if collection.get('user_id') == user_email:
+            return True
+
+        # Collaborators can write to shared collections
+        if collection.get('is_shared', False):
+            collaborators = collection.get('collaborators', [])
+            if user_email in collaborators:
+                return True
+
+        return False
+
+    def can_admin_collection(self, collection_id, user_email):
+        """
+        Check if user can DELETE songs/collection or modify collection metadata
+
+        Args:
+            collection_id: Collection document ID
+            user_email: User's email address
+
+        Returns:
+            bool: True if user is the owner (only owner has admin rights)
+        """
+        return self.is_collection_owner(collection_id, user_email)
