@@ -18,13 +18,20 @@
 <body>
     <!-- Firebase Auth Gate -->
     <div id="auth-gate" style="display: none;">
-        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; max-width: 400px;">
-                <h1 style="margin-bottom: 30px; color: #333; font-size: 28px; font-weight: 700;">🎸 Band Practice Pro</h1>
-                <p style="color: #666; margin-bottom: 30px;">Sign in with your Google account to continue</p>
+        <div class="auth-gate-container">
+            <div class="auth-gate-background"></div>
+            <div class="auth-gate-content">
+                <div class="auth-gate-logo">
+                    <img src="{{ url_for('static', filename='favicon.svg') }}" alt="Band Practice Pro" class="auth-logo-icon">
+                </div>
+                <h1 class="auth-gate-title">
+                    <span class="auth-title-gradient">Band Practice Pro</span>
+                </h1>
+                <p class="auth-gate-subtitle">Your reggae-powered practice companion</p>
+                <div class="auth-gate-divider"></div>
                 <div id="firebaseui-auth-container"></div>
-                <div id="auth-error" style="color: #c33; margin-top: 20px; display: none;"></div>
-                <p style="font-size: 10px; color: #aaa; margin-top: 20px; margin-bottom: 0;">Thanks to <a href="https://getsongbpm.com" target="_blank" style="color: #bbb; text-decoration: none;">getsongbpm.com</a> for BPM data.</p>
+                <div id="auth-error" class="auth-error" style="display: none;"></div>
+                <p class="auth-gate-footer">Thanks to <a href="https://getsongbpm.com" target="_blank">getsongbpm.com</a> for BPM data.</p>
             </div>
         </div>
     </div>
