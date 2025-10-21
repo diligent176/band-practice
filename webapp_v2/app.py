@@ -835,19 +835,19 @@ def unlink_playlist_from_collection(collection_id, playlist_id):
     """Unlink a Spotify playlist from a collection"""
     try:
         user_id = g.user.get('email')
-        
+
         # Verify collection belongs to user
         collection = firestore.get_collection(collection_id)
         if not collection:
             return jsonify({'error': 'Collection not found', 'success': False}), 404
         if collection.get('user_id') != user_id:
             return jsonify({'error': 'Unauthorized', 'success': False}), 403
-        
+
         logger.info(f"User {user_id} unlinking playlist {playlist_id} from collection {collection_id}")
-        
+
         # Unlink playlist
         firestore.unlink_playlist_from_collection(collection_id, playlist_id)
-        
+
         # Note: Songs will be marked as removed during next sync
         return jsonify({
             'success': True,
@@ -855,6 +855,41 @@ def unlink_playlist_from_collection(collection_id, playlist_id):
         })
     except Exception as e:
         logger.error(f"Error unlinking playlist: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/collections/<collection_id>/playlists/reorder', methods=['PUT'])
+@require_auth
+def reorder_playlists(collection_id):
+    """Reorder playlists in a collection"""
+    try:
+        user_id = g.user.get('email')
+
+        # Verify collection belongs to user
+        collection = firestore.get_collection(collection_id)
+        if not collection:
+            return jsonify({'error': 'Collection not found', 'success': False}), 404
+        if collection.get('user_id') != user_id:
+            return jsonify({'error': 'Unauthorized', 'success': False}), 403
+
+        # Get new order from request
+        data = request.get_json()
+        playlist_ids = data.get('playlist_ids', [])
+
+        if not playlist_ids or not isinstance(playlist_ids, list):
+            return jsonify({'error': 'Invalid playlist_ids', 'success': False}), 400
+
+        logger.info(f"User {user_id} reordering playlists in collection {collection_id}")
+
+        # Update playlist order in Firestore
+        firestore.reorder_collection_playlists(collection_id, playlist_ids)
+
+        return jsonify({
+            'success': True,
+            'message': 'Playlist order updated'
+        })
+    except Exception as e:
+        logger.error(f"Error reordering playlists: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
 
 

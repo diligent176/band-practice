@@ -4813,8 +4813,11 @@ function renderPlaylistDialog() {
     if (linkedPlaylists.length === 0) {
         linkedList.innerHTML = '<div class="empty-state-small"><p>No playlists linked to this collection yet</p></div>';
     } else {
-        linkedList.innerHTML = linkedPlaylists.map(playlist => `
-            <div class="playlist-item">
+        linkedList.innerHTML = linkedPlaylists.map((playlist, index) => `
+            <div class="playlist-item draggable" draggable="true" data-playlist-id="${playlist.id}" data-index="${index}">
+                <div class="playlist-drag-handle">
+                    <i class="fa-solid fa-grip-vertical"></i>
+                </div>
                 <img src="${playlist.image_url || '/static/icons/playlist-placeholder.png'}"
                      alt="${escapeHtml(playlist.name)}"
                      class="playlist-item-image">
@@ -4840,6 +4843,9 @@ function renderPlaylistDialog() {
                 await unlinkPlaylist(playlistId);
             });
         });
+
+        // Add drag and drop handlers
+        setupPlaylistDragAndDrop();
     }
 
     // Render other playlists
@@ -4870,6 +4876,120 @@ function renderPlaylistDialog() {
                 await linkPlaylist(playlistUrl);
             });
         });
+    }
+}
+
+// V2: Setup drag and drop for linked playlists
+let draggedElement = null;
+let draggedIndex = null;
+
+function setupPlaylistDragAndDrop() {
+    const linkedList = document.getElementById('linked-playlists-list');
+    const playlistItems = linkedList.querySelectorAll('.playlist-item.draggable');
+
+    playlistItems.forEach((item) => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragleave', handleDragLeave);
+    });
+}
+
+function handleDragStart(e) {
+    draggedElement = e.currentTarget;
+    draggedIndex = parseInt(e.currentTarget.getAttribute('data-index'));
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    // Remove all drag-over classes
+    document.querySelectorAll('.playlist-item.drag-over').forEach(item => {
+        item.classList.remove('drag-over');
+    });
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+
+    const item = e.currentTarget;
+    if (item !== draggedElement && item.classList.contains('draggable')) {
+        item.classList.add('drag-over');
+    }
+
+    return false;
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+async function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    e.preventDefault();
+
+    const dropTarget = e.currentTarget;
+    dropTarget.classList.remove('drag-over');
+
+    if (draggedElement !== dropTarget && dropTarget.classList.contains('draggable')) {
+        const dropIndex = parseInt(dropTarget.getAttribute('data-index'));
+
+        // Reorder the linkedPlaylists array
+        const [movedPlaylist] = linkedPlaylists.splice(draggedIndex, 1);
+        linkedPlaylists.splice(dropIndex, 0, movedPlaylist);
+
+        // Re-render the list
+        renderPlaylistDialog();
+
+        // Save the new order to the backend
+        await savePlaylistOrder();
+    }
+
+    return false;
+}
+
+// V2: Save playlist order to backend
+async function savePlaylistOrder() {
+    try {
+        if (!currentCollection || !currentCollection.id) {
+            showToast('No collection selected', 'error');
+            return;
+        }
+
+        const playlistIds = linkedPlaylists.map(p => p.id);
+
+        const response = await authenticatedApiCall(
+            `/api/collections/${currentCollection.id}/playlists/reorder`,
+            {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ playlist_ids: playlistIds })
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Playlist order saved', 'success');
+            // Collection art will update on next page load (it uses first playlist)
+        } else {
+            showToast('Failed to save order: ' + (data.error || 'Unknown error'), 'error');
+            // Reload to restore original order
+            await loadPlaylistsForDialog();
+        }
+    } catch (error) {
+        console.error('Error saving playlist order:', error);
+        showToast('Error saving order: ' + error.message, 'error');
+        // Reload to restore original order
+        await loadPlaylistsForDialog();
     }
 }
 

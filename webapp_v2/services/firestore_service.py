@@ -514,8 +514,30 @@ class FirestoreService:
         
         # Mark songs as removed if they're not in any other linked playlists
         # (This will be handled by the sync logic in lyrics_service)
-        
+
         return playlist_ids
+
+    def reorder_collection_playlists(self, collection_id, playlist_ids):
+        """
+        Reorder playlists in a collection
+
+        Args:
+            collection_id: Collection document ID
+            playlist_ids: List of playlist IDs in desired order
+        """
+        doc_ref = self.db.collection(self.collections_collection).document(collection_id)
+        collection = doc_ref.get()
+
+        if not collection.exists:
+            raise ValueError(f"Collection {collection_id} not found")
+
+        # Update the playlist_ids array with new order
+        doc_ref.update({
+            'playlist_ids': playlist_ids,
+            'updated_at': datetime.utcnow()
+        })
+
+        return True
 
     def get_collection_playlists(self, collection_id):
         """

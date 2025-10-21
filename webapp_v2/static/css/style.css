@@ -2909,11 +2909,53 @@ header h1 i {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   transition: all 0.2s ease;
+  cursor: default;
 }
 
 .playlist-item:hover {
   background: var(--bg-tertiary);
   border-color: var(--accent-green-35);
+}
+
+/* Drag and drop styles for linked playlists */
+.playlist-item.draggable {
+  cursor: grab;
+}
+
+.playlist-item.draggable:active {
+  cursor: grabbing;
+}
+
+.playlist-item.dragging {
+  opacity: 0.5;
+  background: var(--bg-tertiary);
+  border: 2px dashed var(--accent-primary);
+}
+
+.playlist-item.drag-over {
+  border-top: 3px solid var(--accent-primary);
+}
+
+.playlist-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.playlist-drag-handle:hover {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.playlist-drag-handle:active {
+  cursor: grabbing;
 }
 
 .playlist-item-image {
