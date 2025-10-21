@@ -4112,7 +4112,7 @@ async function initializeSpotifyPlayer() {
 
         spotifyPlayer.addListener('account_error', ({ message }) => {
             console.error('🚨 Spotify account error:', message);
-            showToast('Spotify Premium required for playback', 'error');
+            showToast('Spotify account error: ' + message, 'error');
         });
 
         spotifyPlayer.addListener('playback_error', ({ message }) => {
@@ -4316,14 +4316,22 @@ async function loadSpotifyTrack(uri) {
             const errorText = await playResponse.text();
             console.error('Load request failed:', playResponse.status, errorText);
 
-            // Handle specific errors
-            if (playResponse.status === 403) {
-                showToast('Spotify Premium required', 'error');
-            } else if (playResponse.status === 404) {
-                showToast('Device not found - try reconnecting', 'error');
-            } else {
-                showToast('Failed to load track', 'error');
+            // Try to parse error details
+            let errorMessage = 'Failed to load track';
+            try {
+                const errorData = JSON.parse(errorText);
+                if (errorData.error && errorData.error.message) {
+                    errorMessage = errorData.error.message;
+                }
+            } catch (e) {
+                // If not JSON, use status-based message
+                if (playResponse.status === 403) {
+                    errorMessage = 'Playback forbidden - check Spotify account status or try reconnecting';
+                } else if (playResponse.status === 404) {
+                    errorMessage = 'Device not found - try reconnecting';
+                }
             }
+            showToast(errorMessage, 'error');
             return;
         }
 
@@ -4373,14 +4381,22 @@ async function playSpotifyTrack(uri) {
             const errorText = await response.text();
             console.error('Play request failed:', response.status, errorText);
 
-            // Handle specific errors
-            if (response.status === 403) {
-                showToast('Spotify Premium required', 'error');
-            } else if (response.status === 404) {
-                showToast('Device not found - try reconnecting', 'error');
-            } else {
-                showToast('Failed to play track', 'error');
+            // Try to parse error details
+            let errorMessage = 'Failed to play track';
+            try {
+                const errorData = JSON.parse(errorText);
+                if (errorData.error && errorData.error.message) {
+                    errorMessage = errorData.error.message;
+                }
+            } catch (e) {
+                // If not JSON, use status-based message
+                if (response.status === 403) {
+                    errorMessage = 'Playback forbidden - check Spotify account status or try reconnecting';
+                } else if (response.status === 404) {
+                    errorMessage = 'Device not found - try reconnecting';
+                }
             }
+            showToast(errorMessage, 'error');
         } else {
             console.log('✅ Play request successful');
         }
