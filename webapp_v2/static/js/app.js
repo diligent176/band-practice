@@ -4064,6 +4064,40 @@ async function initializeSpotifyPlayer() {
 
         spotifyAccessToken = data.access_token;
 
+        // Check user's Spotify Premium status
+        try {
+            console.log('🔍 Checking Spotify Premium status...');
+            const profileResponse = await fetch('https://api.spotify.com/v1/me', {
+                headers: {
+                    'Authorization': `Bearer ${spotifyAccessToken}`
+                }
+            });
+
+            if (profileResponse.ok) {
+                const profile = await profileResponse.json();
+                console.log('📋 Spotify account info:', {
+                    email: profile.email,
+                    product: profile.product,
+                    country: profile.country
+                });
+
+                if (profile.product !== 'premium') {
+                    console.error('❌ Account does not have Premium status. Product type:', profile.product);
+                    showToast(`Spotify Premium required for playback. Current plan: ${profile.product}`, 'error');
+                    showSpotifyConnectPrompt();
+                    return;
+                }
+
+                console.log('✅ Premium status confirmed!');
+            } else {
+                console.warn('⚠️ Could not verify Premium status:', profileResponse.status);
+                // Continue anyway - let Spotify SDK handle it
+            }
+        } catch (error) {
+            console.warn('⚠️ Error checking Premium status:', error);
+            // Continue anyway - let Spotify SDK handle it
+        }
+
         // Check if SDK is loaded
         if (typeof Spotify === 'undefined') {
             console.error('❌ Spotify SDK not loaded!');
