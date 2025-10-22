@@ -207,3 +207,25 @@ resource "google_firestore_index" "playlist_memory_v2_user_last_accessed" {
 
   depends_on = [google_firestore_database.database]
 }
+
+# ============================================================================
+# USERS COLLECTION INDEXES
+# ============================================================================
+
+# Single field index for users collection - email search
+# Enables prefix matching for email lookups (e.g., finding collaborators)
+# Note: Single-field indexes are automatically created by Firestore for equality
+# and simple queries, but we explicitly define this for range queries used in
+# email prefix matching (email >= query && email <= query + '\uf8ff')
+resource "google_firestore_index" "users_email_range" {
+  project    = var.project_id
+  database   = google_firestore_database.database.name
+  collection = "users"
+
+  fields {
+    field_path = "email"
+    order      = "ASCENDING"
+  }
+
+  depends_on = [google_firestore_database.database]
+}
