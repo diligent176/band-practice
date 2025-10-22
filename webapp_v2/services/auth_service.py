@@ -8,6 +8,7 @@ from flask import request, jsonify, g
 import firebase_admin
 from firebase_admin import auth, credentials
 import logging
+from services.user_service import user_service
 
 logger = logging.getLogger(__name__)
 
@@ -62,10 +63,32 @@ class AuthService:
                 return None
 
             logger.info(f"User {email} authorized successfully")
+
+            # Extract all available user data from token
+            user_data = {
+                'uid': decoded_token.get('uid'),
+                'email': email,
+                'email_verified': email_verified,
+                'name': decoded_token.get('name'),
+                'display_name': decoded_token.get('name'),
+                'picture': decoded_token.get('picture'),
+                'photo_url': decoded_token.get('picture'),
+                'locale': decoded_token.get('locale')
+            }
+
+            # Create or update user in Firestore
+            try:
+                user_service.create_or_update_user(user_data)
+            except Exception as user_err:
+                # Log but don't fail authentication if user profile update fails
+                logger.error(f"Failed to update user profile: {user_err}", exc_info=True)
+
+            # Return user info for request context
             return {
                 'email': email,
                 'uid': decoded_token.get('uid'),
                 'name': decoded_token.get('name'),
+                'picture': decoded_token.get('picture'),
                 'verified': email_verified
             }
         except Exception as e:
