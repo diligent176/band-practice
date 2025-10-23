@@ -45,7 +45,7 @@ class UserService:
         now = datetime.utcnow()
 
         if existing.exists:
-            # Update existing user - preserve created_at, update last_login_at
+            # Update existing user - preserve created_at, is_admin, update last_login_at
             existing_data = existing.to_dict()
 
             update_data = {
@@ -60,6 +60,13 @@ class UserService:
             # Update locale if provided
             if 'locale' in user_data:
                 update_data['locale'] = user_data.get('locale')
+
+            # Explicitly preserve is_admin field if it exists (don't overwrite)
+            # This field is set manually in Firestore console or via admin API
+            if 'is_admin' in existing_data:
+                # Don't include is_admin in update_data - it's already in the document
+                # and update() won't remove it
+                pass
 
             doc_ref.update(update_data)
 
@@ -79,6 +86,7 @@ class UserService:
                 'photo_url': user_data.get('photo_url') or user_data.get('picture'),
                 'email_verified': user_data.get('email_verified', False),
                 'locale': user_data.get('locale'),
+                'is_admin': False,  # New users are not admins by default
                 'created_at': now,
                 'last_login_at': now,
                 'updated_at': now
@@ -183,6 +191,70 @@ class UserService:
             })
 
         return users
+
+    def get_all_users(self, order_by='created_at', limit=1000):
+        """
+        Get all users (admin function)
+
+        Args:
+            order_by: Field to order by (default: created_at)
+            limit: Maximum number of users to return
+
+        Returns:
+            List of user objects
+        """
+        docs = (self.db.collection(self.users_collection)
+                .order_by(order_by, direction=firestore.Query.DESCENDING)
+                .limit(limit)
+                .stream())
+
+        users = []
+        for doc in docs:
+            user_data = doc.to_dict()
+            user_data['uid'] = doc.id
+            users.append(user_data)
+
+        return users
+
+    def is_admin(self, uid):
+        """
+        Check if a user is an admin
+
+        Args:
+            uid: Firebase user ID
+
+        Returns:
+            Boolean indicating if user is admin
+        """
+        user = self.get_user(uid)
+        if not user:
+            return False
+
+        return user.get('is_admin', False)
+
+    def set_admin(self, uid, is_admin):
+        """
+        Set or remove admin privileges for a user
+
+        Args:
+            uid: Firebase user ID
+            is_admin: Boolean indicating admin status
+
+        Returns:
+            Boolean indicating success
+        """
+        doc_ref = self.db.collection(self.users_collection).document(uid)
+
+        if not doc_ref.get().exists:
+            return False
+
+        doc_ref.update({
+            'is_admin': is_admin,
+            'updated_at': datetime.utcnow()
+        })
+
+        logger.info(f"{'✅ Granted' if is_admin else '❌ Revoked'} admin privileges for user {uid}")
+        return True
 
 
 # Global user service instance

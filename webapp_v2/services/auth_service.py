@@ -156,3 +156,49 @@ def optional_auth(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
+
+def require_admin(f):
+    """
+    Decorator to require admin privileges for a route
+    First authenticates the user, then checks if they have admin flag
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        logger.info(f"🔐 require_admin decorator called for {request.path}")
+
+        # Get token from Authorization header
+        auth_header = request.headers.get('Authorization', '')
+        logger.info(f"📋 Auth header present: {bool(auth_header)}")
+
+        if not auth_header.startswith('Bearer '):
+            logger.error(f"❌ Missing or invalid auth header")
+            return jsonify({
+                'error': 'Authentication required',
+                'message': 'Missing or invalid authorization header'
+            }), 401
+
+        token = auth_header.split('Bearer ')[1]
+        user_info = auth_service.verify_token(token)
+
+        if not user_info:
+            logger.error(f"❌ Token verification failed")
+            return jsonify({
+                'error': 'Authentication failed',
+                'message': 'Invalid token or unauthorized user'
+            }), 401
+
+        # Check if user is admin
+        uid = user_info.get('uid')
+        if not user_service.is_admin(uid):
+            logger.warning(f"❌ User {user_info.get('email')} attempted to access admin route without privileges")
+            return jsonify({
+                'error': 'Admin access required',
+                'message': 'You do not have permission to access this resource'
+            }), 403
+
+        logger.info(f"✅ Admin authenticated: {user_info.get('email')}")
+        g.user = user_info
+        return f(*args, **kwargs)
+
+    return decorated_function

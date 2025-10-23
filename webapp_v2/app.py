@@ -15,8 +15,10 @@ load_dotenv(dotenv_path=env_path)
 from flask import Flask, render_template, request, jsonify, g
 from services.firestore_service import FirestoreService
 from services.lyrics_service import LyricsService
-from services.auth_service import require_auth, optional_auth
+from services.auth_service import require_auth, optional_auth, require_admin
 from services.spotify_auth_service import SpotifyAuthService
+from services.user_service import user_service
+from services.audit_service import audit_service
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -128,12 +130,32 @@ def update_notes(song_id):
         notes = data.get('notes', '')
 
         # Check write permission
-        has_permission, _, _ = check_song_permission(song_id, user_email, 'write')
+        has_permission, song, collection = check_song_permission(song_id, user_email, 'write')
         if not has_permission:
             return jsonify({'error': 'You do not have permission to edit this song', 'success': False}), 403
 
+        # Get old notes for audit log
+        old_notes = song.get('drummer_notes', '') if song else ''
+
         logger.info(f"User {user_email} updating notes for song {song_id}")
         firestore.update_notes(song_id, notes)
+
+        # Log to audit
+        audit_service.log_action(
+            user_id=g.user.get('uid'),
+            user_email=user_email,
+            action='update_notes',
+            resource_type='song',
+            resource_id=song_id,
+            resource_name=f"{song.get('title', '')} - {song.get('artist', '')}" if song else None,
+            collection_id=song.get('collection_id') if song else None,
+            changes={
+                'field': 'drummer_notes',
+                'old_value': old_notes,
+                'new_value': notes
+            }
+        )
+
         return jsonify({'success': True, 'message': 'Notes updated successfully'})
     except Exception as e:
         logger.error(f"Error updating notes for song {song_id} by user {g.user.get('email')}: {e}")
@@ -150,14 +172,33 @@ def update_lyrics(song_id):
         lyrics = data.get('lyrics', '')
 
         # Check write permission
-        has_permission, _, _ = check_song_permission(song_id, user_email, 'write')
+        has_permission, song, collection = check_song_permission(song_id, user_email, 'write')
         if not has_permission:
             return jsonify({'error': 'You do not have permission to edit this song', 'success': False}), 403
+
+        # Get old lyrics for audit log
+        old_lyrics = song.get('lyrics', '') if song else ''
 
         logger.info(f"User {user_email} updating lyrics for song {song_id}")
 
         # Update lyrics and mark as customized
         firestore.update_lyrics(song_id, lyrics, is_customized=True)
+
+        # Log to audit
+        audit_service.log_action(
+            user_id=g.user.get('uid'),
+            user_email=user_email,
+            action='update_lyrics',
+            resource_type='song',
+            resource_id=song_id,
+            resource_name=f"{song.get('title', '')} - {song.get('artist', '')}" if song else None,
+            collection_id=song.get('collection_id') if song else None,
+            changes={
+                'field': 'lyrics',
+                'old_value': old_lyrics[:500] if old_lyrics else '',  # Truncate for storage
+                'new_value': lyrics[:500] if lyrics else ''
+            }
+        )
 
         # Get updated song
         updated_song = firestore.get_song(song_id)
@@ -411,8 +452,27 @@ def update_bpm(song_id):
         if not song:
             return jsonify({'error': 'Song not found', 'success': False}), 404
 
+        # Get old BPM for audit log
+        old_bpm = song.get('bpm')
+
         logger.info(f"User {user_email} manually updating BPM for song {song_id} to {bpm_value}")
         firestore.update_bpm(song_id, bpm_value, is_manual=True)
+
+        # Log to audit
+        audit_service.log_action(
+            user_id=g.user.get('uid'),
+            user_email=user_email,
+            action='update_bpm',
+            resource_type='song',
+            resource_id=song_id,
+            resource_name=f"{song.get('title', '')} - {song.get('artist', '')}",
+            collection_id=song.get('collection_id'),
+            changes={
+                'field': 'bpm',
+                'old_value': str(old_bpm) if old_bpm else 'N/A',
+                'new_value': str(bpm_value)
+            }
+        )
 
         # Get updated song
         updated_song = firestore.get_song(song_id)
@@ -453,17 +513,6 @@ def delete_song(song_id):
     except Exception as e:
         logger.error(f"Error deleting song {song_id} for user {g.user.get('email')}: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
-
-
-@app.route('/api/user', methods=['GET'])
-@require_auth
-def get_user_info():
-    """Get current user information"""
-    logger.info(f"User info requested: {g.user}")
-    return jsonify({
-        'user': g.user,
-        'success': True
-    })
 
 
 @app.route('/api/playlist/memory', methods=['GET'])
@@ -1112,6 +1161,135 @@ def get_spotify_preview(track_id):
 def health():
     """Health check endpoint for Cloud Run"""
     return jsonify({'status': 'We healthy as heck - yeah! Get Band Practice Pro!'}), 200
+
+
+# ============================================================================
+# ADMIN ROUTES
+# ============================================================================
+
+@app.route('/admin')
+def admin_page():
+    """Admin panel page - auth handled by frontend"""
+    return render_template('admin.html')
+
+
+@app.route('/api/admin/users', methods=['GET'])
+@require_admin
+def admin_get_users():
+    """Get all users (admin only)"""
+    try:
+        order_by = request.args.get('order_by', 'created_at')
+        limit = int(request.args.get('limit', 1000))
+
+        users = user_service.get_all_users(order_by=order_by, limit=limit)
+
+        logger.info(f"Admin {g.user.get('email')} retrieved {len(users)} users")
+
+        return jsonify({
+            'success': True,
+            'users': users
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting users: {e}", exc_info=True)
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/admin/users/<user_id>/admin', methods=['PUT'])
+@require_admin
+def admin_set_user_admin(user_id):
+    """Grant or revoke admin privileges for a user (admin only)"""
+    try:
+        data = request.get_json()
+        is_admin = data.get('is_admin', False)
+
+        success = user_service.set_admin(user_id, is_admin)
+
+        if not success:
+            return jsonify({
+                'error': 'User not found',
+                'success': False
+            }), 404
+
+        logger.info(f"Admin {g.user.get('email')} {'granted' if is_admin else 'revoked'} admin privileges for user {user_id}")
+
+        # Log this action
+        audit_service.log_action(
+            user_id=g.user.get('uid'),
+            user_email=g.user.get('email'),
+            action='set_admin' if is_admin else 'revoke_admin',
+            resource_type='user',
+            resource_id=user_id,
+            metadata={'is_admin': is_admin}
+        )
+
+        return jsonify({
+            'success': True,
+            'is_admin': is_admin
+        })
+
+    except Exception as e:
+        logger.error(f"Error setting admin status: {e}", exc_info=True)
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/admin/audit-logs', methods=['GET'])
+@require_admin
+def admin_get_audit_logs():
+    """Get audit logs (admin only)"""
+    try:
+        limit = int(request.args.get('limit', 100))
+        offset = int(request.args.get('offset', 0))
+        user_id = request.args.get('user_id')
+        action = request.args.get('action')
+        resource_type = request.args.get('resource_type')
+
+        logs = audit_service.get_logs(
+            limit=limit,
+            offset=offset,
+            user_id=user_id,
+            action=action,
+            resource_type=resource_type
+        )
+
+        logger.info(f"Admin {g.user.get('email')} retrieved {len(logs)} audit logs")
+
+        return jsonify({
+            'success': True,
+            'logs': logs
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting audit logs: {e}", exc_info=True)
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/user', methods=['GET'])
+@require_auth
+def get_current_user():
+    """Get current user info including admin status"""
+    try:
+        uid = g.user.get('uid')
+        user = user_service.get_user(uid)
+
+        if not user:
+            return jsonify({
+                'error': 'User not found',
+                'success': False
+            }), 404
+
+        return jsonify({
+            'success': True,
+            'uid': user.get('uid'),
+            'email': user.get('email'),
+            'display_name': user.get('display_name'),
+            'photo_url': user.get('photo_url'),
+            'is_admin': user.get('is_admin', False)
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting user info: {e}", exc_info=True)
+        return jsonify({'error': str(e), 'success': False}), 500
 
 
 if __name__ == '__main__':

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Band Practice Pro</title>
+
+    <!-- High-quality multi-resolution favicons -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="admin-page">
+    <!-- Authentication Gate -->
+    <div id="auth-gate">
+        <h2><i class="fas fa-shield-halved"></i> Admin Panel Login</h2>
+        <p style="color: #8899a6;">Please sign in with your admin account</p>
+        <div id="firebaseui-auth-container"></div>
+    </div>
+
+    <!-- Main Admin Panel (hidden until authenticated) -->
+    <div id="admin-panel" style="display: none;">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h1><i class="fas fa-shield-halved"></i> Admin Panel</h1>
+                <div class="admin-user-info">
+                    <img id="user-photo" src="" alt="User">
+                    <div>
+                        <div id="user-name" style="font-weight: 600;"></div>
+                        <div id="user-email" style="font-size: 12px; color: #8899a6;"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="signOut()">
+                        <i class="fas fa-sign-out-alt"></i> Sign Out
+                    </button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('users')">
+                    <i class="fas fa-users"></i> Users
+                </button>
+                <button class="tab" onclick="switchTab('audit-logs')">
+                    <i class="fas fa-clipboard-list"></i> Audit Logs
+                </button>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users-tab" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Users</h3>
+                        <div class="value" id="total-users">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Admin Users</h3>
+                        <div class="value" id="admin-users">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Today</h3>
+                        <div class="value" id="active-today">-</div>
+                    </div>
+                </div>
+
+                <div class="data-table">
+                    <div class="table-controls">
+                        <input type="text" class="search-box" id="user-search" placeholder="Search users...">
+                        <button class="btn" onclick="loadUsers()">
+                            <i class="fas fa-refresh"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="users-table-container"></div>
+                </div>
+            </div>
+
+            <!-- Audit Logs Tab -->
+            <div id="audit-logs-tab" class="tab-content">
+                <div class="data-table">
+                    <div class="table-controls">
+                        <input type="text" class="search-box" id="log-search" placeholder="Search logs...">
+                        <button class="btn" onclick="loadAuditLogs()">
+                            <i class="fas fa-refresh"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="audit-logs-table-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase config injected by Flask
+        window.FIREBASE_CONFIG = {
+            apiKey: "{{ config.FIREBASE_API_KEY }}",
+            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN }}",
+            projectId: "{{ config.FIREBASE_PROJECT_ID }}"
+        };
+    </script>
+
+    <!-- Admin JavaScript -->
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
