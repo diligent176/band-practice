@@ -110,6 +110,17 @@ SCRAPER_API_KEY=your_scraper_key
 5. **Add Notes** - Use `Line 12:` syntax to reference specific lyrics
 6. **Play Music** - Press spacebar to play in-browser (Premium required)
 
+### Debug Mode
+
+Debug logging is automatically enabled on localhost and disabled in production. To manually toggle debug logs in production (for troubleshooting):
+
+```javascript
+// In browser console
+localStorage.setItem('debugMode', 'true')   // Enable debug logs
+localStorage.setItem('debugMode', 'false')  // Disable debug logs
+// Refresh the page
+```
+
 ## Documentation
 
 - **[DEPLOYMENT.md](.docs/DEPLOYMENT.md)** - Complete deployment guide

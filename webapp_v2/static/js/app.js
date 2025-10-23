@@ -1,5 +1,20 @@
 // Band Practice App - Frontend JavaScript
 
+// Debug logging utility - only logs in development mode
+const isDebugMode = () => {
+    // Check if we're on localhost or have debug flag set
+    return window.location.hostname === 'localhost' ||
+           window.location.hostname === '127.0.0.1' ||
+           localStorage.getItem('debugMode') === 'true';
+};
+
+const debug = {
+    log: (...args) => { if (isDebugMode()) console.log(...args); },
+    info: (...args) => { if (isDebugMode()) console.info(...args); },
+    warn: (...args) => { if (isDebugMode()) console.warn(...args); },
+    error: (...args) => { console.error(...args); } // Always log errors
+};
+
 let currentSong = null;
 let allSongs = [];
 let isEditMode = false;
@@ -213,7 +228,7 @@ function throttle(func, limit) {
 
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
-    console.log('🎸 Initializing app with authenticated API calls');
+    debug.log('🎸 Initializing app with authenticated API calls');
     authenticatedApiCall = apiCallFunction;
 
     // Initialize BPM indicator element reference
@@ -226,7 +241,7 @@ window.initializeApp = function(apiCallFunction) {
     setupEventListeners();
 
     // NOW check Spotify status (after auth is complete)
-    console.log('🎵 Checking Spotify connection status...');
+    debug.log('🎵 Checking Spotify connection status...');
     checkSpotifyStatus();
 };
 
@@ -621,7 +636,7 @@ async function loadUserInfo() {
             }
         }
     } catch (error) {
-        console.error('Error loading user info:', error);
+        debug.error('Error loading user info:', error);
         userEmail.textContent = 'User';
     }
 }
@@ -653,7 +668,7 @@ async function loadSongs() {
             } else {
                 allSongs = data.songs;
             }
-            console.log(`✅ Loaded ${allSongs.length} songs from collection ${currentCollection?.name} (sort: ${songSelectorSortMode})`);
+            debug.log(`✅ Loaded ${allSongs.length} songs from collection ${currentCollection?.name} (sort: ${songSelectorSortMode})`);
             updateCurrentSongDisplay();
             // If song selector is open, refresh the list
             if (songSelectorDialog && songSelectorDialog.style.display === 'flex') {
@@ -664,7 +679,7 @@ async function loadSongs() {
             showToast('Failed to load songs', 'error');
         }
     } catch (error) {
-        console.error('Error loading songs:', error);
+        debug.error('Error loading songs:', error);
         showToast('Error loading songs: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -756,7 +771,7 @@ async function loadSong(songId) {
 
 async function fetchBpmInBackground(songId, title, artist) {
     try {
-        console.log(`🎵 Fetching BPM for ${title} by ${artist} in background...`);
+        debug.log(`🎵 Fetching BPM for ${title} by ${artist} in background...`);
         const response = await authenticatedApiCall(`/api/songs/${songId}/bpm`, {
             method: 'POST'
         });
@@ -768,7 +783,7 @@ async function fetchBpmInBackground(songId, title, artist) {
             currentSong.bpm = data.bpm;
             currentSong.bpm_manual = false; // Clear manual flag since this is from API
             renderMetadata();
-            console.log(`✅ BPM updated: ${data.bpm}`);
+            debug.log(`✅ BPM updated: ${data.bpm}`);
             
             // Update the song in the allSongs array so selector reflects the change
             const songIndex = allSongs.findIndex(s => s.id === songId);
@@ -793,7 +808,7 @@ async function fetchBpmInBackground(songId, title, artist) {
             }
         }
     } catch (error) {
-        console.error(`Error fetching BPM for ${title}:`, error);
+        debug.error(`Error fetching BPM for ${title}:`, error);
         // Update UI to remove loading indicator even on error
         if (currentSong && currentSong.id === songId) {
             renderMetadata();
@@ -804,7 +819,7 @@ async function fetchBpmInBackground(songId, title, artist) {
 
 async function fetchLyricsInBackground(songId, title, artist) {
     try {
-        console.log(`📜 Fetching lyrics for ${title} by ${artist} in background...`);
+        debug.log(`📜 Fetching lyrics for ${title} by ${artist} in background...`);
         
         // Show loading indicator in the lyrics panel
         if (currentSong && currentSong.id === songId) {
@@ -830,7 +845,7 @@ async function fetchLyricsInBackground(songId, title, artist) {
             
             // Re-render the song to show the lyrics
             renderSong();
-            console.log(`✅ Lyrics loaded successfully`);
+            debug.log(`✅ Lyrics loaded successfully`);
             
             // Update the song in the allSongs array
             const songIndex = allSongs.findIndex(s => s.id === songId);
@@ -844,15 +859,15 @@ async function fetchLyricsInBackground(songId, title, artist) {
             setStatus('Song loaded • Lyrics updated', 'success');
         } else if (data.requires_confirmation) {
             // Song has customized lyrics - this shouldn't happen on first fetch, but handle it
-            console.log(`⚠️ Song already has customized lyrics`);
+            debug.log(`⚠️ Song already has customized lyrics`);
         } else {
-            console.error(`Failed to fetch lyrics: ${data.error || 'Unknown error'}`);
+            debug.error(`Failed to fetch lyrics: ${data.error || 'Unknown error'}`);
             if (currentSong && currentSong.id === songId) {
                 setStatus('Song loaded • Lyrics not available', 'warning');
             }
         }
     } catch (error) {
-        console.error(`Error fetching lyrics for ${title}:`, error);
+        debug.error(`Error fetching lyrics for ${title}:`, error);
         if (currentSong && currentSong.id === songId) {
             setStatus('Song loaded • Failed to fetch lyrics', 'error');
         }
@@ -1044,7 +1059,7 @@ function showSortModeHint(mode) {
 function handleSortChange(e) {
     songSelectorSortMode = e.target.value;
     localStorage.setItem('songSelectorSortMode', songSelectorSortMode);
-    console.log(`🔄 Sort mode changed to: ${songSelectorSortMode}`);
+    debug.log(`🔄 Sort mode changed to: ${songSelectorSortMode}`);
     loadSongs();  // Reload songs with new sort
 }
 
@@ -1055,10 +1070,10 @@ async function selectSong(songId) {
             const state = await spotifyPlayer.getCurrentState();
             if (state && !state.paused) {
                 await spotifyPlayer.pause();
-                console.log('⏸ Paused playback when switching songs');
+                debug.log('⏸ Paused playback when switching songs');
             }
         } catch (error) {
-            console.warn('Could not pause playback:', error);
+            debug.warn('Could not pause playback:', error);
         }
     }
     
@@ -1072,9 +1087,9 @@ async function selectSong(songId) {
     if (isMuted && spotifyPlayer) {
         try {
             await spotifyPlayer.setVolume(volumeBeforeMute);
-            console.log(`🔊 Unmuted on song change - restored volume to ${volumeBeforeMute}`);
+            debug.log(`🔊 Unmuted on song change - restored volume to ${volumeBeforeMute}`);
         } catch (error) {
-            console.warn('Could not restore volume:', error);
+            debug.warn('Could not restore volume:', error);
         }
     }
     isMuted = false;
@@ -2922,7 +2937,7 @@ async function startImport() {
                         const { done, value } = await reader.read();
                         
                         if (done) {
-                            console.log('Stream complete');
+                            debug.log('Stream complete');
                             break;
                         }
 
@@ -2969,7 +2984,7 @@ async function startImport() {
                                         }
                                     } else if (update.type === 'complete') {
                                         // Import complete
-                                        console.log('Import complete:', update.stats);
+                                        debug.log('Import complete:', update.stats);
                                         
                                         // Show done button
                                         importDoneBtn.style.display = 'inline-flex';
@@ -2986,7 +3001,7 @@ async function startImport() {
                                         throw new Error(update.error);
                                     }
                                 } catch (parseError) {
-                                    console.error('Error parsing SSE message:', parseError);
+                                    debug.error('Error parsing SSE message:', parseError);
                                 }
                             }
                         }
@@ -3000,7 +3015,7 @@ async function startImport() {
         });
 
     } catch (error) {
-        console.error('Import error:', error);
+        debug.error('Import error:', error);
         showToast('Error importing songs: ' + error.message, 'error');
         importDoneBtn.style.display = 'inline-flex';
     }
@@ -3022,7 +3037,7 @@ async function loadPlaylistMemory() {
             if (playlistMemorySection) playlistMemorySection.style.display = 'none';
         }
     } catch (error) {
-        console.error('Error loading playlist memory:', error);
+        debug.error('Error loading playlist memory:', error);
     }
 }
 
@@ -3131,7 +3146,7 @@ async function loadCurrentCollection() {
             ? `/api/collections/${savedCollectionId}`
             : '/api/collections/default';
         
-        console.log(`📂 Loading collection from: ${endpoint}`);
+        debug.log(`📂 Loading collection from: ${endpoint}`);
         
         const response = await authenticatedApiCall(endpoint);
         const data = await response.json();
@@ -3149,10 +3164,10 @@ async function loadCurrentCollection() {
                 // Check if the saved song exists in the current collection
                 const songExists = allSongs.some(song => song.id === savedSongId);
                 if (songExists) {
-                    console.log(`🎵 Restoring last viewed song: ${savedSongId}`);
+                    debug.log(`🎵 Restoring last viewed song: ${savedSongId}`);
                     await loadSong(savedSongId);
                 } else {
-                    console.log(`⚠️ Saved song ${savedSongId} not found in collection`);
+                    debug.log(`⚠️ Saved song ${savedSongId} not found in collection`);
                     // Clear the invalid saved song ID
                     localStorage.removeItem('bandPracticeCurrentSong');
                 }
@@ -3161,7 +3176,7 @@ async function loadCurrentCollection() {
             showToast('Failed to load collection', 'error');
         }
     } catch (error) {
-        console.error('Error loading current collection:', error);
+        debug.error('Error loading current collection:', error);
         showToast('Error loading collection: ' + error.message, 'error');
     }
 }
@@ -3207,7 +3222,7 @@ async function showCollectionDialog() {
             showToast('Failed to load collections', 'error');
         }
     } catch (error) {
-        console.error('Error loading collections:', error);
+        debug.error('Error loading collections:', error);
         showToast('Error loading collections: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -3461,7 +3476,7 @@ async function switchCollection(collectionId) {
             showToast('Failed to switch collection', 'error');
         }
     } catch (error) {
-        console.error('Error switching collection:', error);
+        debug.error('Error switching collection:', error);
         showToast('Error switching collection: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -3505,7 +3520,7 @@ async function deleteCollection(collectionId, collectionName) {
             showToast('Failed to delete collection: ' + data.error, 'error');
         }
     } catch (error) {
-        console.error('Error deleting collection:', error);
+        debug.error('Error deleting collection:', error);
         showToast('Error deleting collection: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -3577,7 +3592,7 @@ async function createNewCollection() {
             showToast('Failed to create collection: ' + data.error, 'error');
         }
     } catch (error) {
-        console.error('Error creating collection:', error);
+        debug.error('Error creating collection:', error);
         showToast('Error creating collection: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -3765,7 +3780,7 @@ async function saveEditedCollection() {
             showToast('Failed to update collection: ' + data.error, 'error');
         }
     } catch (error) {
-        console.error('Error updating collection:', error);
+        debug.error('Error updating collection:', error);
         showToast('Error updating collection: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -3927,7 +3942,7 @@ let spotifyProgressInterval = null;  // For updating progress bar during playbac
 
 // Spotify SDK ready callback (called by SDK after loading)
 window.onSpotifyWebPlaybackSDKReady = () => {
-    console.log('🎵 Spotify SDK loaded');
+    debug.log('🎵 Spotify SDK loaded');
     // Don't auto-initialize - wait for token check
 };
 
@@ -3940,10 +3955,10 @@ async function checkSpotifyStatus() {
     if (!authenticatedApiCall) {
         if (spotifyStatusCheckRetries < 20) {
             spotifyStatusCheckRetries++;
-            console.log(`⏳ Waiting for authentication before checking Spotify status... (${spotifyStatusCheckRetries}/20)`);
+            debug.log(`⏳ Waiting for authentication before checking Spotify status... (${spotifyStatusCheckRetries}/20)`);
             setTimeout(checkSpotifyStatus, 500);
         } else {
-            console.error('❌ Gave up waiting for authentication');
+            debug.error('❌ Gave up waiting for authentication');
         }
         return;
     }
@@ -3956,14 +3971,14 @@ async function checkSpotifyStatus() {
         const data = await response.json();
 
         if (data.success && data.connected) {
-            console.log('✅ User has Spotify connected, initializing player...');
+            debug.log('✅ User has Spotify connected, initializing player...');
             await initializeSpotifyPlayer();
         } else {
-            console.log('ℹ️ User not connected to Spotify');
+            debug.log('ℹ️ User not connected to Spotify');
             showSpotifyConnectPrompt();
         }
     } catch (error) {
-        console.error('Error checking Spotify status:', error);
+        debug.error('Error checking Spotify status:', error);
     } finally {
         isCheckingSpotifyStatus = false;
     }
@@ -3984,14 +3999,14 @@ function showSpotifyConnectPrompt() {
 // Connect Spotify button handler
 async function connectSpotify() {
     try {
-        console.log('🔗 Initiating Spotify connection...');
+        debug.log('🔗 Initiating Spotify connection...');
         
         // Get auth URL
         const response = await authenticatedApiCall('/api/spotify/auth/url');
         const data = await response.json();
         
         if (data.success && data.auth_url) {
-            console.log('✅ Got auth URL, opening popup...');
+            debug.log('✅ Got auth URL, opening popup...');
             
             // Open OAuth popup (centered on screen)
             const width = 600;
@@ -4013,7 +4028,7 @@ async function connectSpotify() {
             showToast('Failed to get authorization URL', 'error');
         }
     } catch (error) {
-        console.error('Error connecting Spotify:', error);
+        debug.error('Error connecting Spotify:', error);
         showToast('Failed to connect Spotify', 'error');
     }
 }
@@ -4027,7 +4042,7 @@ function handleSpotifyAuthMessage(event) {
     // if (event.origin !== window.location.origin) return;
     
     if (event.data.type === 'spotify-auth-success') {
-        console.log('✅✅✅ Spotify auth success message received!');
+        debug.log('✅✅✅ Spotify auth success message received!');
         window.removeEventListener('message', handleSpotifyAuthMessage);
         showToast('Connected to Spotify!', 'success');
         
@@ -4037,7 +4052,7 @@ function handleSpotifyAuthMessage(event) {
         }, 500);
         
     } else if (event.data.type === 'spotify-auth-error') {
-        console.error('❌ Spotify auth error:', event.data.error);
+        debug.error('❌ Spotify auth error:', event.data.error);
         window.removeEventListener('message', handleSpotifyAuthMessage);
         showToast(`Spotify auth failed: ${event.data.error || 'Unknown error'}`, 'error');
     }
@@ -4046,7 +4061,7 @@ function handleSpotifyAuthMessage(event) {
 // Initialize Spotify Web Playback SDK with user token
 async function initializeSpotifyPlayer() {
     try {
-        console.log('🎵 Initializing Spotify Web Playback SDK...');
+        debug.log('🎵 Initializing Spotify Web Playback SDK...');
         
         // Get access token
         const response = await authenticatedApiCall('/api/spotify/token');
@@ -4054,10 +4069,10 @@ async function initializeSpotifyPlayer() {
 
         if (!data.success) {
             if (data.needs_auth) {
-                console.log('ℹ️ User needs to connect Spotify');
+                debug.log('ℹ️ User needs to connect Spotify');
                 showSpotifyConnectPrompt();
             } else {
-                console.error('Failed to get Spotify token:', data);
+                debug.error('Failed to get Spotify token:', data);
             }
             return;
         }
@@ -4066,7 +4081,7 @@ async function initializeSpotifyPlayer() {
 
         // Check user's Spotify Premium status
         try {
-            console.log('🔍 Checking Spotify Premium status...');
+            debug.log('🔍 Checking Spotify Premium status...');
             const profileResponse = await fetch('https://api.spotify.com/v1/me', {
                 headers: {
                     'Authorization': `Bearer ${spotifyAccessToken}`
@@ -4075,32 +4090,32 @@ async function initializeSpotifyPlayer() {
 
             if (profileResponse.ok) {
                 const profile = await profileResponse.json();
-                console.log('📋 Spotify account info:', {
+                debug.log('📋 Spotify account info:', {
                     email: profile.email,
                     product: profile.product,
                     country: profile.country
                 });
 
                 if (profile.product !== 'premium') {
-                    console.error('❌ Account does not have Premium status. Product type:', profile.product);
+                    debug.error('❌ Account does not have Premium status. Product type:', profile.product);
                     showToast(`Spotify Premium required for playback. Current plan: ${profile.product}`, 'error');
                     showSpotifyConnectPrompt();
                     return;
                 }
 
-                console.log('✅ Premium status confirmed!');
+                debug.log('✅ Premium status confirmed!');
             } else {
-                console.warn('⚠️ Could not verify Premium status:', profileResponse.status);
+                debug.warn('⚠️ Could not verify Premium status:', profileResponse.status);
                 // Continue anyway - let Spotify SDK handle it
             }
         } catch (error) {
-            console.warn('⚠️ Error checking Premium status:', error);
+            debug.warn('⚠️ Error checking Premium status:', error);
             // Continue anyway - let Spotify SDK handle it
         }
 
         // Check if SDK is loaded
         if (typeof Spotify === 'undefined') {
-            console.error('❌ Spotify SDK not loaded!');
+            debug.error('❌ Spotify SDK not loaded!');
             showToast('Spotify SDK not available', 'error');
             return;
         }
@@ -4113,7 +4128,7 @@ async function initializeSpotifyPlayer() {
                 if (spotifyAccessToken) {
                     cb(spotifyAccessToken);
                 } else {
-                    console.warn('⚠️ No Spotify token available, fetching new one...');
+                    debug.warn('⚠️ No Spotify token available, fetching new one...');
                     try {
                         const response = await authenticatedApiCall('/api/spotify/token');
                         const data = await response.json();
@@ -4121,10 +4136,10 @@ async function initializeSpotifyPlayer() {
                             spotifyAccessToken = data.access_token;
                             cb(spotifyAccessToken);
                         } else {
-                            console.error('❌ Failed to get Spotify token');
+                            debug.error('❌ Failed to get Spotify token');
                         }
                     } catch (error) {
-                        console.error('❌ Error getting Spotify token:', error);
+                        debug.error('❌ Error getting Spotify token:', error);
                     }
                 }
             },
@@ -4134,29 +4149,29 @@ async function initializeSpotifyPlayer() {
 
         // Error handling
         spotifyPlayer.addListener('initialization_error', ({ message }) => {
-            console.error('🚨 Spotify init error:', message);
+            debug.error('🚨 Spotify init error:', message);
             showToast('Spotify initialization failed', 'error');
         });
 
         spotifyPlayer.addListener('authentication_error', ({ message }) => {
-            console.error('🚨 Spotify auth error:', message);
+            debug.error('🚨 Spotify auth error:', message);
             showToast('Spotify auth error - try reconnecting', 'error');
             showSpotifyConnectPrompt();
         });
 
         spotifyPlayer.addListener('account_error', ({ message }) => {
-            console.error('🚨 Spotify account error:', message);
+            debug.error('🚨 Spotify account error:', message);
             showToast('Spotify account error: ' + message, 'error');
         });
 
         spotifyPlayer.addListener('playback_error', ({ message }) => {
-            console.error('🚨 Playback error:', message);
+            debug.error('🚨 Playback error:', message);
             showToast('Playback error: ' + message, 'error');
         });
 
         // Ready
         spotifyPlayer.addListener('ready', ({ device_id }) => {
-            console.log('✅✅✅ Spotify player ready! Device ID:', device_id);
+            debug.log('✅✅✅ Spotify player ready! Device ID:', device_id);
             spotifyDeviceId = device_id;
             spotifyPlayerReady = true;
             updateSpotifyConnectionUI(true);
@@ -4165,7 +4180,7 @@ async function initializeSpotifyPlayer() {
 
         // Not ready
         spotifyPlayer.addListener('not_ready', ({ device_id }) => {
-            console.log('⚠️ Device has gone offline:', device_id);
+            debug.log('⚠️ Device has gone offline:', device_id);
         });
 
         // Player state changed - update UI with smart throttling
@@ -4201,35 +4216,35 @@ async function initializeSpotifyPlayer() {
         const connected = await spotifyPlayer.connect();
         
         if (connected) {
-            console.log('✅ Connected to Spotify successfully');
+            debug.log('✅ Connected to Spotify successfully');
 
             // Set up automatic token refresh every 45 minutes (Spotify tokens expire in 1 hour)
             if (!window.spotifyTokenRefreshInterval) {
                 window.spotifyTokenRefreshInterval = setInterval(async () => {
                     try {
-                        console.log('🔄 Refreshing Spotify access token...');
+                        debug.log('🔄 Refreshing Spotify access token...');
                         const response = await authenticatedApiCall('/api/spotify/token');
                         const data = await response.json();
 
                         if (data.success && data.access_token) {
                             spotifyAccessToken = data.access_token;
-                            console.log('✅ Spotify token refreshed successfully');
+                            debug.log('✅ Spotify token refreshed successfully');
                         } else {
-                            console.error('❌ Failed to refresh Spotify token:', data);
+                            debug.error('❌ Failed to refresh Spotify token:', data);
                         }
                     } catch (error) {
-                        console.error('❌ Error refreshing Spotify token:', error);
+                        debug.error('❌ Error refreshing Spotify token:', error);
                     }
                 }, 45 * 60 * 1000); // 45 minutes in milliseconds
-                console.log('✅ Spotify token auto-refresh enabled (every 45 minutes)');
+                debug.log('✅ Spotify token auto-refresh enabled (every 45 minutes)');
             }
         } else {
-            console.error('❌ Failed to connect to Spotify');
+            debug.error('❌ Failed to connect to Spotify');
             showToast('Failed to connect to Spotify', 'error');
         }
 
     } catch (error) {
-        console.error('💥 Error initializing Spotify player:', error);
+        debug.error('💥 Error initializing Spotify player:', error);
         showToast('Error initializing Spotify: ' + error.message, 'error');
     }
 }
@@ -4304,22 +4319,22 @@ async function toggleAudioPlayback() {
 
         if (needsNewTrack) {
             // Load and play the new track
-            console.log('Loading new track:', currentSong.title);
+            debug.log('Loading new track:', currentSong.title);
             await playSpotifyTrack(spotifyUri);
             // showToast('▶ Playing', 'success');
         } else if (state.paused) {
             // Resume playback of current track
-            console.log('Resuming playback...');
+            debug.log('Resuming playback...');
             await spotifyPlayer.resume();
             // showToast('▶ Playing', 'success');
         } else {
             // Pause playback
-            console.log('Pausing playback...');
+            debug.log('Pausing playback...');
             await spotifyPlayer.pause();
             // showToast('⏸ Paused', 'success');
         }
     } catch (error) {
-        console.error('Error toggling playback:', error);
+        debug.error('Error toggling playback:', error);
         showToast('Playback error', 'error');
     }
 }
@@ -4348,7 +4363,7 @@ async function loadSpotifyTrack(uri) {
 
         if (!playResponse.ok) {
             const errorText = await playResponse.text();
-            console.error('Load request failed:', playResponse.status, errorText);
+            debug.error('Load request failed:', playResponse.status, errorText);
 
             // Try to parse error details
             let errorMessage = 'Failed to load track';
@@ -4369,7 +4384,7 @@ async function loadSpotifyTrack(uri) {
             return;
         }
 
-        console.log('✅ Play command sent, waiting briefly before pausing...');
+        debug.log('✅ Play command sent, waiting briefly before pausing...');
 
         // Wait a bit longer for the track to actually start before pausing
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -4383,12 +4398,12 @@ async function loadSpotifyTrack(uri) {
         });
 
         if (pauseResponse.ok) {
-            console.log('✅ Track loaded and paused, ready to play');
+            debug.log('✅ Track loaded and paused, ready to play');
         } else {
-            console.warn('⚠️ Track loaded but pause may have failed');
+            debug.warn('⚠️ Track loaded but pause may have failed');
         }
     } catch (error) {
-        console.error('Error loading track:', error);
+        debug.error('Error loading track:', error);
         showToast('Failed to load', 'error');
     }
 }
@@ -4413,7 +4428,7 @@ async function playSpotifyTrack(uri) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Play request failed:', response.status, errorText);
+            debug.error('Play request failed:', response.status, errorText);
 
             // Try to parse error details
             let errorMessage = 'Failed to play track';
@@ -4432,10 +4447,10 @@ async function playSpotifyTrack(uri) {
             }
             showToast(errorMessage, 'error');
         } else {
-            console.log('✅ Play request successful');
+            debug.log('✅ Play request successful');
         }
     } catch (error) {
-        console.error('Error playing track:', error);
+        debug.error('Error playing track:', error);
         showToast('Failed to play', 'error');
     }
 }
@@ -4493,7 +4508,7 @@ async function restartTrack() {
         await spotifyPlayer.seek(0);
         showToast('⏮ Restarted', 'success');
     } catch (error) {
-        console.error('Error restarting track:', error);
+        debug.error('Error restarting track:', error);
         showToast('Failed to restart', 'error');
     }
 }
@@ -4508,7 +4523,7 @@ async function toggleMute() {
             await spotifyPlayer.setVolume(volumeBeforeMute);
             isMuted = false;
             setStatus('🔊 Unmuted', 'success');
-            console.log(`🔊 Unmuted - restored volume to ${volumeBeforeMute}`);
+            debug.log(`🔊 Unmuted - restored volume to ${volumeBeforeMute}`);
         } else {
             // Mute - save current volume and set to 0
             const state = await spotifyPlayer.getCurrentState();
@@ -4519,10 +4534,10 @@ async function toggleMute() {
             await spotifyPlayer.setVolume(0);
             isMuted = true;
             setStatus('🔇 Muted', 'success');
-            console.log(`🔇 Muted - saved volume ${volumeBeforeMute}`);
+            debug.log(`🔇 Muted - saved volume ${volumeBeforeMute}`);
         }
     } catch (error) {
-        console.error('Error toggling mute:', error);
+        debug.error('Error toggling mute:', error);
         showToast('Failed to toggle mute', 'error');
     }
 }
@@ -4545,7 +4560,7 @@ async function seekToPosition(percentage) {
             await spotifyPlayer.seek(position);
         }
     } catch (error) {
-        console.error('Error seeking:', error);
+        debug.error('Error seeking:', error);
         showToast('Failed to seek', 'error');
     }
 }
@@ -4560,10 +4575,10 @@ async function skipSeconds(seconds) {
             const currentPosition = state.position;
             const newPosition = Math.max(0, Math.min(state.duration, currentPosition + (seconds * 1000)));
             await spotifyPlayer.seek(newPosition);
-            console.log(`⏩ Skipped ${seconds > 0 ? 'forward' : 'backward'} ${Math.abs(seconds)}s`);
+            debug.log(`⏩ Skipped ${seconds > 0 ? 'forward' : 'backward'} ${Math.abs(seconds)}s`);
         }
     } catch (error) {
-        console.error('Error skipping:', error);
+        debug.error('Error skipping:', error);
     }
 }
 
@@ -4583,9 +4598,9 @@ async function updatePlayerVisibility() {
         // Just update the UI - don't load the track yet
         // Track will be loaded when user presses play
         if (currentSong.spotify_uri) {
-            console.log('🎵 Song ready to play:', currentSong.title);
+            debug.log('🎵 Song ready to play:', currentSong.title);
         } else {
-            console.warn('⚠️ No Spotify URI for this song');
+            debug.warn('⚠️ No Spotify URI for this song');
         }
     } else {
         // Show connect prompt if not connected
@@ -4773,14 +4788,14 @@ async function checkIfPlaying() {
 // V2: Sync collection in background (non-blocking)
 async function syncCollectionInBackground(collectionId) {
     try {
-        console.log(`🔄 Starting background sync for collection ${collectionId}...`);
+        debug.log(`🔄 Starting background sync for collection ${collectionId}...`);
         
         const response = await authenticatedApiCall(`/api/collections/${collectionId}/sync`, {
             method: 'POST'
         });
 
         if (!response.ok) {
-            console.warn('Background sync failed');
+            debug.warn('Background sync failed');
             return;
         }
 
@@ -4802,21 +4817,21 @@ async function syncCollectionInBackground(collectionId) {
                     const data = JSON.parse(line.substring(6));
                     
                     if (data.type === 'progress') {
-                        console.log(`📊 Sync progress: ${data.message}`);
+                        debug.log(`📊 Sync progress: ${data.message}`);
                         setStatus(data.message, 'info');
                     } else if (data.type === 'complete') {
-                        console.log(`✅ Sync complete: ${data.message}`);
+                        debug.log(`✅ Sync complete: ${data.message}`);
                         setStatus(data.message, 'success');
                         // Do NOT reload songs or interrupt main UI
                     } else if (data.type === 'error') {
-                        console.error(`❌ Sync error: ${data.error}`);
+                        debug.error(`❌ Sync error: ${data.error}`);
                         showToast('Sync error: ' + data.error, 'error');
                     }
                 }
             }
         }
     } catch (error) {
-        console.error('Background sync error:', error);
+        debug.error('Background sync error:', error);
         // Silent fail - don't interrupt user experience
     }
 }
@@ -4825,7 +4840,7 @@ async function syncCollectionInBackground(collectionId) {
 async function loadPlaylistsForDialog() {
     try {
         if (!currentCollection || !currentCollection.id) {
-            console.warn('No current collection');
+            debug.warn('No current collection');
             return;
         }
 
@@ -4847,7 +4862,7 @@ async function loadPlaylistsForDialog() {
 
         renderPlaylistDialog();
     } catch (error) {
-        console.error('Error loading playlists:', error);
+        debug.error('Error loading playlists:', error);
         showToast('Error loading playlists', 'error');
     }
 }
@@ -5036,7 +5051,7 @@ async function savePlaylistOrder() {
             await loadPlaylistsForDialog();
         }
     } catch (error) {
-        console.error('Error saving playlist order:', error);
+        debug.error('Error saving playlist order:', error);
         showToast('Error saving order: ' + error.message, 'error');
         // Reload to restore original order
         await loadPlaylistsForDialog();
@@ -5073,7 +5088,7 @@ async function linkPlaylist(playlistUrl) {
             showToast('Failed to link playlist: ' + (data.error || 'Unknown error'), 'error');
         }
     } catch (error) {
-        console.error('Error linking playlist:', error);
+        debug.error('Error linking playlist:', error);
         showToast('Error linking playlist: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -5105,7 +5120,7 @@ async function unlinkPlaylist(playlistId) {
                     showToast('Failed to unlink playlist: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                console.error('Error unlinking playlist:', error);
+                debug.error('Error unlinking playlist:', error);
                 showToast('Error unlinking playlist: ' + error.message, 'error');
             } finally {
                 hideLoading();
@@ -5128,7 +5143,7 @@ function filterSongsV2() {
 
         // Log search info
         if (searchTerm) {
-            console.log(`🔍 Search: "${searchTerm}" - ${filteredSongs.length} results`);
+            debug.log(`🔍 Search: "${searchTerm}" - ${filteredSongs.length} results`);
         }
 
         // V2: Sorting is handled by backend, but we still need to sort filtered results
@@ -5144,7 +5159,7 @@ function filterSongsV2() {
 
         renderSongListV2();
     } catch (error) {
-        console.error('❌ Error in filterSongsV2:', error);
+        debug.error('❌ Error in filterSongsV2:', error);
     }
 }
 
@@ -5154,7 +5169,7 @@ function renderSongListV2() {
         const listElement = document.getElementById('song-selector-list');
 
         if (!listElement) {
-            console.error('❌ song-selector-list element not found!');
+            debug.error('❌ song-selector-list element not found!');
             return;
         }
 
@@ -5219,8 +5234,8 @@ function renderSongListV2() {
             selectedSongIndex = filteredSongs.length - 1;
         }
     } catch (error) {
-        console.error('❌ Error in renderSongListV2:', error);
-        console.error('Stack:', error.stack);
+        debug.error('❌ Error in renderSongListV2:', error);
+        debug.error('Stack:', error.stack);
     }
 }
 
@@ -5307,7 +5322,7 @@ async function deleteSongWithConfirm(songId) {
                     showToast('Failed to delete song: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                console.error('Error deleting song:', error);
+                debug.error('Error deleting song:', error);
                 showToast('Error deleting song: ' + error.message, 'error');
             } finally {
                 hideLoading();
