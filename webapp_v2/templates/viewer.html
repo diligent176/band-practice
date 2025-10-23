@@ -768,6 +768,28 @@ END: Third repetition of chorus is acapella"></textarea>
                         document.getElementById('main-app').style.display = 'block';
                         document.getElementById('user-email').textContent = user.email;
 
+                        // If the server reports this user is an admin, add a tiny admin link next to the email
+                        try {
+                            const userJson = await response.json();
+                            if (userJson.is_admin) {
+                                const emailEl = document.getElementById('user-email');
+                                // Create tiny admin indicator link
+                                const adminLink = document.createElement('a');
+                                adminLink.href = '/admin';
+                                adminLink.target = '_blank';
+                                adminLink.rel = 'noopener noreferrer';
+                                adminLink.className = 'admin-indicator';
+                                adminLink.title = 'Open Admin Panel (new tab)';
+                                // Use compact Font Awesome 'user-gear' icon for a tiny admin indicator
+                                adminLink.innerHTML = '<i class="fa-solid fa-user-gear" aria-hidden="true"></i>';
+                                adminLink.setAttribute('aria-label', 'Open Admin Panel');
+                                // Append after email text
+                                emailEl.insertAdjacentElement('afterend', adminLink);
+                            }
+                        } catch (err) {
+                            console.warn('Could not parse /api/user JSON for admin flag', err);
+                        }
+
                         // Token refresh is now handled automatically by Firebase SDK
                         // Each apiCall() will request a fresh token, and Firebase caches/refreshes as needed
 
