@@ -1,19 +1,6 @@
 // Shared helper for dialog keyboard event registration/removal
 import { eventListenerFlags, registerDialogKeyboardHandler, unregisterDialogKeyboardHandler } from './dialogHelpers.js';
-// Shared helper for dialog background click-to-close
-function registerDialogBackgroundClose(dialog, closeHandler) {
-    if (dialog) {
-        dialog.addEventListener('click', (e) => {
-            if (e.target === dialog) closeHandler();
-        });
-    }
-}
-// Shared helper for registering button event listeners
-function registerButtonListeners(pairs) {
-    pairs.forEach(([btn, handler]) => {
-        if (btn) btn.addEventListener('click', handler);
-    });
-}
+import { registerDialogBackgroundClose, registerButtonListeners } from './uiHelpers.js';
 // Band Practice App - Frontend JavaScript
 
 // Debug logging utility - only logs in development mode
