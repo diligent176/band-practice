@@ -1,9 +1,10 @@
-// Shared helper for dialog keyboard event registration/removal
-import { eventListenerFlags, registerDialogKeyboardHandler, unregisterDialogKeyboardHandler } from './dialogHelpers.js';
-import { registerDialogBackgroundClose, registerButtonListeners } from './uiHelpers.js';
 // Band Practice App - Frontend JavaScript
 
-// Debug logging utility - only logs in development mode
+import { eventListenerFlags, registerDialogKeyboardHandler, unregisterDialogKeyboardHandler } from './dialogHelpers.js';
+import { registerDialogBackgroundClose, registerButtonListeners } from './uiHelpers.js';
+
+// Debug logging utility 
+// only logs in local dev or if debug flag is set in local storage
 const isDebugMode = () => {
     // Check if we're on localhost or have debug flag set
     return window.location.hostname === 'localhost' ||
@@ -21,7 +22,6 @@ const debug = {
 let currentSong = null;
 let allSongs = [];
 let isEditMode = false;
-// V2: Song selector sort mode (name, artist, playlist)
 let songSelectorSortMode = localStorage.getItem('songSelectorSortMode') || 'name';
 let filteredSongs = [];
 let selectedSongIndex = -1;
@@ -44,7 +44,7 @@ const songSelectorDialog = document.getElementById('song-selector-dialog');
 const songSelectorClose = document.getElementById('song-selector-close');
 const songSearchInput = document.getElementById('song-search-input');
 const songSelectorList = document.getElementById('song-selector-list');
-const songSelectorSort = document.getElementById('song-selector-sort');  // V2: Changed from toggle button to dropdown
+const songSelectorSort = document.getElementById('song-selector-sort');
 const songCountDisplay = document.getElementById('song-count-display');
 const backToTopBtn = document.getElementById('back-to-top-btn');
 
@@ -173,8 +173,6 @@ const editCollectionCancelBtn = document.getElementById('edit-collection-cancel-
 
 // Track the collection being edited
 let editingCollectionId = null;
-
-
 
 // Player DOM elements
 const audioPlayer = document.getElementById('audio-player');
@@ -838,7 +836,6 @@ async function fetchLyricsInBackground(songId, title, artist) {
         if (currentSong && currentSong.id === songId) {
             setStatus('Song loaded • Failed to fetch lyrics', 'error');
         }
-        // Don't show toast - this is a background operation
     }
 }
 
@@ -955,8 +952,8 @@ async function openSongSelector() {
     songSelectorDialog.style.display = 'flex';
     songSearchInput.value = '';
 
-    // Always reload songs from backend before rendering chooser
-    await loadSongs();
+    // Render the song list from already-loaded songs
+    filterSongsV2();
 
     songSearchInput.focus();
 
