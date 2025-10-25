@@ -3440,6 +3440,16 @@ header h1 i {
   opacity: 0.8;
 }
 
+/* Orphaned/Removed songs section header */
+.song-list-playlist-header[data-playlist-id="_orphaned"] {
+  background: rgba(var(--error-rgb, 239, 68, 68), 0.1);
+  border-bottom-color: rgba(var(--error-rgb, 239, 68, 68), 0.3);
+}
+
+.song-list-playlist-header[data-playlist-id="_orphaned"] .song-list-playlist-header-name {
+  color: var(--error, #ef4444);
+}
+
 /* Song Item with Trash Icon */
 .song-item {
   position: relative;

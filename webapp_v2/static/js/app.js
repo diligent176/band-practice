@@ -5267,7 +5267,7 @@ function renderSongListV2() {
 
                 // Playlist header - compact single line
                 html += `
-                    <div class="song-list-playlist-header">
+                    <div class="song-list-playlist-header" data-playlist-id="${playlist.id}">
                         <span class="song-list-playlist-header-name">${escapeHtml(playlist.name)}</span>
                         <span class="song-list-playlist-header-meta">${playlist.owner} • ${playlistSongs.length} track${playlistSongs.length !== 1 ? 's' : ''}</span>
                     </div>

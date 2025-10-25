@@ -712,7 +712,34 @@ class FirestoreService:
                     'owner': playlist.get('owner', ''),
                     'songs': playlist_songs
                 })
-        
+
+        # Add orphaned/removed songs section (songs not in any playlist)
+        orphaned_songs = []
+        for song in songs:
+            source_playlists = song.get('source_playlist_ids', [])
+            # Include songs with no source playlists OR explicitly flagged as removed
+            if not source_playlists or song.get('is_removed_from_spotify', False):
+                # Only add if not already in a playlist group
+                already_added = False
+                for playlist in result['playlists']:
+                    if any(s['id'] == song['id'] for s in playlist['songs']):
+                        already_added = True
+                        break
+                if not already_added:
+                    orphaned_songs.append(song)
+
+        # Sort orphaned songs by title
+        orphaned_songs.sort(key=lambda x: x.get('title', '').lower())
+
+        if orphaned_songs:
+            result['playlists'].append({
+                'id': '_orphaned',
+                'name': 'Removed from Spotify',
+                'image_url': '',
+                'owner': '',
+                'songs': orphaned_songs
+            })
+
         return result
 
     # =========================================================================
