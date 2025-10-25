@@ -4688,16 +4688,30 @@ function toggleBpmIndicator() {
 // Fullscreen API Functions
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
-        // Enter fullscreen
+        // Enter fullscreen and lock the Escape key
         document.documentElement.requestFullscreen().then(() => {
             debug.log('Entered fullscreen mode');
             updateFullscreenButton(true);
+
+            // Lock the Escape key so it doesn't exit fullscreen
+            if (navigator.keyboard && navigator.keyboard.lock) {
+                navigator.keyboard.lock(['Escape']).then(() => {
+                    debug.log('✅ Escape key locked - will not exit fullscreen');
+                }).catch(err => {
+                    debug.warn('⚠️ Could not lock Escape key:', err.message);
+                });
+            }
         }).catch(err => {
             console.error('Error attempting to enable fullscreen:', err);
             setStatus('Fullscreen not available', 'error');
         });
     } else {
-        // Exit fullscreen
+        // Exit fullscreen and unlock keyboard
+        if (navigator.keyboard && navigator.keyboard.unlock) {
+            navigator.keyboard.unlock();
+            debug.log('🔓 Keyboard unlocked');
+        }
+
         document.exitFullscreen().then(() => {
             debug.log('Exited fullscreen mode');
             updateFullscreenButton(false);
@@ -4725,8 +4739,14 @@ function updateFullscreenButton(isFullscreen) {
 }
 
 function handleFullscreenChange() {
-    // Update button state when fullscreen changes (e.g., user presses ESC)
+    // Update button state when fullscreen changes
     const isFullscreen = !!document.fullscreenElement;
+
+    // If we exited fullscreen, make sure keyboard is unlocked
+    if (!isFullscreen && navigator.keyboard && navigator.keyboard.unlock) {
+        navigator.keyboard.unlock();
+    }
+
     updateFullscreenButton(isFullscreen);
 }
 
