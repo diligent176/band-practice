@@ -1,16 +1,5 @@
 // Shared helper for dialog keyboard event registration/removal
-function registerDialogKeyboardHandler(flagKey, handler) {
-    if (!eventListenerFlags[flagKey]) {
-        document.addEventListener('keydown', handler);
-        eventListenerFlags[flagKey] = true;
-    }
-}
-function unregisterDialogKeyboardHandler(flagKey, handler) {
-    if (eventListenerFlags[flagKey]) {
-        document.removeEventListener('keydown', handler);
-        eventListenerFlags[flagKey] = false;
-    }
-}
+import { eventListenerFlags, registerDialogKeyboardHandler, unregisterDialogKeyboardHandler } from './dialogHelpers.js';
 // Shared helper for dialog background click-to-close
 function registerDialogBackgroundClose(dialog, closeHandler) {
     if (dialog) {
@@ -198,19 +187,7 @@ const editCollectionCancelBtn = document.getElementById('edit-collection-cancel-
 // Track the collection being edited
 let editingCollectionId = null;
 
-// Event listener registration tracking (prevents duplicates)
-const eventListenerFlags = {
-    songSelector: false,
-    notesEditor: false,
-    lyricsEditor: false,
-    bpmDialog: false,
-    bpmTapDialog: false,
-    importDialog: false,
-    confirmDialog: false,
-    collectionDialog: false,
-    newCollectionDialog: false,
-    editCollectionDialog: false
-};
+
 
 // Player DOM elements
 const audioPlayer = document.getElementById('audio-player');
@@ -5480,4 +5457,3 @@ function startSessionHealthCheck() {
 
     debug.log('✅ Session health check enabled (every 10 minutes)');
 }
-
