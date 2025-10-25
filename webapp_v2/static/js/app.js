@@ -996,11 +996,8 @@ async function openSongSelector() {
 
     songSearchInput.focus();
 
-    // Add keyboard handler for song selector (only if not already registered)
-    if (!eventListenerFlags.songSelector) {
-        document.addEventListener('keydown', handleSongSelectorKeyboard);
-        eventListenerFlags.songSelector = true;
-    }
+    // Add keyboard handler for song selector using shared helper
+    registerDialogKeyboardHandler('songSelector', handleSongSelectorKeyboard);
 
     // Add event delegation for song clicks (more efficient than individual listeners)
     songSelectorList.addEventListener('click', handleSongListClick);
@@ -1018,11 +1015,8 @@ function closeSongSelector() {
     songSelectorDialog.style.display = 'none';
     selectedSongIndex = -1;
     
-    // Remove keyboard handler
-    if (eventListenerFlags.songSelector) {
-        document.removeEventListener('keydown', handleSongSelectorKeyboard);
-        eventListenerFlags.songSelector = false;
-    }
+    // Remove keyboard handler using shared helper
+    unregisterDialogKeyboardHandler('songSelector', handleSongSelectorKeyboard);
     
     // Remove click delegation handler
     songSelectorList.removeEventListener('click', handleSongListClick);
@@ -1679,11 +1673,8 @@ function enterEditMode() {
     cancelEditBtn.style.display = 'inline-flex';
     notesTextarea.focus();
 
-    // Add keyboard shortcuts for notes editor
-    if (!eventListenerFlags.notesEditor) {
-        document.addEventListener('keydown', handleNotesEditorKeyboard);
-        eventListenerFlags.notesEditor = true;
-    }
+    // Add keyboard shortcuts for notes editor using shared helper
+    registerDialogKeyboardHandler('notesEditor', handleNotesEditorKeyboard);
 }
 
 function exitEditMode() {
@@ -1694,11 +1685,8 @@ function exitEditMode() {
     saveNotesBtn.style.display = 'none';
     cancelEditBtn.style.display = 'none';
 
-    // Remove keyboard shortcuts
-    if (eventListenerFlags.notesEditor) {
-        document.removeEventListener('keydown', handleNotesEditorKeyboard);
-        eventListenerFlags.notesEditor = false;
-    }
+    // Remove keyboard shortcuts using shared helper
+    unregisterDialogKeyboardHandler('notesEditor', handleNotesEditorKeyboard);
 }
 
 function handleNotesEditorKeyboard(e) {
@@ -1923,11 +1911,8 @@ function openLyricsEditor() {
     // Set up scroll sync and line number updates
     setupLyricsEditorScrollSync();
 
-    // Add keyboard shortcuts for lyrics editor (on dialog level, not textarea)
-    if (!eventListenerFlags.lyricsEditor) {
-        document.addEventListener('keydown', handleLyricsEditorKeyboard);
-        eventListenerFlags.lyricsEditor = true;
-    }
+    // Add keyboard shortcuts for lyrics editor using shared helper
+    registerDialogKeyboardHandler('lyricsEditor', handleLyricsEditorKeyboard);
 }
 
 function updateLyricsEditorLineNumbers() {
@@ -2003,11 +1988,8 @@ function closeLyricsEditor() {
     lyricsEditorDialog.style.display = 'none';
     lyricsEditorTextarea.value = '';
 
-    // Remove keyboard shortcuts
-    if (eventListenerFlags.lyricsEditor) {
-        document.removeEventListener('keydown', handleLyricsEditorKeyboard);
-        eventListenerFlags.lyricsEditor = false;
-    }
+    // Remove keyboard shortcuts using shared helper
+    unregisterDialogKeyboardHandler('lyricsEditor', handleLyricsEditorKeyboard);
 }
 
 function handleLyricsEditorKeyboard(e) {
@@ -2593,11 +2575,8 @@ async function showImportDialog() {
     // Focus the input so user can paste and press Enter
     importPlaylistUrl.focus();
 
-    // Add keyboard shortcuts
-    if (!eventListenerFlags.importDialog) {
-        document.addEventListener('keydown', handleImportDialogKeyboard);
-        eventListenerFlags.importDialog = true;
-    }
+    // Add keyboard shortcuts using shared helper
+    registerDialogKeyboardHandler('importDialog', handleImportDialogKeyboard);
 }
 
 function closeImportDialog() {
@@ -2609,11 +2588,8 @@ function closeImportDialog() {
         selectedSongIds: new Set()
     };
 
-    // Remove keyboard shortcuts
-    if (eventListenerFlags.importDialog) {
-        document.removeEventListener('keydown', handleImportDialogKeyboard);
-        eventListenerFlags.importDialog = false;
-    }
+    // Remove keyboard shortcuts using shared helper
+    unregisterDialogKeyboardHandler('importDialog', handleImportDialogKeyboard);
 }
 
 async function handleImportDialogKeyboard(e) {
