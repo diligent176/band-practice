@@ -320,16 +320,19 @@ END: Third repetition of chorus is acapella"></textarea>
             <div class="dialog-medium">
                 <div class="dialog-header">
                     <h3>Select Collection</h3>
+                    <div class="dialog-header-actions">
+                        <button id="sync-collection-btn" class="btn btn-primary" style="display: none;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Sync
+                        </button>
+                        <button id="new-collection-btn" class="btn btn-primary">
+                            <i class="fa-solid fa-plus"></i> New
+                        </button>
+                    </div>
                     <button id="collection-dialog-close" class="btn btn-small btn-secondary">✕</button>
                 </div>
                 <div class="collection-selector-content">
                     <div id="collection-list" class="collection-list">
                         <div class="empty-state"><p>Loading collections...</p></div>
-                    </div>
-                    <div class="dialog-actions">
-                        <button id="new-collection-btn" class="btn btn-primary">
-                            <i class="fa-solid fa-plus"></i> New Collection
-                        </button>
                     </div>
                 </div>
             </div>

@@ -143,6 +143,7 @@ const currentCollectionName = document.getElementById('current-collection-name')
 const collectionDialog = document.getElementById('collection-dialog');
 const collectionDialogClose = document.getElementById('collection-dialog-close');
 const collectionList = document.getElementById('collection-list');
+const syncCollectionBtn = document.getElementById('sync-collection-btn');
 const newCollectionBtn = document.getElementById('new-collection-btn');
 const newCollectionDialog = document.getElementById('new-collection-dialog');
 const editCollectionDialog = document.getElementById('edit-collection-dialog');
@@ -253,6 +254,7 @@ function setupEventListeners() {
     // Collection management
     collectionBtn.addEventListener('click', showCollectionDialog);
     collectionDialogClose.addEventListener('click', closeCollectionDialog);
+    syncCollectionBtn.addEventListener('click', manualSyncCollection);
     newCollectionBtn.addEventListener('click', showNewCollectionDialog);
     newCollectionSaveBtn.addEventListener('click', createNewCollection);
     newCollectionCancelBtn.addEventListener('click', closeNewCollectionDialog);
@@ -717,6 +719,15 @@ function canEditCurrentCollection() {
 function isOwnerOfCurrentCollection() {
     if (!currentCollection || !currentUser) return false;
     return currentCollection.user_id === currentUser.email;
+}
+
+// Check if current user can write to current collection (owner or collaborator)
+function canWriteToCurrentCollection() {
+    if (!currentCollection || !currentUser) return false;
+    const userEmail = currentUser.email;
+    const isOwner = currentCollection.user_id === userEmail;
+    const isCollaborator = currentCollection.collaborators && currentCollection.collaborators.includes(userEmail);
+    return isOwner || isCollaborator;
 }
 
 async function loadSong(songId) {
@@ -3219,20 +3230,28 @@ function updateCollectionDisplay() {
 
 async function showCollectionDialog() {
     collectionDialog.style.display = 'flex';
-    
+
     try {
         showLoading('Loading collections...');
         const response = await authenticatedApiCall('/api/collections');
         const data = await response.json();
-        
+
         if (data.success) {
             allCollections = data.collections;
             renderCollectionList();
-            
+
             // Set initial selection to current collection or first item
             if (allCollections.length > 0) {
                 const currentIndex = allCollections.findIndex(c => currentCollection && c.id === currentCollection.id);
                 highlightCollectionItem(currentIndex >= 0 ? currentIndex : 0);
+            }
+
+            // Show sync button if user has write access to current collection
+            const syncBtn = document.getElementById('sync-collection-btn');
+            if (syncBtn && currentCollection && canWriteToCurrentCollection()) {
+                syncBtn.style.display = 'inline-flex';
+            } else if (syncBtn) {
+                syncBtn.style.display = 'none';
             }
         } else {
             showToast('Failed to load collections', 'error');
@@ -3243,7 +3262,7 @@ async function showCollectionDialog() {
     } finally {
         hideLoading();
     }
-    
+
     // Add keyboard shortcuts
     if (!eventListenerFlags.collectionDialog) {
         document.addEventListener('keydown', handleCollectionDialogKeyboard);
@@ -3523,10 +3542,7 @@ async function switchCollection(collectionId) {
             songMetadata.innerHTML = '';
             
             await loadSongs();
-            
-            // V2: Trigger background sync after switching collection
-            syncCollectionInBackground(collectionId);
-            
+
             setStatus(`Switched to collection: ${currentCollection.name}`, 'success');
         } else {
             showToast('Failed to switch collection', 'error');
@@ -4961,6 +4977,30 @@ async function syncCollectionInBackground(collectionId) {
     }
 }
 
+// Manual sync triggered by user from Collection dialog
+async function manualSyncCollection() {
+    if (!currentCollection) {
+        showToast('No collection selected', 'error');
+        return;
+    }
+
+    if (!canWriteToCurrentCollection()) {
+        showToast('You need owner or collaborator access to sync this collection', 'error');
+        return;
+    }
+
+    try {
+        showToast('Starting sync...', 'info');
+        await syncCollectionInBackground(currentCollection.id);
+        // Reload songs after sync completes
+        await loadSongs();
+        showToast('Sync complete! Songs reloaded.', 'success');
+    } catch (error) {
+        debug.error('Manual sync error:', error);
+        showToast('Sync failed: ' + error.message, 'error');
+    }
+}
+
 // V2: Load linked and other playlists for playlist dialog
 async function loadPlaylistsForDialog() {
     try {
@@ -5207,8 +5247,10 @@ async function linkPlaylist(playlistUrl) {
         if (data.success) {
             showToast(data.message, 'success');
             await loadPlaylistsForDialog();
-            // Trigger sync
-            syncCollectionInBackground(currentCollection.id);
+            // Trigger sync (only if user has write access)
+            if (canWriteToCurrentCollection()) {
+                syncCollectionInBackground(currentCollection.id);
+            }
         } else {
             showToast('Failed to link playlist: ' + (data.error || 'Unknown error'), 'error');
         }
@@ -5239,8 +5281,10 @@ async function unlinkPlaylist(playlistId) {
                 if (data.success) {
                     showToast(data.message, 'success');
                     await loadPlaylistsForDialog();
-                    // Trigger sync
-                    syncCollectionInBackground(currentCollection.id);
+                    // Trigger sync (only if user has write access)
+                    if (canWriteToCurrentCollection()) {
+                        syncCollectionInBackground(currentCollection.id);
+                    }
                 } else {
                     showToast('Failed to unlink playlist: ' + (data.error || 'Unknown error'), 'error');
                 }
