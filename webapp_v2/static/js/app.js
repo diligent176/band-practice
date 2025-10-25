@@ -99,6 +99,9 @@ const bpmTapSongInfo = document.getElementById('bpm-tap-song-info');
 const bpmTapDisplay = document.getElementById('bpm-tap-display');
 const bpmTapCount = document.getElementById('bpm-tap-count');
 const bpmTapResetBtn = document.getElementById('bpm-tap-reset-btn');
+if (bpmTapResetBtn) {
+    bpmTapResetBtn.addEventListener('click', resetTapTrainer);
+}
 const bpmTapSaveBtn = document.getElementById('bpm-tap-save-btn');
 const bpmTapCancelBtn = document.getElementById('bpm-tap-cancel-btn');
 
