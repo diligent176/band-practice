@@ -373,20 +373,20 @@ header {
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow);
-  padding: 1px 8px;
+  padding: 0 6px;
   z-index: 1000;
 }
 
 .header-single-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-  min-height: 22px;
+  min-height: 20px;
 }
 
 header h1 {
-  font-size: 16px;
+  font-size: 14px;
   white-space: nowrap;
   margin: 0;
   line-height: 1;
@@ -394,7 +394,7 @@ header h1 {
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 /* Reggae gradient text - only on the text span */
@@ -826,14 +826,14 @@ header h1 i {
   gap: 2px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 4px 0 0 4px;
+  border-radius: 3px 0 0 3px;
   border-right: none;
-  padding: 0 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  padding: 0 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
   flex-shrink: 0;
-  height: 28px;
+  height: 20px;
 }
 
 .font-size-selector:hover {
@@ -842,7 +842,7 @@ header h1 i {
 }
 
 .font-size-selector i {
-  font-size: 14px;
+  font-size: 11px;
   color: var(--text-secondary);
 }
 
@@ -851,11 +851,11 @@ header h1 i {
   background: transparent;
   color: var(--text-primary);
   border: none;
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
   transition: all 0.2s;
   height: 100%;
-  padding: 4px 8px;
+  padding: 2px 4px;
   display: flex;
   align-items: center;
 }
@@ -884,12 +884,12 @@ header h1 i {
   border-radius: 0;
   border-right: none;
   padding: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
   flex-shrink: 0;
-  height: 28px;
-  width: 28px;
+  height: 20px;
+  width: 20px;
   margin-left: 0;
   margin-right: 0;
 }
@@ -904,7 +904,7 @@ header h1 i {
 }
 
 .fullscreen-toggle-btn i {
-  font-size: 14px;
+  font-size: 11px;
   color: var(--text-secondary);
   transition: color 0.2s ease;
 }
@@ -923,12 +923,12 @@ header h1 i {
   border-radius: 0;
   border-right: none;
   padding: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   cursor: help;
   flex-shrink: 0;
-  height: 28px;
-  width: 28px;
+  height: 20px;
+  width: 20px;
   margin-left: 0;
   margin-right: 0;
 }
@@ -939,7 +939,7 @@ header h1 i {
 }
 
 .keyboard-shortcuts-help i {
-  font-size: 18px;
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
@@ -1090,13 +1090,13 @@ header h1 i {
   gap: 0;
   flex-shrink: 0;
   margin-left: 0;
-  margin-right: 4px;
-  height: 28px;
+  margin-right: 3px;
+  height: 20px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 3px 3px 0;
   padding: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
 }
 
@@ -1126,8 +1126,8 @@ header h1 i {
 }
 
 .user-email {
-  padding: 4px 6px;
-  font-size: 10px;
+  padding: 2px 4px;
+  font-size: 9px;
   color: var(--text-primary);
   white-space: nowrap;
   cursor: default;
@@ -1190,19 +1190,18 @@ header h1 i {
 
 /* Buttons */
 .btn {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 13px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   justify-content: center;
   border: 1px solid transparent;
-  min-height: 34px;
   box-sizing: border-box;
 }
 
@@ -1212,7 +1211,7 @@ header h1 i {
 }
 
 .btn i {
-  font-size: 12px;
+  font-size: 10px;
   line-height: 1;
 }
 
@@ -1288,8 +1287,8 @@ header h1 i {
 
 /* Prominent buttons for Playlist/Song selector in header */
 .status-bar .btn-subtle {
-  padding: 4px 12px;
-  font-size: 11px;
+  padding: 2px 8px;
+  font-size: 10px;
   font-weight: 600;
   background: var(--accent-green-12);
   border: 1px solid var(--accent-green-30);
@@ -1302,10 +1301,10 @@ header h1 i {
 }
 
 .btn-icon {
-  padding: 5px 7px;
-  font-size: 15px;
+  padding: 2px 4px;
+  font-size: 11px;
   min-width: auto;
-  border-radius: 4px;
+  border-radius: 3px;
   background: var(--accent-green-04);
   color: var(--text-primary);
   border: 1px solid var(--accent-green-15);
@@ -1318,12 +1317,12 @@ header h1 i {
 
 .btn-icon i {
   color: rgba(29, 185, 84, 0.85);
-  font-size: 16px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .btn-icon .icon {
-  font-size: 14px;
+  font-size: 12px;
   margin: 0;
 }
 
@@ -1354,12 +1353,12 @@ header h1 i {
 /* Main Container */
 .container {
   position: fixed;
-  top: 30px;
+  top: 22px;
   left: 0;
   right: 0;
   bottom: 0;
   overflow: hidden;
-  padding: 6px;
+  padding: 3px;
 }
 
 .panels {
@@ -1425,24 +1424,24 @@ header h1 i {
 }
 
 .panel-header {
-  padding: 4px 10px;
+  padding: 2px 8px;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-tertiary);
   display: flex;
   align-items: center;
-  min-height: 28px;
-  gap: 8px;
+  min-height: 22px;
+  gap: 6px;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .panel-header h2 {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1452,13 +1451,13 @@ header h1 i {
 
 #song-icon {
   color: var(--accent-primary);
-  font-size: 14px;
+  font-size: 12px;
   flex-shrink: 0;
 }
 
 .notes-actions {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .panel-content {
@@ -1542,7 +1541,7 @@ header h1 i {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 18px;
+  gap: 12px;
   padding: 0;
   background: transparent;
   border: none;
@@ -1554,18 +1553,18 @@ header h1 i {
 }
 
 .metadata-item {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
-  line-height: 1.2;
+  line-height: 1;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .metadata-icon {
-  font-size: 12px;
+  font-size: 10px;
   flex-shrink: 0;
   color: var(--text-secondary);
 }
@@ -1631,13 +1630,13 @@ header h1 i {
 .bpm-indicator-block {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  margin-left: 12px;
-  border-radius: 4px;
+  gap: 4px;
+  padding: 2px 6px;
+  margin-left: 8px;
+  border-radius: 3px;
   background: var(--accent-green-15);
   border: 1px solid var(--accent-green-30);
-  font-size: 13px;
+  font-size: 11px;
   color: var(--text-primary);
   transition: background 0.1s ease, border-color 0.1s ease;
 }
@@ -1676,7 +1675,7 @@ header h1 i {
 
 /* Metronome icon within the BPM block */
 .bpm-metronome-icon {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--accent-primary);
   opacity: 0.6;
   transform-origin: center;
