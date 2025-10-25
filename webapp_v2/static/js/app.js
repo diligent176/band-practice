@@ -1,3 +1,16 @@
+// Shared helper for dialog keyboard event registration/removal
+function registerDialogKeyboardHandler(flagKey, handler) {
+    if (!eventListenerFlags[flagKey]) {
+        document.addEventListener('keydown', handler);
+        eventListenerFlags[flagKey] = true;
+    }
+}
+function unregisterDialogKeyboardHandler(flagKey, handler) {
+    if (eventListenerFlags[flagKey]) {
+        document.removeEventListener('keydown', handler);
+        eventListenerFlags[flagKey] = false;
+    }
+}
 // Shared helper for dialog background click-to-close
 function registerDialogBackgroundClose(dialog, closeHandler) {
     if (dialog) {
@@ -2249,22 +2262,16 @@ function openBpmDialog() {
     bpmInput.focus();
     bpmInput.select();
 
-    // Add keyboard shortcuts
-    if (!eventListenerFlags.bpmDialog) {
-        document.addEventListener('keydown', handleBpmDialogKeyboard);
-        eventListenerFlags.bpmDialog = true;
-    }
+    // Add keyboard shortcuts using shared helper
+    registerDialogKeyboardHandler('bpmDialog', handleBpmDialogKeyboard);
 }
 
 function closeBpmDialog() {
     bpmDialog.style.display = 'none';
     bpmInput.value = '';
 
-    // Remove keyboard shortcuts
-    if (eventListenerFlags.bpmDialog) {
-        document.removeEventListener('keydown', handleBpmDialogKeyboard);
-        eventListenerFlags.bpmDialog = false;
-    }
+    // Remove keyboard shortcuts using shared helper
+    unregisterDialogKeyboardHandler('bpmDialog', handleBpmDialogKeyboard);
 }
 
 function handleBpmDialogKeyboard(e) {
