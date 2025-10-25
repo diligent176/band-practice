@@ -3150,6 +3150,12 @@ header h1 i {
   color: #10b981;
 }
 
+.collection-badge-readonly {
+  background: rgba(156, 163, 175, 0.12);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  color: #9ca3af;
+}
+
 .collection-selector-content {
   padding: 12px;
   display: flex;

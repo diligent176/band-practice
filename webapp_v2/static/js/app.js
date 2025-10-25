@@ -244,6 +244,9 @@ window.initializeApp = function(apiCallFunction) {
     // NOW check Spotify status (after auth is complete)
     debug.log('🎵 Checking Spotify connection status...');
     checkSpotifyStatus();
+
+    // Start session health check (ping backend every 10 minutes to keep session alive)
+    startSessionHealthCheck();
 };
 
 function setupEventListeners() {
@@ -3383,6 +3386,9 @@ function renderCollectionList() {
             badgesHtml += '<span class="collection-badge collection-badge-owner" title="You own this collection"><i class="fa-solid fa-crown"></i> Owner</span>';
         } else if (isCollaborator) {
             badgesHtml += '<span class="collection-badge collection-badge-collaborator" title="You can edit songs"><i class="fa-solid fa-user-edit"></i> Collaborator</span>';
+        } else if (isShared && !isOwner) {
+            // User can see this shared collection but cannot edit it
+            badgesHtml += '<span class="collection-badge collection-badge-readonly" title="You can view but not edit songs"><i class="fa-solid fa-eye"></i> Read-Only</span>';
         }
 
         // Build action buttons (stacked vertically)
@@ -5363,7 +5369,7 @@ async function deleteSongWithConfirm(songId) {
 
                 if (data.success) {
                     showToast(data.message, 'success');
-                    
+
                     // If deleted song was current, clear it
                     if (currentSong && currentSong.id === songId) {
                         currentSong = null;
@@ -5372,7 +5378,7 @@ async function deleteSongWithConfirm(songId) {
                         notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
                         songMetadata.innerHTML = '';
                     }
-                    
+
                     // Reload songs
                     await loadSongs();
                 } else {
@@ -5386,5 +5392,50 @@ async function deleteSongWithConfirm(songId) {
             }
         }
     );
+}
+
+// Session Health Check - Keep session alive and detect auth failures early
+let sessionHealthCheckInterval = null;
+let consecutiveHealthCheckFailures = 0;
+
+function startSessionHealthCheck() {
+    // Clear any existing interval
+    if (sessionHealthCheckInterval) {
+        clearInterval(sessionHealthCheckInterval);
+    }
+
+    // Ping the backend every 10 minutes to keep session alive
+    sessionHealthCheckInterval = setInterval(async () => {
+        try {
+            debug.log('🏥 Running session health check...');
+            const response = await authenticatedApiCall('/api/user');
+
+            if (response.ok) {
+                consecutiveHealthCheckFailures = 0;
+                debug.log('✅ Session health check passed');
+            } else if (response.status === 401) {
+                consecutiveHealthCheckFailures++;
+                debug.warn(`⚠️ Session health check failed with 401 (attempt ${consecutiveHealthCheckFailures})`);
+
+                // If we get 2 consecutive 401s, session is likely dead
+                if (consecutiveHealthCheckFailures >= 2) {
+                    console.error('❌ Session appears to be invalid - multiple auth failures');
+                    showToast('Your session has expired. Please refresh the page.', 'error');
+                }
+            } else {
+                debug.warn(`⚠️ Session health check returned status ${response.status}`);
+            }
+        } catch (error) {
+            consecutiveHealthCheckFailures++;
+            debug.error('❌ Session health check error:', error);
+
+            // Only show error if we have multiple consecutive failures
+            if (consecutiveHealthCheckFailures >= 3) {
+                showToast('Connection issue detected. Check your internet connection.', 'warning');
+            }
+        }
+    }, 10 * 60 * 1000); // 10 minutes in milliseconds
+
+    debug.log('✅ Session health check enabled (every 10 minutes)');
 }
 

@@ -867,14 +867,54 @@ END: Third repetition of chorus is acapella"></textarea>
             auth.signOut();
         });
 
-        // Helper function to make authenticated API calls
+        // Proactive Firebase token refresh every 50 minutes
+        // Firebase tokens expire after 1 hour, so we refresh at 50 minutes to stay ahead
+        let firebaseTokenRefreshInterval = null;
+
+        function startFirebaseTokenRefresh() {
+            // Clear any existing interval
+            if (firebaseTokenRefreshInterval) {
+                clearInterval(firebaseTokenRefreshInterval);
+            }
+
+            // Refresh token every 50 minutes
+            firebaseTokenRefreshInterval = setInterval(async () => {
+                if (currentUser) {
+                    try {
+                        console.log('🔄 Proactively refreshing Firebase ID token...');
+                        const newToken = await currentUser.getIdToken(true); // Force refresh
+                        idToken = newToken;
+                        console.log('✅ Firebase token refreshed successfully');
+                    } catch (error) {
+                        console.error('❌ Error refreshing Firebase token:', error);
+                    }
+                }
+            }, 50 * 60 * 1000); // 50 minutes in milliseconds
+
+            console.log('✅ Firebase token auto-refresh enabled (every 50 minutes)');
+        }
+
+        // Start token refresh when user signs in
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                startFirebaseTokenRefresh();
+            } else {
+                // Clear interval when user signs out
+                if (firebaseTokenRefreshInterval) {
+                    clearInterval(firebaseTokenRefreshInterval);
+                    firebaseTokenRefreshInterval = null;
+                }
+            }
+        });
+
+        // Helper function to make authenticated API calls with automatic token refresh
         async function apiCall(url, options = {}) {
-            // Always get the current token (Firebase SDK caches it and only refreshes if needed)
-            if (currentUser) {
-                idToken = await currentUser.getIdToken();
-            } else if (!idToken) {
+            if (!currentUser) {
                 throw new Error('User not authenticated');
             }
+
+            // Get current token (Firebase SDK handles caching and auto-refresh)
+            idToken = await currentUser.getIdToken();
 
             const headers = {
                 'Authorization': `Bearer ${idToken}`,
@@ -882,7 +922,17 @@ END: Third repetition of chorus is acapella"></textarea>
                 ...options.headers
             };
 
-            return fetch(url, { ...options, headers });
+            const response = await fetch(url, { ...options, headers });
+
+            // If we get a 401, force token refresh and retry once
+            if (response.status === 401) {
+                console.warn('⚠️ Got 401 Unauthorized - refreshing Firebase token and retrying...');
+                idToken = await currentUser.getIdToken(true); // Force refresh
+                headers['Authorization'] = `Bearer ${idToken}`;
+                return fetch(url, { ...options, headers });
+            }
+
+            return response;
         }
 
     </script>
