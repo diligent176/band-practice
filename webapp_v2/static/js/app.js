@@ -1775,8 +1775,6 @@ function showToast(message, type = 'info') {
     }, 3800);
 }
 
-// ...existing code...
-
 // Column Toggle Function
 let isColumnMode2 = false;
 
