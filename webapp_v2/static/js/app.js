@@ -386,6 +386,7 @@ function setupEventListeners() {
 
 // Global keyboard shortcut handler
 function handleGlobalKeyboard(e) {
+
     // Alt+Enter for fullscreen toggle (works even when typing)
     if (e.altKey && e.key === 'Enter') {
         e.preventDefault();
@@ -4700,6 +4701,11 @@ function toggleFullscreen() {
                 }).catch(err => {
                     debug.warn('⚠️ Could not lock Escape key:', err.message);
                 });
+            } else {
+                // Firefox/Safari don't support Keyboard Lock API
+                debug.warn('⚠️ Keyboard Lock API not supported (Firefox/Safari)');
+                debug.warn('   ESC will exit fullscreen even when dialogs are open');
+                debug.warn('   Use Alt+Enter to toggle fullscreen instead');
             }
         }).catch(err => {
             console.error('Error attempting to enable fullscreen:', err);
@@ -4739,10 +4745,9 @@ function updateFullscreenButton(isFullscreen) {
 }
 
 function handleFullscreenChange() {
-    // Update button state when fullscreen changes
     const isFullscreen = !!document.fullscreenElement;
 
-    // If we exited fullscreen, make sure keyboard is unlocked
+    // If user exited fullscreen, unlock keyboard
     if (!isFullscreen && navigator.keyboard && navigator.keyboard.unlock) {
         navigator.keyboard.unlock();
     }
