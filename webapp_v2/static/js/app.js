@@ -203,30 +203,8 @@ let lastBpmAnimationState = {
     isPaused: null
 };
 
-// Utility: Debounce function to limit how often a function can fire
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Utility: Throttle function to limit execution rate (executes at most once per interval)
-function throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    };
-}
+// Import shared utility functions
+import { debounce, throttle, escapeHtml } from './utils.js';
 
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
@@ -1794,11 +1772,7 @@ function showToast(message, type = 'info') {
     }, 3800);
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// ...existing code...
 
 // Column Toggle Function
 let isColumnMode2 = false;
