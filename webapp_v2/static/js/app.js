@@ -2364,22 +2364,16 @@ function openBpmTapTrainer() {
 
     bpmTapDialog.style.display = 'flex';
 
-    // Add keyboard shortcuts
-    if (!eventListenerFlags.bpmTapDialog) {
-        document.addEventListener('keydown', handleBpmTapKeyboard);
-        eventListenerFlags.bpmTapDialog = true;
-    }
+    // Add keyboard shortcuts using shared helper
+    registerDialogKeyboardHandler('bpmTapDialog', handleBpmTapKeyboard);
 }
 
 function closeBpmTapTrainer() {
     bpmTapDialog.style.display = 'none';
     resetTapTrainer();
 
-    // Remove keyboard shortcuts
-    if (eventListenerFlags.bpmTapDialog) {
-        document.removeEventListener('keydown', handleBpmTapKeyboard);
-        eventListenerFlags.bpmTapDialog = false;
-    }
+    // Remove keyboard shortcuts using shared helper
+    unregisterDialogKeyboardHandler('bpmTapDialog', handleBpmTapKeyboard);
 }
 
 function resetTapTrainer() {
