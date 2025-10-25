@@ -3330,12 +3330,12 @@ function handleCollectionDialogKeyboard(e) {
 
 function highlightCollectionItem(index) {
     selectedCollectionIndex = index;
-    
+
     // Remove highlight from all items
     document.querySelectorAll('.collection-item').forEach(item => {
         item.classList.remove('highlighted');
     });
-    
+
     // Add highlight to selected item
     const items = document.querySelectorAll('.collection-item');
     if (items[index]) {
@@ -3344,83 +3344,109 @@ function highlightCollectionItem(index) {
     }
 }
 
+// Helper function to render a single collection item
+function renderCollectionItem(collection, index) {
+    const isActive = currentCollection && collection.id === currentCollection.id;
+    const activeClass = isActive ? 'active' : '';
+    const canEdit = collection.name !== 'Default';
+    const playlistCount = collection.playlist_count || 0;
+    const songCount = collection.song_count || 0;
+
+    // Build count text: "3 playlists, 27 songs"
+    const countParts = [];
+    if (playlistCount > 0) {
+        countParts.push(playlistCount === 1 ? '1 playlist' : `${playlistCount} playlists`);
+    }
+    countParts.push(songCount === 1 ? '1 song' : `${songCount} songs`);
+    const countText = countParts.join(', ');
+
+    // Use first playlist image if available, otherwise show icon
+    const imageHtml = collection.first_playlist_image
+        ? `<img src="${collection.first_playlist_image}" alt="${escapeHtml(collection.name)}">`
+        : `<i class="fa-solid fa-layer-group"></i>`;
+
+    // Determine user's role in this collection
+    const userEmail = currentUser?.email;
+    const isOwner = collection.user_id === userEmail;
+    const isCollaborator = collection.collaborators && collection.collaborators.includes(userEmail);
+    const isShared = collection.is_shared;
+
+    // Build badges HTML
+    let badgesHtml = '';
+    if (isShared) {
+        badgesHtml += '<span class="collection-badge collection-badge-shared" title="Visible to all users"><i class="fa-solid fa-share-nodes"></i> Shared</span>';
+    }
+    if (isOwner && isShared) {
+        badgesHtml += '<span class="collection-badge collection-badge-owner" title="You own this collection"><i class="fa-solid fa-crown"></i> Owner</span>';
+    } else if (isCollaborator) {
+        badgesHtml += '<span class="collection-badge collection-badge-collaborator" title="You can edit songs"><i class="fa-solid fa-user-edit"></i> Collaborator</span>';
+    } else if (isShared && !isOwner) {
+        // User can see this shared collection but cannot edit it
+        badgesHtml += '<span class="collection-badge collection-badge-readonly" title="You can view but not edit songs"><i class="fa-solid fa-eye"></i> Read-Only</span>';
+    }
+
+    // Build action buttons (stacked vertically)
+    let actionButtonsHtml = '';
+    if (isOwner) {
+        actionButtonsHtml = `
+            <div class="collection-item-actions">
+                <button class="collection-item-edit" data-collection-id="${collection.id}" title="Edit collection settings"><i class="fa-solid fa-gear"></i></button>
+                ${canEdit ? `<button class="collection-item-delete" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Del)"><i class="fa-solid fa-trash"></i></button>` : ''}
+            </div>
+        `;
+    }
+
+    return `
+        <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
+            <div class="collection-item-icon">
+                ${imageHtml}
+            </div>
+            <div class="collection-item-info">
+                <div class="collection-item-header">
+                    <span class="collection-item-name">${escapeHtml(collection.name)}</span>
+                    <span class="collection-item-counts">${countText}</span>
+                </div>
+                ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
+            </div>
+            ${badgesHtml ? `<div class="collection-item-badges">${badgesHtml}</div>` : ''}
+            ${isActive ? '<span class="collection-item-active"><i class="fa-solid fa-check"></i> Active</span>' : ''}
+            ${actionButtonsHtml}
+        </div>
+    `;
+}
+
 function renderCollectionList() {
     if (!allCollections || allCollections.length === 0) {
         collectionList.innerHTML = '<div class="empty-state"><p>No collections found</p></div>';
         return;
     }
-    
+
+    const userEmail = currentUser?.email;
+
+    // Split collections into "Your Collections" and "Shared Collections"
+    const yourCollections = allCollections.filter(c => c.user_id === userEmail);
+    const sharedCollections = allCollections.filter(c => c.user_id !== userEmail);
+
     let html = '';
-    allCollections.forEach((collection, index) => {
-        const isActive = currentCollection && collection.id === currentCollection.id;
-        const activeClass = isActive ? 'active' : '';
-        const canEdit = collection.name !== 'Default';
-        const playlistCount = collection.playlist_count || 0;
-        const songCount = collection.song_count || 0;
 
-        // Build count text: "3 playlists, 27 songs"
-        const countParts = [];
-        if (playlistCount > 0) {
-            countParts.push(playlistCount === 1 ? '1 playlist' : `${playlistCount} playlists`);
-        }
-        countParts.push(songCount === 1 ? '1 song' : `${songCount} songs`);
-        const countText = countParts.join(', ');
+    // Render "Your Collections" section
+    if (yourCollections.length > 0) {
+        html += '<div class="collection-section-header">Your Collections</div>';
+        yourCollections.forEach((collection, sectionIndex) => {
+            const index = allCollections.indexOf(collection);
+            html += renderCollectionItem(collection, index);
+        });
+    }
 
-        // Use first playlist image if available, otherwise show icon
-        const imageHtml = collection.first_playlist_image
-            ? `<img src="${collection.first_playlist_image}" alt="${escapeHtml(collection.name)}">`
-            : `<i class="fa-solid fa-layer-group"></i>`;
+    // Render "Shared Collections" section
+    if (sharedCollections.length > 0) {
+        html += '<div class="collection-section-header">Shared With You</div>';
+        sharedCollections.forEach((collection, sectionIndex) => {
+            const index = allCollections.indexOf(collection);
+            html += renderCollectionItem(collection, index);
+        });
+    }
 
-        // Determine user's role in this collection
-        const userEmail = currentUser?.email;
-        const isOwner = collection.user_id === userEmail;
-        const isCollaborator = collection.collaborators && collection.collaborators.includes(userEmail);
-        const isShared = collection.is_shared;
-
-        // Build badges HTML
-        let badgesHtml = '';
-        if (isShared) {
-            badgesHtml += '<span class="collection-badge collection-badge-shared" title="Visible to all users"><i class="fa-solid fa-share-nodes"></i> Shared</span>';
-        }
-        if (isOwner && isShared) {
-            badgesHtml += '<span class="collection-badge collection-badge-owner" title="You own this collection"><i class="fa-solid fa-crown"></i> Owner</span>';
-        } else if (isCollaborator) {
-            badgesHtml += '<span class="collection-badge collection-badge-collaborator" title="You can edit songs"><i class="fa-solid fa-user-edit"></i> Collaborator</span>';
-        } else if (isShared && !isOwner) {
-            // User can see this shared collection but cannot edit it
-            badgesHtml += '<span class="collection-badge collection-badge-readonly" title="You can view but not edit songs"><i class="fa-solid fa-eye"></i> Read-Only</span>';
-        }
-
-        // Build action buttons (stacked vertically)
-        let actionButtonsHtml = '';
-        if (isOwner) {
-            actionButtonsHtml = `
-                <div class="collection-item-actions">
-                    <button class="collection-item-edit" data-collection-id="${collection.id}" title="Edit collection settings"><i class="fa-solid fa-gear"></i></button>
-                    ${canEdit ? `<button class="collection-item-delete" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Del)"><i class="fa-solid fa-trash"></i></button>` : ''}
-                </div>
-            `;
-        }
-
-        html += `
-            <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
-                <div class="collection-item-icon">
-                    ${imageHtml}
-                </div>
-                <div class="collection-item-info">
-                    <div class="collection-item-header">
-                        <span class="collection-item-name">${escapeHtml(collection.name)}</span>
-                        <span class="collection-item-counts">${countText}</span>
-                    </div>
-                    ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
-                </div>
-                ${badgesHtml ? `<div class="collection-item-badges">${badgesHtml}</div>` : ''}
-                ${isActive ? '<span class="collection-item-active"><i class="fa-solid fa-check"></i> Active</span>' : ''}
-                ${actionButtonsHtml}
-            </div>
-        `;
-    });
-    
     collectionList.innerHTML = html;
     
     // Add click handlers for collection items

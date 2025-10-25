@@ -51,6 +51,14 @@ Business Logic (Services) ← firestore_service, lyrics_service, etc.
 Cloud Backend ← Firestore, Firebase Auth, Spotify API
 ```
 
+### Usability and Keyboard Navigation
+
+The application is highly optimized for keyboard navigation.
+It is critically important to enable a smooth and efficient keyboard workflow for the user to operate the app during band practice.
+
+Intuitive key strokes are used to invoke all the main user interface functions.
+A Help Card is provided for the user, outlining the navigation features.
+
 ### Service-Oriented Design
 
 Each service encapsulates specific domain logic:

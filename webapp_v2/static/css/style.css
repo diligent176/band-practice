@@ -2935,6 +2935,21 @@ header h1 i {
   background: var(--text-muted);
 }
 
+.collection-section-header {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  padding: 12px 8px 6px 8px;
+  margin-top: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.collection-section-header:first-child {
+  margin-top: 0;
+}
+
 .collection-item {
   display: flex;
   align-items: center;
