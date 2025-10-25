@@ -1,3 +1,11 @@
+// Shared helper for dialog background click-to-close
+function registerDialogBackgroundClose(dialog, closeHandler) {
+    if (dialog) {
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) closeHandler();
+        });
+    }
+}
 // Shared helper for registering button event listeners
 function registerButtonListeners(pairs) {
     pairs.forEach(([btn, handler]) => {
@@ -313,54 +321,16 @@ function setupEventListeners() {
     // Confirmation dialog close buttons
     confirmDialogCancelBtn.addEventListener('click', hideConfirmDialog);
 
-    // Close dialogs when clicking outside
-    songSelectorDialog.addEventListener('click', (e) => {
-        if (e.target === songSelectorDialog) {
-            closeSongSelector();
-        }
-    });
+    // Use shared helper for dialog background click-to-close
+    registerDialogBackgroundClose(songSelectorDialog, closeSongSelector);
+    registerDialogBackgroundClose(lyricsEditorDialog, closeLyricsEditor);
+    registerDialogBackgroundClose(importDialog, closeImportDialog);
 
-    lyricsEditorDialog.addEventListener('click', (e) => {
-        if (e.target === lyricsEditorDialog) {
-            closeLyricsEditor();
-        }
-    });
-
-    importDialog.addEventListener('click', (e) => {
-        if (e.target === importDialog) {
-            closeImportDialog();
-        }
-    });
-
-    collectionDialog.addEventListener('click', (e) => {
-        if (e.target === collectionDialog) {
-            closeCollectionDialog();
-        }
-    });
-
-    newCollectionDialog.addEventListener('click', (e) => {
-        if (e.target === newCollectionDialog) {
-            closeNewCollectionDialog();
-        }
-    });
-
-    editCollectionDialog.addEventListener('click', (e) => {
-        if (e.target === editCollectionDialog) {
-            closeEditCollectionDialog();
-        }
-    });
-
-    bpmDialog.addEventListener('click', (e) => {
-        if (e.target === bpmDialog) {
-            closeBpmDialog();
-        }
-    });
-
-    bpmTapDialog.addEventListener('click', (e) => {
-        if (e.target === bpmTapDialog) {
-            closeBpmTapTrainer();
-        }
-    });
+    registerDialogBackgroundClose(collectionDialog, closeCollectionDialog);
+    registerDialogBackgroundClose(newCollectionDialog, closeNewCollectionDialog);
+    registerDialogBackgroundClose(editCollectionDialog, closeEditCollectionDialog);
+    registerDialogBackgroundClose(bpmDialog, closeBpmDialog);
+    registerDialogBackgroundClose(bpmTapDialog, closeBpmTapTrainer);
 
     toggleColumnsBtn.addEventListener('click', toggleColumns);
     fontSizeSelect.addEventListener('change', handleFontSizeChange);
