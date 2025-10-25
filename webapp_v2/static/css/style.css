@@ -2936,12 +2936,12 @@ header h1 i {
 }
 
 .collection-section-header {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-secondary);
-  padding: 12px 8px 6px 8px;
+  padding: 8px 8px 6px 8px;
   margin-top: 8px;
   border-bottom: 1px solid var(--border-color);
 }
@@ -2963,6 +2963,7 @@ header h1 i {
   cursor: pointer;
   transition: all 0.15s ease;
   margin-bottom: 3px;
+  position: relative;
 }
 
 .collection-item:hover {
@@ -2971,8 +2972,10 @@ header h1 i {
 }
 
 .collection-item.active {
-  background: var(--bg-tertiary);
-  border-color: var(--accent-green-35);
+  background: linear-gradient(to right, rgba(16, 185, 129, 0.06), var(--bg-tertiary));
+  border-color: var(--accent-green-50);
+  border-left: 3px solid var(--accent-green);
+  padding-left: 6px;
 }
 
 .collection-item.highlighted {
@@ -3045,21 +3048,6 @@ header h1 i {
   margin-top: 3px;
 }
 
-.collection-item-active {
-  padding: 3px 8px;
-  background: rgba(255, 152, 0, 0.08);
-  border: 1px solid rgba(255, 152, 0, 0.2);
-  border-radius: 3px;
-  font-size: 10px;
-  color: #ff9800;
-  font-weight: 500;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  opacity: 0.85;
-}
-
 .collection-item-actions {
   display: flex;
   flex-direction: column;
@@ -3125,10 +3113,10 @@ header h1 i {
 
 .collection-item-badges {
   display: flex;
-  gap: 4px;
-  flex-wrap: nowrap;
+  flex-direction: column;
+  gap: 2px;
   flex-shrink: 0;
-  align-items: center;
+  align-items: flex-end;
 }
 
 .collection-badge {

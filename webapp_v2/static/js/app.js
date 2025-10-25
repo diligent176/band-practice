@@ -3377,7 +3377,7 @@ function renderCollectionItem(collection, index) {
     if (isShared) {
         badgesHtml += '<span class="collection-badge collection-badge-shared" title="Visible to all users"><i class="fa-solid fa-share-nodes"></i> Shared</span>';
     }
-    if (isOwner && isShared) {
+    if (isOwner) {
         badgesHtml += '<span class="collection-badge collection-badge-owner" title="You own this collection"><i class="fa-solid fa-crown"></i> Owner</span>';
     } else if (isCollaborator) {
         badgesHtml += '<span class="collection-badge collection-badge-collaborator" title="You can edit songs"><i class="fa-solid fa-user-edit"></i> Collaborator</span>';
@@ -3410,7 +3410,6 @@ function renderCollectionItem(collection, index) {
                 ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
             </div>
             ${badgesHtml ? `<div class="collection-item-badges">${badgesHtml}</div>` : ''}
-            ${isActive ? '<span class="collection-item-active"><i class="fa-solid fa-check"></i> Active</span>' : ''}
             ${actionButtonsHtml}
         </div>
     `;
