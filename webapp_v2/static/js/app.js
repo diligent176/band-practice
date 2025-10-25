@@ -1,3 +1,9 @@
+// Shared helper for registering button event listeners
+function registerButtonListeners(pairs) {
+    pairs.forEach(([btn, handler]) => {
+        if (btn) btn.addEventListener('click', handler);
+    });
+}
 // Band Practice App - Frontend JavaScript
 
 // Debug logging utility - only logs in development mode
@@ -282,21 +288,23 @@ function setupEventListeners() {
     // Debounced input for better performance during fast typing
     songSearchInput.addEventListener('input', debounce(filterSongsV2, 150));
 
-    editNotesBtn.addEventListener('click', enterEditMode);
-    saveNotesBtn.addEventListener('click', saveNotes);
-    cancelEditBtn.addEventListener('click', exitEditMode);
-    refreshSongBtn.addEventListener('click', refreshCurrentSong);
-    fetchBpmBtn.addEventListener('click', manuallyFetchBpm);
-    setBpmBtn.addEventListener('click', openBpmDialog);
-    editLyricsBtn.addEventListener('click', openLyricsEditor);
-    lyricsEditorSaveBtn.addEventListener('click', saveLyrics);
-    lyricsEditorCancelBtn.addEventListener('click', closeLyricsEditor);
-    insertVerseBtn.addEventListener('click', insertVerse);
-    insertChorusBtn.addEventListener('click', insertChorus);
-    if (insertBridgeBtn) insertBridgeBtn.addEventListener('click', insertBridge);
-    if (insertIntroBtn) insertIntroBtn.addEventListener('click', insertIntro);
-    if (insertOutroBtn) insertOutroBtn.addEventListener('click', insertOutro);
-    tightenLyricsBtn.addEventListener('click', tightenLyrics);
+    registerButtonListeners([
+        [editNotesBtn, enterEditMode],
+        [saveNotesBtn, saveNotes],
+        [cancelEditBtn, exitEditMode],
+        [refreshSongBtn, refreshCurrentSong],
+        [fetchBpmBtn, manuallyFetchBpm],
+        [setBpmBtn, openBpmDialog],
+        [editLyricsBtn, openLyricsEditor],
+        [lyricsEditorSaveBtn, saveLyrics],
+        [lyricsEditorCancelBtn, closeLyricsEditor],
+        [insertVerseBtn, insertVerse],
+        [insertChorusBtn, insertChorus],
+        [insertBridgeBtn, insertBridge],
+        [insertIntroBtn, insertIntro],
+        [insertOutroBtn, insertOutro],
+        [tightenLyricsBtn, tightenLyrics],
+    ]);
 
     // BPM dialog handlers
     bpmDialogSaveBtn.addEventListener('click', saveBpm);
