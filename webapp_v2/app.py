@@ -948,16 +948,16 @@ def sync_collection(collection_id):
     """Sync all playlists in a collection - detect new/removed songs"""
     from flask import Response, stream_with_context
     import json
-    
+
     try:
         user_id = g.user.get('email')
-        
-        # Verify collection belongs to user
+
+        # Verify user has write access (owner or collaborator)
         collection = firestore.get_collection(collection_id)
         if not collection:
             return jsonify({'error': 'Collection not found', 'success': False}), 404
-        if collection.get('user_id') != user_id:
-            return jsonify({'error': 'Unauthorized', 'success': False}), 403
+        if not firestore.can_write_collection(collection_id, user_id):
+            return jsonify({'error': 'Unauthorized - you need owner or collaborator access', 'success': False}), 403
         
         logger.info(f"User {user_id} syncing collection {collection_id}")
         
