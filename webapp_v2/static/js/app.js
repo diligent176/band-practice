@@ -2626,15 +2626,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function showImportDialog() {
+    // V2: Render playlists BEFORE showing dialog (prevents resize flash)
+    renderPlaylistDialog();
+
     importDialog.style.display = 'flex';
     // Only show the single-step URL input in V2
     importStepUrl.style.display = 'flex';
 
     // Clear the URL input field
     importPlaylistUrl.value = '';
-
-    // V2: Load linked and other playlists
-    await loadPlaylistsForDialog();
 
     // Focus the input so user can paste and press Enter
     importPlaylistUrl.focus();
@@ -3182,10 +3182,13 @@ async function loadCurrentCollection() {
             currentCollection = data.collection;
             saveCurrentCollection(currentCollection.id);
             updateCollectionDisplay();
-            
+
             // Load songs for this collection
             await loadSongs();
-            
+
+            // Load playlists for this collection (so dialog opens instantly)
+            await loadPlaylistsForDialog();
+
             // If we have a saved song ID, try to load it
             if (savedSongId) {
                 // Check if the saved song exists in the current collection
@@ -3533,15 +3536,18 @@ async function switchCollection(collectionId) {
             saveCurrentCollection(collectionId);
             updateCollectionDisplay();
             closeCollectionDialog();
-            
+
             // Clear current song and reload songs for new collection
             currentSong = null;
             saveCurrentSong(null); // Clear saved song since it's not in new collection
             lyricsContentInner.innerHTML = '<div class="empty-state"><p>Select a song to view lyrics</p></div>';
             notesView.innerHTML = '<div class="empty-state"><p>Select a song to view notes</p></div>';
             songMetadata.innerHTML = '';
-            
+
             await loadSongs();
+
+            // Load playlists for this collection (so dialog opens instantly)
+            await loadPlaylistsForDialog();
 
             setStatus(`Switched to collection: ${currentCollection.name}`, 'success');
         } else {
