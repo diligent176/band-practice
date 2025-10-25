@@ -133,6 +133,10 @@ const playlistMemorySection = document.getElementById('playlist-memory-section')
 // User info DOM elements
 const mainApp = document.getElementById('main-app');
 const userEmail = document.getElementById('user-email');
+// Cache elements that are repeatedly queried
+const playlistInfoEl = document.getElementById('playlist-info');
+const syncProgressEl = document.getElementById('sync-progress');
+const songIcon = document.getElementById('song-icon');
 
 // BPM indicator icon (updated dynamically when song metadata is rendered)
 let bpmMetronomeIcon = document.getElementById('bpm-metronome-icon');
@@ -1217,8 +1221,6 @@ function renderSong() {
 }
 
 function renderMetadata() {
-    const songIcon = document.getElementById('song-icon');
-
     // Show the song name and icon when a song is selected
     if (lyricsHeading) {
         lyricsHeading.style.display = 'block';
@@ -1741,14 +1743,12 @@ function hideLoading() {
 }
 
 function showLoadingDetails(playlistInfo) {
-    const playlistInfoEl = document.getElementById('playlist-info');
-    playlistInfoEl.innerHTML = playlistInfo;
+    if (playlistInfoEl) playlistInfoEl.innerHTML = playlistInfo;
     loadingDetails.style.display = 'block';
 }
 
 function updateSyncProgress(message) {
-    const progressEl = document.getElementById('sync-progress');
-    progressEl.textContent = message;
+    if (syncProgressEl) syncProgressEl.textContent = message;
 }
 
 function setStatus(message, type = 'info') {
