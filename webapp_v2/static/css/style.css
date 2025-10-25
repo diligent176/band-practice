@@ -2944,10 +2944,18 @@ header h1 i {
   padding: 8px 8px 6px 8px;
   margin-top: 8px;
   border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .collection-section-header:first-child {
   margin-top: 0;
+}
+
+.collection-section-header .collection-badge {
+  text-transform: none;
+  margin-bottom: 1px;
 }
 
 .collection-item {
@@ -2972,15 +2980,15 @@ header h1 i {
 }
 
 .collection-item.active {
-  background: linear-gradient(to right, rgba(16, 185, 129, 0.06), var(--bg-tertiary));
-  border-color: var(--accent-green-50);
-  border-left: 3px solid var(--accent-green);
-  padding-left: 6px;
+  background: linear-gradient(to right, rgba(29, 185, 84, 0.12), var(--bg-tertiary));
+  border-color: rgba(29, 185, 84, 0.4);
+  border-left: 4px solid var(--accent-primary);
+  padding-left: 5px;
 }
 
 .collection-item.highlighted {
   background: var(--bg-tertiary);
-  border-color: var(--accent-green-50);
+  border-color: rgba(29, 185, 84, 0.3);
 }
 
 .collection-item-icon {

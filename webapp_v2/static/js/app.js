@@ -3346,7 +3346,7 @@ function highlightCollectionItem(index) {
 }
 
 // Helper function to render a single collection item
-function renderCollectionItem(collection, index) {
+function renderCollectionItem(collection, index, section = 'yours') {
     const isActive = currentCollection && collection.id === currentCollection.id;
     const activeClass = isActive ? 'active' : '';
     const canEdit = collection.name !== 'Default';
@@ -3372,18 +3372,20 @@ function renderCollectionItem(collection, index) {
     const isCollaborator = collection.collaborators && collection.collaborators.includes(userEmail);
     const isShared = collection.is_shared;
 
-    // Build badges HTML
+    // Build badges HTML based on section
     let badgesHtml = '';
-    if (isShared) {
-        badgesHtml += '<span class="collection-badge collection-badge-shared" title="Visible to all users"><i class="fa-solid fa-share-nodes"></i> Shared</span>';
-    }
-    if (isOwner) {
-        badgesHtml += '<span class="collection-badge collection-badge-owner" title="You own this collection"><i class="fa-solid fa-crown"></i> Owner</span>';
-    } else if (isCollaborator) {
-        badgesHtml += '<span class="collection-badge collection-badge-collaborator" title="You can edit songs"><i class="fa-solid fa-user-edit"></i> Collaborator</span>';
-    } else if (isShared && !isOwner) {
-        // User can see this shared collection but cannot edit it
-        badgesHtml += '<span class="collection-badge collection-badge-readonly" title="You can view but not edit songs"><i class="fa-solid fa-eye"></i> Read-Only</span>';
+    if (section === 'yours') {
+        // In "Your Collections" section: only show "Shared" badge if this collection is shared
+        if (isShared) {
+            badgesHtml += '<span class="collection-badge collection-badge-shared" title="Visible to all users"><i class="fa-solid fa-share-nodes"></i> Shared</span>';
+        }
+    } else if (section === 'shared') {
+        // In "Shared With You" section: show role (Collaborator or Read-Only)
+        if (isCollaborator) {
+            badgesHtml += '<span class="collection-badge collection-badge-collaborator" title="You can edit songs"><i class="fa-solid fa-user-edit"></i> Collaborator</span>';
+        } else {
+            badgesHtml += '<span class="collection-badge collection-badge-readonly" title="You can view but not edit songs"><i class="fa-solid fa-eye"></i> Read-Only</span>';
+        }
     }
 
     // Build action buttons (stacked vertically)
@@ -3431,19 +3433,29 @@ function renderCollectionList() {
 
     // Render "Your Collections" section
     if (yourCollections.length > 0) {
-        html += '<div class="collection-section-header">Your Collections</div>';
+        html += `
+            <div class="collection-section-header">
+                Your Collections
+                <span class="collection-badge collection-badge-owner" title="You own these collections"><i class="fa-solid fa-crown"></i> Owner</span>
+            </div>
+        `;
         yourCollections.forEach((collection, sectionIndex) => {
             const index = allCollections.indexOf(collection);
-            html += renderCollectionItem(collection, index);
+            html += renderCollectionItem(collection, index, 'yours');
         });
     }
 
     // Render "Shared Collections" section
     if (sharedCollections.length > 0) {
-        html += '<div class="collection-section-header">Shared With You</div>';
+        html += `
+            <div class="collection-section-header">
+                Shared With You
+                <span class="collection-badge collection-badge-shared" title="Collections shared by others"><i class="fa-solid fa-share-nodes"></i> Shared</span>
+            </div>
+        `;
         sharedCollections.forEach((collection, sectionIndex) => {
             const index = allCollections.indexOf(collection);
-            html += renderCollectionItem(collection, index);
+            html += renderCollectionItem(collection, index, 'shared');
         });
     }
 
