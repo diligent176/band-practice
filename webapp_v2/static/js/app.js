@@ -63,6 +63,7 @@ const fetchBpmBtn = document.getElementById('fetch-bpm-btn');
 const editLyricsBtn = document.getElementById('edit-lyrics-btn');
 const toggleColumnsBtn = document.getElementById('toggle-columns-btn');
 const fontSizeSelect = document.getElementById('font-size-select');
+const fullscreenToggleBtn = document.getElementById('fullscreen-toggle-btn');
 
 const lyricsEditorDialog = document.getElementById('lyrics-editor-dialog');
 const lyricsEditorTitle = document.getElementById('lyrics-editor-title');
@@ -366,6 +367,10 @@ function setupEventListeners() {
     toggleColumnsBtn.addEventListener('click', toggleColumns);
     fontSizeSelect.addEventListener('change', handleFontSizeChange);
 
+    // Fullscreen toggle
+    fullscreenToggleBtn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
     // Back to top button
     backToTopBtn.addEventListener('click', scrollToTop);
 
@@ -378,6 +383,13 @@ function setupEventListeners() {
 
 // Global keyboard shortcut handler
 function handleGlobalKeyboard(e) {
+    // Alt+Enter for fullscreen toggle (works even when typing)
+    if (e.altKey && e.key === 'Enter') {
+        e.preventDefault();
+        toggleFullscreen();
+        return;
+    }
+
     // Alt+Up/Down for font size adjustment (works even when typing)
     if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault();
@@ -4634,11 +4646,56 @@ function loadBpmIndicatorPreference() {
 function toggleBpmIndicator() {
     bpmIndicatorEnabled = !bpmIndicatorEnabled;
     localStorage.setItem('bpmIndicatorEnabled', bpmIndicatorEnabled.toString());
-    
+
     // Show status message
     setStatus(bpmIndicatorEnabled ? 'BPM Indicator Enabled' : 'BPM Indicator Disabled', 'success');
-    
+
     updateBpmIndicator();
+}
+
+// Fullscreen API Functions
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        // Enter fullscreen
+        document.documentElement.requestFullscreen().then(() => {
+            debug.log('Entered fullscreen mode');
+            updateFullscreenButton(true);
+        }).catch(err => {
+            console.error('Error attempting to enable fullscreen:', err);
+            setStatus('Fullscreen not available', 'error');
+        });
+    } else {
+        // Exit fullscreen
+        document.exitFullscreen().then(() => {
+            debug.log('Exited fullscreen mode');
+            updateFullscreenButton(false);
+        }).catch(err => {
+            console.error('Error attempting to exit fullscreen:', err);
+        });
+    }
+}
+
+function updateFullscreenButton(isFullscreen) {
+    if (!fullscreenToggleBtn) return;
+
+    const icon = fullscreenToggleBtn.querySelector('i');
+    if (icon) {
+        if (isFullscreen) {
+            icon.classList.remove('fa-expand');
+            icon.classList.add('fa-compress');
+            fullscreenToggleBtn.title = 'Exit Fullscreen (Alt+Enter)';
+        } else {
+            icon.classList.remove('fa-compress');
+            icon.classList.add('fa-expand');
+            fullscreenToggleBtn.title = 'Toggle Fullscreen (Alt+Enter)';
+        }
+    }
+}
+
+function handleFullscreenChange() {
+    // Update button state when fullscreen changes (e.g., user presses ESC)
+    const isFullscreen = !!document.fullscreenElement;
+    updateFullscreenButton(isFullscreen);
 }
 
 function updateBpmIndicator() {

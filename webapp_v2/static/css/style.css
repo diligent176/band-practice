@@ -500,6 +500,7 @@ header h1 i {
 
 /* Right section container - creates a flex group */
 .header-single-row>.font-size-selector,
+.header-single-row>.fullscreen-toggle-btn,
 .header-single-row>.keyboard-shortcuts-help,
 .header-single-row>.user-info {
   margin-left: auto;
@@ -511,6 +512,11 @@ header h1 i {
 }
 
 .header-single-row>.font-size-selector {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.header-single-row>.fullscreen-toggle-btn {
   margin-left: 0;
   margin-right: 0;
 }
@@ -866,6 +872,44 @@ header h1 i {
 
 .font-size-select:focus {
   outline: none;
+  color: var(--accent-primary);
+}
+
+.fullscreen-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0;
+  border-right: none;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+  height: 28px;
+  width: 28px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.fullscreen-toggle-btn:hover {
+  background: #323232;
+  border-color: #444;
+}
+
+.fullscreen-toggle-btn:active {
+  background: #282828;
+}
+
+.fullscreen-toggle-btn i {
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.fullscreen-toggle-btn:hover i {
   color: var(--accent-primary);
 }
 
