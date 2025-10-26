@@ -428,51 +428,27 @@ END: Third repetition of chorus is acapella"></textarea>
             </div>
         </div>
 
-        <!-- Import Playlist Dialog -->
+        <!-- Manage Playlists Dialog -->
         <div id="import-dialog" class="dialog-overlay" style="display: none;">
-            <div class="dialog-large dialog-import">
+            <div class="dialog-medium">
                 <div class="dialog-header">
+                    <h3>Manage Playlists</h3>
                     <button id="import-dialog-close" class="btn btn-small btn-secondary">✕</button>
                 </div>
 
-                <!-- Step 1: Manage Playlists (V2: Link/Unlink) -->
-                <div id="import-step-url" class="import-step">
-                    <!-- V2: Add New Playlist Section (moved to top) -->
-                    <div class="playlist-section playlist-section-add-new">
-                        <h4 class="playlist-section-header">
-                            <i class="fa-solid fa-plus"></i> Add New Playlist
-                        </h4>
-                        <div class="import-url-section">
-                            <input type="text" id="import-playlist-url" class="input"
-                                   placeholder="https://open.spotify.com/playlist/YOUR_PLAYLIST_ID">
-                            <button id="import-load-btn" class="btn btn-primary">
-                                <i class="fa-solid fa-link"></i> Link Playlist
-                            </button>
-                        </div>
-                    </div>
+                <!-- Compact URL input at top -->
+                <div class="dialog-compact-input">
+                    <input type="text" id="import-playlist-url" class="input input-compact"
+                           placeholder="Paste Spotify playlist URL and press Enter">
+                    <button id="import-load-btn" class="btn btn-primary btn-compact">
+                        <i class="fa-solid fa-link"></i> Link
+                    </button>
+                </div>
 
-                    <!-- V2: Linked Playlists Section -->
-                    <div id="linked-playlists-section" class="playlist-section">
-                        <h4 class="playlist-section-header">
-                            <i class="fa-solid fa-link"></i> Playlists in This Collection
-                        </h4>
-                        <div id="linked-playlists-list" class="playlist-list">
-                            <div class="empty-state-small">
-                                <p>No playlists linked to this collection yet</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- V2: Other Recent Playlists Section -->
-                    <div id="other-playlists-section" class="playlist-section">
-                        <h4 class="playlist-section-header">
-                            <i class="fa-solid fa-clock-rotate-left"></i> Other Recent Playlists
-                        </h4>
-                        <div id="other-playlists-list" class="playlist-list">
-                            <div class="empty-state-small">
-                                <p>No other playlists in memory</p>
-                            </div>
-                        </div>
+                <!-- Single Unified Playlist List (like collection chooser) -->
+                <div class="collection-selector-content">
+                    <div id="playlist-list" class="selector-list">
+                        <div class="empty-state"><p>Loading playlists...</p></div>
                     </div>
                 </div>
 

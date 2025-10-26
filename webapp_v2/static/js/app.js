@@ -32,10 +32,13 @@ let songNavigator = null; // Keyboard navigation for song selector
 // Collection management
 let currentCollection = null;
 let allCollections = [];
+let collectionNavigator = null; // Keyboard navigation for collection selector
+let selectedCollectionIndex = 0;
 
 // V2: Playlist management
 let linkedPlaylists = [];
 let otherPlaylists = [];
+let playlistNavigator = null; // Keyboard navigation for playlist dialog
 
 // Reference to the apiCall function from viewer.html
 // This will be passed in when initializeApp is called
@@ -2747,18 +2750,46 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function showImportDialog() {
-    // V2: Render playlists BEFORE showing dialog (prevents resize flash)
-    renderPlaylistDialog();
+    // Load playlists first
+    await loadPlaylistsForDialog();
 
     importDialog.style.display = 'flex';
-    // Only show the single-step URL input in V2
-    importStepUrl.style.display = 'flex';
 
-    // Clear the URL input field
+    // Clear and focus the URL input
     importPlaylistUrl.value = '';
-
-    // Focus the input so user can paste and press Enter
     importPlaylistUrl.focus();
+
+    // Initialize ListNavigator for the unified playlist list
+    if (!playlistNavigator) {
+        const playlistList = document.getElementById('playlist-list');
+        if (playlistList) {
+            playlistNavigator = new window.ListNavigator({
+                listContainer: playlistList,
+                itemSelector: '.playlist-item',
+                selectedClass: 'selected',
+                searchInput: null,
+                pageSize: 10,
+                onSelect: (index, item) => {
+                    // Click behavior depends on whether it's linked or has unlink icon
+                    const linkIcon = item.querySelector('.playlist-link-icon');
+
+                    if (linkIcon) {
+                        // It's an unlinked playlist - link it
+                        const playlistUrl = linkIcon.dataset.playlistUrl;
+                        if (playlistUrl) linkPlaylist(playlistUrl);
+                    }
+                    // If it has unlink icon, don't do anything on Enter (user must click unlink)
+                },
+                onEscape: () => {
+                    closeImportDialog();
+                }
+            });
+        }
+    }
+
+    if (playlistNavigator) {
+        playlistNavigator.init();
+    }
 
     // Add keyboard shortcuts using shared helper
     registerDialogKeyboardHandler('importDialog', handleImportDialogKeyboard);
@@ -2773,6 +2804,11 @@ function closeImportDialog() {
         selectedSongIds: new Set()
     };
 
+    // Reset navigator
+    if (playlistNavigator) {
+        playlistNavigator.reset();
+    }
+
     // Remove keyboard shortcuts using shared helper
     unregisterDialogKeyboardHandler('importDialog', handleImportDialogKeyboard);
 }
@@ -2781,49 +2817,13 @@ async function handleImportDialogKeyboard(e) {
     // Only handle if import dialog is visible
     if (importDialog.style.display !== 'flex') return;
 
-    // ESC to close dialog
-    if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        closeImportDialog();
+    // Let ListNavigator handle arrow keys, Page Up/Down, Home/End, Enter, Escape
+    if (playlistNavigator && playlistNavigator.handleKey(e)) {
         return;
     }
 
-    // Step 1: Navigate cached playlists with arrow keys
-    if (
-        importStepUrl.style.display === 'flex' &&
-        Array.isArray(importDialogState.cachedPlaylists) &&
-        importDialogState.cachedPlaylists.length > 0
-    ) {
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (importDialogState.selectedPlaylistIndex < importDialogState.cachedPlaylists.length - 1) {
-                importDialogState.selectedPlaylistIndex++;
-                updatePlaylistMemorySelection();
-            } else if (importDialogState.selectedPlaylistIndex === -1 && importDialogState.cachedPlaylists.length > 0) {
-                // If nothing selected, select first item
-                importDialogState.selectedPlaylistIndex = 0;
-                updatePlaylistMemorySelection();
-            }
-            return;
-        }
-
-        if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            if (importDialogState.selectedPlaylistIndex > 0) {
-                importDialogState.selectedPlaylistIndex--;
-                updatePlaylistMemorySelection();
-            } else if (importDialogState.selectedPlaylistIndex === -1 && importDialogState.cachedPlaylists.length > 0) {
-                // If nothing selected, select last item
-                importDialogState.selectedPlaylistIndex = importDialogState.cachedPlaylists.length - 1;
-                updatePlaylistMemorySelection();
-            }
-            return;
-        }
-    }
-
-    // ENTER should import the playlist URL directly (V2 single-step)
-    if (e.key === 'Enter') {
+    // ENTER in the URL input should link the playlist
+    if (e.key === 'Enter' && e.target === importPlaylistUrl) {
         e.preventDefault();
         e.stopPropagation();
 
@@ -3358,10 +3358,34 @@ async function showCollectionDialog() {
             allCollections = data.collections;
             renderCollectionList();
 
+            // Initialize keyboard navigation
+            if (!collectionNavigator) {
+                collectionNavigator = new window.ListNavigator({
+                    listContainer: collectionList,
+                    itemSelector: '.selector-item.collection-item',
+                    selectedClass: 'selected',
+                    searchInput: null, // No search input in collection dialog
+                    pageSize: 10,
+                    onSelect: (index, item) => {
+                        // Switch to the selected collection
+                        const collectionId = item.dataset.collectionId;
+                        if (collectionId) {
+                            switchCollection(collectionId);
+                        }
+                    },
+                    onEscape: () => {
+                        closeCollectionDialog();
+                    }
+                });
+            }
+
             // Set initial selection to current collection or first item
             if (allCollections.length > 0) {
                 const currentIndex = allCollections.findIndex(c => currentCollection && c.id === currentCollection.id);
-                highlightCollectionItem(currentIndex >= 0 ? currentIndex : 0);
+                selectedCollectionIndex = currentIndex >= 0 ? currentIndex : 0;
+                collectionNavigator.setSelectedIndex(selectedCollectionIndex);
+            } else {
+                collectionNavigator.init();
             }
 
             // Show sync button if user has write access to current collection
@@ -3390,72 +3414,50 @@ async function showCollectionDialog() {
 
 function closeCollectionDialog() {
     collectionDialog.style.display = 'none';
-    
+
+    // Reset navigator
+    if (collectionNavigator) {
+        collectionNavigator.reset();
+    }
+
     if (eventListenerFlags.collectionDialog) {
         document.removeEventListener('keydown', handleCollectionDialogKeyboard);
         eventListenerFlags.collectionDialog = false;
     }
 }
 
-let selectedCollectionIndex = 0;
-
 function handleCollectionDialogKeyboard(e) {
     if (collectionDialog.style.display !== 'flex') return;
-    
+
     // If confirm dialog is open, don't handle keyboard shortcuts
     if (confirmDialog && confirmDialog.style.display === 'flex') return;
-    
+
     // Don't intercept keyboard shortcuts when typing in an input field
     const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
-    
-    if (e.key === 'Escape') {
-        e.preventDefault();
-        closeCollectionDialog();
+
+    // Let ListNavigator handle arrow keys, Page Up/Down, Home/End, Enter, Escape
+    if (collectionNavigator && collectionNavigator.handleKey(e)) {
+        // Update our internal index to match navigator
+        selectedCollectionIndex = collectionNavigator.getSelectedIndex();
         return;
     }
-    
-    // Arrow keys and navigation - always work
-    if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (allCollections.length > 0) {
-            selectedCollectionIndex = (selectedCollectionIndex + 1) % allCollections.length;
-            highlightCollectionItem(selectedCollectionIndex);
-        }
-        return;
-    }
-    
-    if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        if (allCollections.length > 0) {
-            selectedCollectionIndex = (selectedCollectionIndex - 1 + allCollections.length) % allCollections.length;
-            highlightCollectionItem(selectedCollectionIndex);
-        }
-        return;
-    }
-    
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        if (allCollections.length > 0 && allCollections[selectedCollectionIndex]) {
-            switchCollection(allCollections[selectedCollectionIndex].id);
-        }
-        return;
-    }
-    
+
     // Only handle these shortcuts when NOT typing in an input field
     if (isTyping) return;
-    
+
     // N key to create new collection
     if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
         showNewCollectionDialog();
         return;
     }
-    
+
     // Delete key to delete collection
     if (e.key === 'Delete' || (e.altKey && (e.key === 'd' || e.key === 'D'))) {
         e.preventDefault();
-        if (allCollections.length > 0 && allCollections[selectedCollectionIndex]) {
-            const collection = allCollections[selectedCollectionIndex];
+        const index = collectionNavigator.getSelectedIndex();
+        if (index >= 0 && index < allCollections.length) {
+            const collection = allCollections[index];
             if (collection.name !== 'Default') {
                 deleteCollectionWithConfirm(collection.id, collection.name);
             } else {
@@ -3498,10 +3500,10 @@ function renderCollectionItem(collection, index, section = 'yours') {
     countParts.push(songCount === 1 ? '1 song' : `${songCount} songs`);
     const countText = countParts.join(', ');
 
-    // Use first playlist image if available, otherwise show icon
-    const imageHtml = collection.first_playlist_image
-        ? `<img src="${collection.first_playlist_image}" alt="${escapeHtml(collection.name)}">`
-        : `<i class="fa-solid fa-layer-group"></i>`;
+    // Use first playlist image if available, otherwise show placeholder (SAME AS SONGS)
+    const albumArtHtml = collection.first_playlist_image
+        ? `<img src="${escapeHtml(collection.first_playlist_image)}" alt="${escapeHtml(collection.name)}" class="selector-item-art">`
+        : `<div class="selector-item-art-placeholder"><i class="fa-solid fa-layer-group"></i></div>`;
 
     // Determine user's role in this collection
     const userEmail = currentUser?.email;
@@ -3509,47 +3511,39 @@ function renderCollectionItem(collection, index, section = 'yours') {
     const isCollaborator = collection.collaborators && collection.collaborators.includes(userEmail);
     const isShared = collection.is_shared;
 
-    // Build badges HTML based on section
-    let badgesHtml = '';
-    if (section === 'yours') {
-        // In "Your Collections" section: only show "Shared" badge if this collection is shared
-        if (isShared) {
-            badgesHtml += '<span class="collection-badge collection-badge-shared" title="Visible to all users"><i class="fa-solid fa-share-nodes"></i> Shared</span>';
-        }
+    // Build badges HTML based on section - INLINE like song metadata
+    let badgesText = '';
+    if (section === 'yours' && isShared) {
+        badgesText = ' • <i class="fa-solid fa-share-nodes"></i> Shared';
     } else if (section === 'shared') {
-        // In "Shared With You" section: show role (Collaborator or Read-Only)
         if (isCollaborator) {
-            badgesHtml += '<span class="collection-badge collection-badge-collaborator" title="You can edit songs"><i class="fa-solid fa-user-edit"></i> Collaborator</span>';
+            badgesText = ' • <i class="fa-solid fa-user-edit"></i> Collaborator';
         } else {
-            badgesHtml += '<span class="collection-badge collection-badge-readonly" title="You can view but not edit songs"><i class="fa-solid fa-eye"></i> Read-Only</span>';
+            badgesText = ' • <i class="fa-solid fa-eye"></i> Read-Only';
         }
     }
 
-    // Build action buttons (stacked vertically)
-    let actionButtonsHtml = '';
-    if (isOwner) {
-        actionButtonsHtml = `
-            <button class="btn btn-small btn-secondary collection-item-edit" data-collection-id="${collection.id}" title="Edit collection settings"><i class="fa-solid fa-gear"></i></button>
-            ${canEdit ? `<button class="btn btn-small btn-secondary collection-item-delete" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Del)"><i class="fa-solid fa-trash"></i></button>` : ''}
+    // Settings gear icon (inline with metadata, only for owners)
+    const settingsIconHtml = isOwner ? `<i class="fa-solid fa-gear collection-settings-icon" data-collection-id="${collection.id}" title="Edit collection settings"></i>` : '';
+
+    // Trash icon for deletion (SAME STYLE AS SONGS)
+    let trashIconHtml = '';
+    if (isOwner && canEdit) {
+        trashIconHtml = `
+            <div class="song-item-trash-icon" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Del)">
+                <i class="fa-solid fa-trash"></i>
+            </div>
         `;
     }
 
     return `
         <div class="selector-item collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
-            <div class="selector-item-art-placeholder">
-                ${imageHtml}
+            ${albumArtHtml}
+            <div class="selector-item-content">
+                <div class="selector-item-title">${escapeHtml(collection.name)}</div>
+                <div class="selector-item-subtitle">${countText}${badgesText} ${settingsIconHtml}</div>
             </div>
-            <div class="selector-item-content collection-content">
-                <div class="collection-main">
-                    <div class="selector-item-title">${escapeHtml(collection.name)}</div>
-                    ${collection.description ? `<div class="selector-item-subtitle">${escapeHtml(collection.description)}</div>` : ''}
-                </div>
-                <div class="collection-meta">
-                    <span class="collection-counts">${countText}</span>
-                    ${badgesHtml ? `<div class="collection-badges">${badgesHtml}</div>` : ''}
-                </div>
-            </div>
-            ${actionButtonsHtml ? `<div class="selector-item-actions">${actionButtonsHtml}</div>` : ''}
+            ${trashIconHtml}
         </div>
     `;
 }
@@ -3597,28 +3591,31 @@ function renderCollectionList() {
     }
 
     collectionList.innerHTML = html;
-    
+
     // Add click handlers for collection items
     document.querySelectorAll('.collection-item').forEach(item => {
         // Mouse hover to update selection index
         item.addEventListener('mouseenter', () => {
             const index = parseInt(item.dataset.collectionIndex);
-            highlightCollectionItem(index);
+            if (collectionNavigator) {
+                collectionNavigator.setSelectedIndex(index);
+                selectedCollectionIndex = index;
+            }
         });
-        
-        // Click to select (but not on edit/delete buttons)
+
+        // Click to select (but not on settings/trash icons)
         item.addEventListener('click', (e) => {
-            if (!e.target.closest('.collection-item-edit') && !e.target.closest('.collection-item-delete')) {
+            if (!e.target.closest('.collection-settings-icon') && !e.target.closest('.song-item-trash-icon')) {
                 switchCollection(item.dataset.collectionId);
             }
         });
     });
-    
-    // Add click handlers for edit buttons
-    document.querySelectorAll('.collection-item-edit').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+
+    // Add click handlers for settings gear icons
+    document.querySelectorAll('.collection-settings-icon').forEach(icon => {
+        icon.addEventListener('click', (e) => {
             e.stopPropagation();
-            const collectionId = btn.dataset.collectionId;
+            const collectionId = icon.dataset.collectionId;
             // Find the collection in allCollections
             const collection = allCollections.find(c => c.id === collectionId);
             if (collection) {
@@ -3627,13 +3624,13 @@ function renderCollectionList() {
             }
         });
     });
-    
-    // Add click handlers for delete buttons
-    document.querySelectorAll('.collection-item-delete').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+
+    // Add click handlers for trash icons (SAME AS SONGS)
+    document.querySelectorAll('.collection-item .song-item-trash-icon').forEach(icon => {
+        icon.addEventListener('click', (e) => {
             e.stopPropagation();
-            const collectionId = btn.dataset.collectionId;
-            const collectionName = btn.dataset.collectionName;
+            const collectionId = icon.dataset.collectionId;
+            const collectionName = icon.dataset.collectionName;
             deleteCollectionWithConfirm(collectionId, collectionName);
         });
     });
@@ -5268,81 +5265,105 @@ async function loadPlaylistsForDialog() {
     }
 }
 
-// V2: Render playlist dialog with linked/other sections
+// Helper to render a single playlist item (SAME STRUCTURE AS SONGS/COLLECTIONS)
+function renderPlaylistItem(playlist, isLinked = false) {
+    const albumArtHtml = playlist.image_url
+        ? `<img src="${escapeHtml(playlist.image_url)}" alt="${escapeHtml(playlist.name)}" class="selector-item-art">`
+        : `<div class="selector-item-art-placeholder"><i class="fa-brands fa-spotify"></i></div>`;
+
+    const trackText = `${playlist.total_tracks} track${playlist.total_tracks !== 1 ? 's' : ''}`;
+    const statusBadge = isLinked ? ' • <i class="fa-solid fa-check"></i> Linked' : '';
+
+    // Unlink button for linked playlists (SAME STYLE AS TRASH ICON)
+    const unlinkIconHtml = isLinked ? `
+        <div class="song-item-trash-icon playlist-unlink-icon" data-playlist-id="${playlist.id}" title="Unlink from collection">
+            <i class="fa-solid fa-unlink"></i>
+        </div>
+    ` : '';
+
+    if (isLinked) {
+        console.log(`    🔧 Generated unlink icon for playlist ${playlist.id}: ${playlist.name}`);
+    }
+
+    // Link button for other playlists (inline icon)
+    const linkIconHtml = !isLinked ? `<i class="fa-solid fa-link playlist-link-icon" data-playlist-url="${escapeHtml(playlist.playlist_url)}" title="Link to collection"></i>` : '';
+
+    return `
+        <div class="selector-item playlist-item" data-playlist-id="${playlist.id}">
+            ${albumArtHtml}
+            <div class="selector-item-content">
+                <div class="selector-item-title">${escapeHtml(playlist.name)}</div>
+                <div class="selector-item-subtitle">${escapeHtml(playlist.owner)} • ${trackText}${statusBadge} ${linkIconHtml}</div>
+            </div>
+            ${unlinkIconHtml}
+        </div>
+    `;
+}
+
+// V2: Render playlist dialog as ONE unified list with section headers (EXACTLY like collections)
 function renderPlaylistDialog() {
-    const linkedList = document.getElementById('linked-playlists-list');
-    const otherList = document.getElementById('other-playlists-list');
-
-    if (!linkedList || !otherList) return;
-
-    // Render linked playlists
-    if (linkedPlaylists.length === 0) {
-        linkedList.innerHTML = '<div class="empty-state-small"><p>No playlists linked to this collection yet</p></div>';
-    } else {
-        linkedList.innerHTML = linkedPlaylists.map((playlist, index) => `
-            <div class="playlist-item draggable" draggable="true" data-playlist-id="${playlist.id}" data-index="${index}">
-                <div class="playlist-drag-handle">
-                    <i class="fa-solid fa-grip-vertical"></i>
-                </div>
-                <img src="${playlist.image_url || '/static/icons/playlist-placeholder.png'}"
-                     alt="${escapeHtml(playlist.name)}"
-                     class="playlist-item-image">
-                <div class="playlist-item-info">
-                    <span class="playlist-item-name">${escapeHtml(playlist.name)}</span>
-                    <span class="playlist-item-meta">${playlist.owner} • ${playlist.total_tracks} track${playlist.total_tracks !== 1 ? 's' : ''}</span>
-                </div>
-                <div class="playlist-item-actions">
-                    <span class="playlist-item-linked-badge">
-                        <i class="fa-solid fa-check"></i> Linked
-                    </span>
-                    <button class="btn-unlink-playlist" data-playlist-id="${playlist.id}">
-                        <i class="fa-solid fa-unlink"></i> Unlink
-                    </button>
-                </div>
-            </div>
-        `).join('');
-
-        // Add unlink click handlers
-        linkedList.querySelectorAll('.btn-unlink-playlist').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const playlistId = e.currentTarget.getAttribute('data-playlist-id');
-                await unlinkPlaylist(playlistId);
-            });
-        });
-
-        // Add drag and drop handlers
-        setupPlaylistDragAndDrop();
+    const playlistList = document.getElementById('playlist-list');
+    if (!playlistList) {
+        console.error('❌ playlist-list element not found!');
+        return;
     }
 
-    // Render other playlists
-    if (otherPlaylists.length === 0) {
-        otherList.innerHTML = '<div class="empty-state-small"><p>No other playlists in memory</p></div>';
-    } else {
-        otherList.innerHTML = otherPlaylists.map(playlist => `
-            <div class="playlist-item">
-                <img src="${playlist.image_url || '/static/icons/playlist-placeholder.png'}"
-                     alt="${escapeHtml(playlist.name)}"
-                     class="playlist-item-image">
-                <div class="playlist-item-info">
-                    <span class="playlist-item-name">${escapeHtml(playlist.name)}</span>
-                    <span class="playlist-item-meta">${playlist.owner} • ${playlist.total_tracks} track${playlist.total_tracks !== 1 ? 's' : ''}</span>
-                </div>
-                <div class="playlist-item-actions">
-                    <button class="btn-link-playlist" data-playlist-url="${escapeHtml(playlist.playlist_url)}">
-                        <i class="fa-solid fa-link"></i> Link to Collection
-                    </button>
-                </div>
-            </div>
-        `).join('');
+    if (linkedPlaylists.length === 0 && otherPlaylists.length === 0) {
+        playlistList.innerHTML = '<div class="empty-state"><p>No playlists found</p></div>';
+        return;
+    }
 
-        // Add link click handlers
-        otherList.querySelectorAll('.btn-link-playlist').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const playlistUrl = e.currentTarget.getAttribute('data-playlist-url');
-                await linkPlaylist(playlistUrl);
-            });
+    console.log(`📋 Rendering playlists: ${linkedPlaylists.length} linked, ${otherPlaylists.length} other`);
+
+    let html = '';
+
+    // Render "Linked Playlists" section
+    if (linkedPlaylists.length > 0) {
+        html += `
+            <div class="collection-section-header">
+                <i class="fa-solid fa-link"></i> Playlists in This Collection
+            </div>
+        `;
+        linkedPlaylists.forEach((playlist, index) => {
+            console.log(`  ✓ Rendering linked playlist #${index}: ${playlist.name}`);
+            html += renderPlaylistItem(playlist, true);
         });
     }
+
+    // Render "Other Playlists" section
+    if (otherPlaylists.length > 0) {
+        html += `
+            <div class="collection-section-header">
+                <i class="fa-solid fa-clock-rotate-left"></i> Other Recent Playlists
+            </div>
+        `;
+        otherPlaylists.forEach(playlist => {
+            html += renderPlaylistItem(playlist, false);
+        });
+    }
+
+    playlistList.innerHTML = html;
+
+    // Add unlink click handlers
+    const unlinkIcons = playlistList.querySelectorAll('.playlist-unlink-icon');
+    console.log(`🔗 Found ${unlinkIcons.length} unlink icons in DOM`);
+    unlinkIcons.forEach((icon, index) => {
+        console.log(`  Icon #${index}: playlist-id=${icon.dataset.playlistId}`);
+        icon.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const playlistId = icon.dataset.playlistId;
+            await unlinkPlaylist(playlistId);
+        });
+    });
+
+    // Add link click handlers
+    playlistList.querySelectorAll('.playlist-link-icon').forEach(icon => {
+        icon.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const playlistUrl = icon.dataset.playlistUrl;
+            await linkPlaylist(playlistUrl);
+        });
+    });
 }
 
 // V2: Setup drag and drop for linked playlists

@@ -524,7 +524,7 @@ textarea:focus {
   height: auto;
   align-self: stretch;
   border-radius: 0;
-  object-fit: cover;
+  object-fit: contain;
   flex-shrink: 0;
   background: var(--bg-primary);
 }
