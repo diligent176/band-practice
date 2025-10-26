@@ -30,31 +30,32 @@ class SpotifyAuthService:
         
         logger.info(f"SpotifyAuthService initialized with redirect_uri: {self.redirect_uri}")
     
-    def get_auth_url(self, user_id):
+    def get_auth_url(self, user_id, force_reauth=False):
         """
         Generate Spotify OAuth authorization URL
-        
+
         Args:
             user_id: User email to track who initiated auth
-            
+            force_reauth: If True, force user to approve permissions again
+
         Returns:
             str: Authorization URL to redirect user to
         """
         # Generate and save state token for CSRF protection
         state = secrets.token_urlsafe(32)
         self.firestore.save_oauth_state(user_id, state)
-        
+
         sp_oauth = SpotifyOAuth(
             client_id=os.getenv('SPOTIFY_CLIENT_ID'),
             client_secret=os.getenv('SPOTIFY_CLIENT_SECRET'),
             redirect_uri=self.redirect_uri,
             scope=self.scopes,
             state=state,
-            show_dialog=False  # Don't force approval screen every time
+            show_dialog=force_reauth  # Force approval screen if requested
         )
-        
+
         auth_url = sp_oauth.get_authorize_url()
-        logger.info(f"Generated auth URL for user {user_id}")
+        logger.info(f"Generated auth URL for user {user_id} (force_reauth={force_reauth})")
         return auth_url
     
     def handle_callback(self, code, state):

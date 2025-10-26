@@ -3954,45 +3954,80 @@ async function checkSpotifyStatus() {
 }
 
 // Show "Connect Spotify" prompt in mini player
-function showSpotifyConnectPrompt() {
+function showSpotifyConnectPrompt(showReconnect = false) {
     if (!miniPlayer) return;
 
-    miniPlayer.innerHTML = `
-        <button class="btn btn-primary spotify-connect-btn" onclick="connectSpotify()" style="margin: auto;">
-            <i class="fa-brands fa-spotify"></i> Connect Spotify for Playback
-        </button>
-    `;
+    if (showReconnect) {
+        // Show reconnect option when there's a permissions issue
+        miniPlayer.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; margin: auto;">
+                <button class="btn btn-primary spotify-connect-btn" onclick="reconnectSpotify()" style="margin: 0;">
+                    <i class="fa-brands fa-spotify"></i> Reconnect Spotify (Fix Permissions)
+                </button>
+                <small style="color: #8899a6;">Need to re-approve Spotify permissions</small>
+            </div>
+        `;
+    } else {
+        miniPlayer.innerHTML = `
+            <button class="btn btn-primary spotify-connect-btn" onclick="connectSpotify()" style="margin: auto;">
+                <i class="fa-brands fa-spotify"></i> Connect Spotify for Playback
+            </button>
+        `;
+    }
     miniPlayer.style.display = 'flex';
 }
 
-// Connect Spotify button handler
-async function connectSpotify() {
+// Reconnect Spotify with forced reauth
+async function reconnectSpotify() {
+    // First disconnect
     try {
-        debug.log('🔗 Initiating Spotify connection...');
-        
-        // Get auth URL
-        const response = await authenticatedApiCall('/api/spotify/auth/url');
+        await authenticatedApiCall('/api/spotify/disconnect', { method: 'POST' });
+        debug.log('✅ Disconnected from Spotify');
+    } catch (error) {
+        debug.warn('⚠️ Error disconnecting:', error);
+        // Continue anyway
+    }
+
+    // Then connect with force_reauth
+    await connectSpotify(true);
+}
+
+// Make reconnectSpotify global
+window.reconnectSpotify = reconnectSpotify;
+
+// Connect Spotify button handler
+async function connectSpotify(forceReauth = false) {
+    try {
+        debug.log(`🔗 Initiating Spotify connection (forceReauth=${forceReauth})...`);
+
+        // Get auth URL with optional force_reauth parameter
+        const url = forceReauth ? '/api/spotify/auth/url?force_reauth=true' : '/api/spotify/auth/url';
+        const response = await authenticatedApiCall(url);
         const data = await response.json();
-        
+
         if (data.success && data.auth_url) {
             debug.log('✅ Got auth URL, opening popup...');
-            
+
             // Open OAuth popup (centered on screen)
             const width = 600;
             const height = 800;
             const left = window.screenX + (window.outerWidth - width) / 2;
             const top = window.screenY + (window.outerHeight - height) / 2;
-            
+
             spotifyAuthWindow = window.open(
                 data.auth_url,
                 'Spotify Login',
                 `width=${width},height=${height},left=${left},top=${top}`
             );
-            
+
             // Listen for auth completion message from popup
             window.addEventListener('message', handleSpotifyAuthMessage);
-            
-            showToast('Opening Spotify authorization...', 'info');
+
+            if (forceReauth) {
+                showToast('Please approve Spotify permissions in the popup...', 'info');
+            } else {
+                showToast('Opening Spotify authorization...', 'info');
+            }
         } else {
             showToast('Failed to get authorization URL', 'error');
         }
@@ -4067,7 +4102,7 @@ async function initializeSpotifyPlayer() {
 
                 // Save Spotify profile to Firestore user record
                 try {
-                    await authenticatedApiCall('/api/user/spotify-profile', {
+                    const saveResponse = await authenticatedApiCall('/api/user/spotify-profile', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -4081,9 +4116,16 @@ async function initializeSpotifyPlayer() {
                             uri: profile.uri
                         })
                     });
-                    debug.log('✅ Saved Spotify profile to user record');
+
+                    if (saveResponse.ok) {
+                        const saveData = await saveResponse.json();
+                        debug.log('✅ Saved Spotify profile to user record:', saveData);
+                    } else {
+                        const errorData = await saveResponse.json().catch(() => ({ error: 'Unknown error' }));
+                        debug.error('❌ Failed to save Spotify profile. Status:', saveResponse.status, 'Error:', errorData);
+                    }
                 } catch (error) {
-                    debug.warn('⚠️ Failed to save Spotify profile:', error);
+                    debug.error('❌ Exception while saving Spotify profile:', error);
                     // Non-critical, continue anyway
                 }
 
@@ -4096,8 +4138,48 @@ async function initializeSpotifyPlayer() {
 
                 debug.log('✅ Premium status confirmed!');
             } else {
-                debug.warn('⚠️ Could not verify Premium status:', profileResponse.status);
-                // Continue anyway - let Spotify SDK handle it
+                debug.error('❌ Could not fetch Spotify profile. Status:', profileResponse.status);
+                const errorText = await profileResponse.text().catch(() => '');
+                debug.error('Error details:', errorText);
+
+                if (profileResponse.status === 403) {
+                    // 403 Forbidden - token doesn't have required scopes
+                    // User needs to disconnect and reconnect to grant updated permissions
+                    debug.error('🔒 Spotify API returned 403 Forbidden. This usually means:');
+                    debug.error('   1. The Spotify token lacks required scopes (user-read-email, user-read-private)');
+                    debug.error('   2. User needs to re-authorize to grant updated permissions');
+                    debug.error('   👉 Solution: Disconnect Spotify and connect again');
+
+                    showToast('Spotify permissions error. Please reconnect your Spotify account to grant updated permissions.', 'error');
+
+                    // Show the reconnect prompt with force_reauth
+                    showSpotifyConnectPrompt(true);
+                    return;
+                }
+
+                // Save minimal profile info - at least mark that they connected Spotify
+                try {
+                    const saveResponse = await authenticatedApiCall('/api/user/spotify-profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product: 'unknown',  // Mark as unknown since we couldn't fetch it
+                            id: null
+                        })
+                    });
+
+                    if (saveResponse.ok) {
+                        debug.log('✅ Saved minimal Spotify connection status');
+                    }
+                } catch (error) {
+                    debug.error('❌ Failed to save minimal Spotify info:', error);
+                }
+
+                // Don't continue with player initialization if we can't even read profile
+                showToast('Unable to verify Spotify account. Please try again.', 'error');
+                return;
             }
         } catch (error) {
             debug.warn('⚠️ Error checking Premium status:', error);

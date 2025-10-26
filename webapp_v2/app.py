@@ -989,9 +989,10 @@ def get_spotify_auth_url():
     """Get Spotify OAuth authorization URL"""
     try:
         user_id = g.user.get('email')
-        logger.info(f"User {user_id} requesting Spotify auth URL")
-        auth_url = spotify_auth.get_auth_url(user_id)
-        
+        force_reauth = request.args.get('force_reauth', 'false').lower() == 'true'
+        logger.info(f"User {user_id} requesting Spotify auth URL (force_reauth={force_reauth})")
+        auth_url = spotify_auth.get_auth_url(user_id, force_reauth=force_reauth)
+
         return jsonify({
             'success': True,
             'auth_url': auth_url
@@ -1300,29 +1301,35 @@ def update_spotify_profile():
         uid = g.user.get('uid')
         data = request.get_json()
 
+        if not data:
+            logger.warning(f"Empty request body for Spotify profile update from user {uid}")
+            return jsonify({'error': 'No data provided', 'success': False}), 400
+
         # Extract Spotify profile fields from request
         spotify_data = {
             'uid': uid
         }
 
         # Map Spotify API fields to our Firestore fields
-        if 'email' in data:
+        if 'email' in data and data['email']:
             spotify_data['spotify_email'] = data['email']
-        if 'product' in data:
+        if 'product' in data and data['product']:
             spotify_data['spotify_product'] = data['product']
-        if 'country' in data:
+        if 'country' in data and data['country']:
             spotify_data['spotify_country'] = data['country']
-        if 'display_name' in data:
+        if 'display_name' in data and data['display_name']:
             spotify_data['spotify_display_name'] = data['display_name']
-        if 'id' in data:
+        if 'id' in data and data['id']:
             spotify_data['spotify_id'] = data['id']
-        if 'uri' in data:
+        if 'uri' in data and data['uri']:
             spotify_data['spotify_uri'] = data['uri']
+
+        logger.info(f"Updating Spotify profile for user {uid} with data: {list(spotify_data.keys())}")
 
         # Update user in Firestore
         updated_user = user_service.create_or_update_user(spotify_data)
 
-        logger.info(f"✅ Updated Spotify profile for user {uid}")
+        logger.info(f"✅ Updated Spotify profile for user {uid} (product: {spotify_data.get('spotify_product', 'N/A')})")
 
         return jsonify({
             'success': True,
@@ -1330,7 +1337,7 @@ def update_spotify_profile():
         })
 
     except Exception as e:
-        logger.error(f"Error updating Spotify profile: {e}", exc_info=True)
+        logger.error(f"Error updating Spotify profile for user {g.user.get('uid')}: {e}", exc_info=True)
         return jsonify({'error': str(e), 'success': False}), 500
 
 
