@@ -76,12 +76,15 @@ class AuthService:
                 'locale': decoded_token.get('locale')
             }
 
+            logger.info(f"🔄 About to create/update user in Firestore with data: uid={user_data.get('uid')}, email={user_data.get('email')}, display_name={user_data.get('display_name')}, photo_url={bool(user_data.get('photo_url'))}")
+
             # Create or update user in Firestore
             try:
-                user_service.create_or_update_user(user_data)
+                result = user_service.create_or_update_user(user_data)
+                logger.info(f"✅ Successfully created/updated user profile in Firestore: {result.get('email') if result else 'None'}")
             except Exception as user_err:
                 # Log but don't fail authentication if user profile update fails
-                logger.error(f"Failed to update user profile: {user_err}", exc_info=True)
+                logger.error(f"❌ Failed to update user profile: {user_err}", exc_info=True)
 
             # Return user info for request context
             return {

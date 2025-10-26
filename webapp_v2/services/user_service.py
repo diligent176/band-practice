@@ -55,19 +55,25 @@ class UserService:
             existing_data = existing.to_dict()
 
             update_data = {
-                'email': user_data.get('email'),
-                'display_name': user_data.get('display_name') or user_data.get('name'),
-                'photo_url': user_data.get('photo_url') or user_data.get('picture'),
-                'email_verified': user_data.get('email_verified', False),
                 'last_login_at': now,
                 'updated_at': now
             }
+
+            # Only update fields if they have non-None values
+            if user_data.get('email'):
+                update_data['email'] = user_data.get('email')
+            if user_data.get('display_name') or user_data.get('name'):
+                update_data['display_name'] = user_data.get('display_name') or user_data.get('name')
+            if user_data.get('photo_url') or user_data.get('picture'):
+                update_data['photo_url'] = user_data.get('photo_url') or user_data.get('picture')
+            if 'email_verified' in user_data:
+                update_data['email_verified'] = user_data.get('email_verified', False)
 
             # Update locale if provided
             if 'locale' in user_data:
                 update_data['locale'] = user_data.get('locale')
 
-            # Update Spotify fields if provided
+            # Update Spotify fields if provided (only if they're present in user_data)
             spotify_fields = ['spotify_email', 'spotify_product', 'spotify_country',
                             'spotify_display_name', 'spotify_id', 'spotify_uri',
                             'spotify_profile_photo', 'spotify_followers', 'spotify_profile_url']
@@ -81,6 +87,8 @@ class UserService:
                 # Don't include is_admin in update_data - it's already in the document
                 # and update() won't remove it
                 pass
+
+            logger.info(f"📝 Updating user {uid} with data: email={update_data.get('email')}, display_name={update_data.get('display_name')}, photo_url={bool(update_data.get('photo_url'))}")
 
             doc_ref.update(update_data)
 
@@ -113,6 +121,8 @@ class UserService:
             for field in spotify_fields:
                 if field in user_data:
                     new_user_data[field] = user_data.get(field)
+
+            logger.info(f"📝 Creating new user {uid} with data: email={new_user_data.get('email')}, display_name={new_user_data.get('display_name')}, photo_url={bool(new_user_data.get('photo_url'))}")
 
             doc_ref.set(new_user_data)
 
