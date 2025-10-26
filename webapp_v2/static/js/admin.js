@@ -290,10 +290,12 @@ function renderUsersTable(users) {
                                 ${user.email_verified ? '<span class="badge verified" style="font-size: 10px; padding: 3px 6px;">Verified</span>' : '<span class="badge unverified" style="font-size: 10px; padding: 3px 6px;">Unverified</span>'}
                             </div>
                         </td>
-                        <td style="font-size: 12px; color: #8899a6; white-space: nowrap;">
+                        <td style="font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
+                            title="${formatDate(user.created_at)}">
                             ${formatDateCompact(user.created_at)}
                         </td>
-                        <td style="font-size: 12px; color: #8899a6; white-space: nowrap;">
+                        <td style="font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
+                            title="${formatDate(user.last_login_at)}">
                             ${formatDateCompact(user.last_login_at)}
                         </td>
                     </tr>
