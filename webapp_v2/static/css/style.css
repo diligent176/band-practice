@@ -1194,44 +1194,6 @@ header h1 i {
   white-space: nowrap;
 }
 
-/* Viewer Button Overrides - uses base.css .btn system */
-.btn {
-  padding: 3px 8px;
-  font-size: 11px;
-  border-radius: 3px;
-  gap: 4px;
-  border: 1px solid transparent;
-}
-
-.btn i {
-  font-size: 10px;
-}
-
-.btn-primary {
-  background: var(--accent-green-10);
-  border-color: var(--accent-green-25);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: var(--accent-green-15);
-  border-color: var(--accent-green-35);
-  transform: none;
-}
-
-.btn-primary i {
-  color: var(--accent-primary);
-}
-
-.btn-subtle {
-  background: var(--accent-green-08);
-  border: 1px solid var(--accent-green-20);
-}
-
-.btn-subtle:hover:not(:disabled) {
-  background: var(--accent-green-15);
-  border-color: var(--accent-green-35);
-}
-
 /* Main Container */
 .container {
   position: fixed;
@@ -2561,8 +2523,9 @@ header h1 i {
 .dialog-compact-input {
   display: flex;
   gap: 8px;
-  padding: 12px 16px 8px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border-color);
+  align-items: center;
 }
 
 .input-compact {
@@ -2892,39 +2855,6 @@ header h1 i {
   text-align: center;
   color: var(--text-muted);
   font-size: 13px;
-}
-
-/* Btn variants for playlist actions */
-.btn-link-playlist {
-  background: var(--accent-green-15);
-  color: var(--accent-primary);
-  border: 1px solid var(--accent-green-30);
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-link-playlist:hover {
-  background: var(--accent-green-25);
-  border-color: var(--accent-primary);
-}
-
-.btn-unlink-playlist {
-  background: rgba(255, 107, 107, 0.15);
-  color: var(--accent-error);
-  border: 1px solid rgba(255, 107, 107, 0.3);
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-unlink-playlist:hover {
-  background: rgba(255, 107, 107, 0.25);
-  border-color: var(--accent-error);
 }
 
 /* Large viewport scaling - make text and icons more readable */

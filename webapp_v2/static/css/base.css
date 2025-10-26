@@ -23,6 +23,16 @@
   --success: #17bf63;
   --info: #1da1f2;
 
+  /* Accent Green Shades (for subtle buttons/highlights) */
+  --accent-green-08: rgba(29, 185, 84, 0.08);
+  --accent-green-10: rgba(29, 185, 84, 0.10);
+  --accent-green-12: rgba(29, 185, 84, 0.12);
+  --accent-green-15: rgba(29, 185, 84, 0.15);
+  --accent-green-20: rgba(29, 185, 84, 0.20);
+  --accent-green-25: rgba(29, 185, 84, 0.25);
+  --accent-green-30: rgba(29, 185, 84, 0.30);
+  --accent-green-35: rgba(29, 185, 84, 0.35);
+
   /* Spacing */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -81,6 +91,12 @@ body {
   align-items: center;
   gap: var(--spacing-sm);
   white-space: nowrap;
+  color: var(--text-primary); /* Light font for dark theme */
+}
+
+/* Icons in buttons should be larger than text */
+.btn i {
+  font-size: 1.3em;
 }
 
 .btn:disabled {
@@ -115,6 +131,17 @@ body {
 
 .btn-danger:hover:not(:disabled) {
   background: #c01d4f;
+}
+
+.btn-subtle {
+  background: var(--accent-green-08);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-green-20);
+}
+
+.btn-subtle:hover:not(:disabled) {
+  background: var(--accent-green-15);
+  border-color: var(--accent-green-35);
 }
 
 .btn-small {
