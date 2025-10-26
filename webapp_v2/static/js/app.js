@@ -4432,6 +4432,8 @@ async function toggleAudioPlayback() {
         showToast('Playback error', 'error');
     }
 }
+// Expose to global scope for inline onclick handlers
+window.toggleAudioPlayback = toggleAudioPlayback;
 
 // Load a specific Spotify track in paused state (ready to play)
 async function loadSpotifyTrack(uri) {
@@ -4597,7 +4599,7 @@ function formatTime(ms) {
 // Restart the current track
 async function restartTrack() {
     if (!spotifyPlayer) return;
-    
+
     try {
         await spotifyPlayer.seek(0);
         showToast('⏮ Restarted', 'success');
@@ -4606,6 +4608,8 @@ async function restartTrack() {
         showToast('Failed to restart', 'error');
     }
 }
+// Expose to global scope for inline onclick handlers
+window.restartTrack = restartTrack;
 
 // Toggle mute on/off
 async function toggleMute() {
@@ -4658,6 +4662,8 @@ async function seekToPosition(percentage) {
         showToast('Failed to seek', 'error');
     }
 }
+// Expose to global scope for inline onchange handlers
+window.seekToPosition = seekToPosition;
 
 // Skip forward or backward by specified seconds
 async function skipSeconds(seconds) {
