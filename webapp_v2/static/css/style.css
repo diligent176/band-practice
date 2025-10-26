@@ -373,7 +373,7 @@ header {
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow);
-  padding: 0 6px;
+  padding: 0px 6px;
   z-index: 1000;
 }
 
@@ -1287,7 +1287,7 @@ header h1 i {
 
 /* Prominent buttons for Playlist/Song selector in header */
 .status-bar .btn-subtle {
-  padding: 2px 8px;
+  padding: 4px 8px;
   font-size: 10px;
   font-weight: 600;
   background: var(--accent-green-12);

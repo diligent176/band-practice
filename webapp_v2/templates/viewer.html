@@ -71,17 +71,6 @@
                         </button>
                     </div>
                 </div>
-                <div class="font-size-selector">
-                    <i class="fa-solid fa-text-height" title="Font Size"></i>
-                    <select id="font-size-select" class="font-size-select">
-                        <option value="small">Small</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="large">Large</option>
-                        <option value="xlarge">X-Large</option>
-                        <option value="xxlarge">XX-Large</option>
-                        <option value="xxxlarge">XXX-Large</option>
-                    </select>
-                </div>
                 <button id="fullscreen-toggle-btn" class="fullscreen-toggle-btn" title="Toggle Fullscreen (Alt+Enter)">
                     <i class="fa-solid fa-expand"></i>
                 </button>
@@ -127,11 +116,6 @@
                                 <div class="help-section">
                                     <div class="help-section-title">View</div>
                                     <div class="help-item">
-                                        <div class="help-keys"><kbd>Alt</kbd><kbd>Enter</kbd></div>
-                                        <i class="fa-solid fa-expand help-icon"></i>
-                                        <span>Toggle Fullscreen</span>
-                                    </div>
-                                    <div class="help-item">
                                         <div class="help-keys"><kbd>I</kbd></div>
                                         <i class="fa-solid fa-drum help-icon"></i>
                                         <span>Toggle BPM Indicator</span>
@@ -145,6 +129,11 @@
                                         <div class="help-keys"><kbd>R</kbd></div>
                                         <i class="fa-solid fa-left-right help-icon"></i>
                                         <span>Resize Panels</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Alt</kbd><kbd>Enter</kbd></div>
+                                        <i class="fa-solid fa-expand help-icon"></i>
+                                        <span>Toggle Fullscreen</span>
                                     </div>
                                     <div class="help-item">
                                         <div class="help-keys"><kbd>Alt</kbd><kbd>↑</kbd><kbd>↓</kbd></div>
@@ -212,6 +201,17 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="font-size-selector">
+                    <i class="fa-solid fa-text-height" title="Font Size"></i>
+                    <select id="font-size-select" class="font-size-select">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                        <option value="xlarge">X-Large</option>
+                        <option value="xxlarge">XX-Large</option>
+                        <option value="xxxlarge">XXX-Large</option>
+                    </select>
                 </div>
                 <div class="user-info" id="user-info-container">
                     <span id="user-email" class="user-email">Loading...</span>
