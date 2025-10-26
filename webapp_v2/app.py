@@ -1079,8 +1079,13 @@ def get_spotify_user_token():
     try:
         user_id = g.user.get('email')
         access_token = spotify_auth.get_user_token(user_id)
-        
+
         if access_token:
+            # Debug: Log token scopes for troubleshooting
+            token_data = spotify_auth.firestore.get_spotify_token(user_id)
+            if token_data:
+                logger.info(f"Spotify token for {user_id} has scopes: {token_data.get('scope', 'N/A')}")
+
             return jsonify({
                 'success': True,
                 'access_token': access_token

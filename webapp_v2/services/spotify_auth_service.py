@@ -158,35 +158,38 @@ class SpotifyAuthService:
     def refresh_token(self, user_id, refresh_token):
         """
         Refresh expired Spotify token
-        
+
         Args:
             user_id: User email
             refresh_token: Refresh token from previous authentication
-            
+
         Returns:
             dict: Updated token data or None if refresh failed
         """
         sp_oauth = SpotifyOAuth(
             client_id=os.getenv('SPOTIFY_CLIENT_ID'),
             client_secret=os.getenv('SPOTIFY_CLIENT_SECRET'),
-            redirect_uri=self.redirect_uri
+            redirect_uri=self.redirect_uri,
+            scope=self.scopes  # IMPORTANT: Include scopes to preserve permissions on refresh
         )
-        
+
         try:
             # Refresh the token
+            logger.info(f"Refreshing Spotify token for user {user_id} with scopes: {self.scopes}")
             token_info = sp_oauth.refresh_access_token(refresh_token)
-            
+
             # Save updated token
             self.save_user_token(user_id, token_info)
-            
+
             logger.info(f"Successfully refreshed token for user {user_id}")
-            
+            logger.info(f"Refreshed token has scopes: {token_info.get('scope', 'N/A')}")
+
             return {
                 'access_token': token_info['access_token'],
                 'refresh_token': token_info.get('refresh_token', refresh_token),  # Some refreshes don't return new refresh token
                 'expires_at': token_info['expires_at']
             }
-            
+
         except Exception as e:
             logger.error(f"Error refreshing token for user {user_id}: {e}")
             return None
