@@ -1,5 +1,4 @@
 /* Band Practice Pro - Modern Dark Theme */
-
 * {
   margin: 0;
   padding: 0;
@@ -204,23 +203,27 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-left: 8px;
-  padding: 2px 4px;
+  margin-left: 1px;
+  padding: 2px 2px;
   background: rgba(29, 185, 84, 0.06);
   border: 1px solid rgba(29, 185, 84, 0.12);
+  border: 1px solid rgba(29, 185, 84, 0.12);
   border-radius: 8px;
-  color: #1db954;
+  color: var(--accent-primary);
   text-decoration: none;
+  /* color: #1db954; */
+  /* font-size: 11px; */
+  /* cursor: pointer; */
+}
+
+.admin-indicator:hover {
+  background: rgba(29, 185, 84, 0.12);
 }
 
 .admin-indicator i {
   font-size: 12px;
   line-height: 1;
   display: block;
-}
-
-.admin-indicator:hover {
-  background: rgba(29, 185, 84, 0.12);
 }
 
 .auth-title-gradient {
@@ -1090,25 +1093,6 @@ header h1 i {
   transition: all 0.2s ease;
 }
 
-/* Tiny admin indicator next to username in header (viewer) */
-.admin-indicator {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 1px;
-  padding: 2px 2px;
-  font-size: 11px;
-  color: var(--accent-primary);
-  background: rgba(29, 185, 84, 0.06);
-  border: 1px solid rgba(29, 185, 84, 0.12);
-  border-radius: 10px;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.admin-indicator:hover {
-  background: rgba(29, 185, 84, 0.12);
-}
 
 .user-info:hover {
   background: #323232;
@@ -1357,7 +1341,6 @@ header h1 i {
   flex-shrink: 0;
 }
 
-/* Customization Badge in Main View - Minimal pencil icon */
 .customization-badge-main {
   display: inline-flex;
   align-items: center;
@@ -1375,7 +1358,6 @@ header h1 i {
   color: rgba(255, 152, 0, 0.9);
 }
 
-/* Song Metadata */
 .song-metadata {
   display: flex;
   flex-direction: row;

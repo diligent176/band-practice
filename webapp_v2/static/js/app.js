@@ -1480,6 +1480,8 @@ function highlightLines(noteBlock) {
     });
 }
 
+// Expose to global scope for inline onclick handlers in viewer.html
+window.highlightLines = highlightLines;
 function scrollIntoViewIfNeeded(element) {
     // Get the scrollable container (lyrics-content which is the panel-content)
     if (!lyricsContent || !element) {
