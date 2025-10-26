@@ -1353,7 +1353,7 @@ header h1 i {
 /* Main Container */
 .container {
   position: fixed;
-  top: 22px;
+  top: 23px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -1393,7 +1393,7 @@ header h1 i {
 
 /* Resize Handle */
 .resize-handle {
-  width: 4px;
+  width: 2px;
   cursor: col-resize;
   background: transparent;
   position: relative;
@@ -1429,8 +1429,8 @@ header h1 i {
   background: var(--bg-tertiary);
   display: flex;
   align-items: center;
-  min-height: 22px;
-  gap: 6px;
+  min-height: 24px;
+  gap: 8px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -3582,4 +3582,86 @@ header h1 i {
 .btn-unlink-playlist:hover {
   background: rgba(255, 107, 107, 0.25);
   border-color: var(--accent-error);
+}
+
+/* Large viewport scaling - make text and icons more readable */
+@media (min-width: 1600px) {
+
+  /* Adjust main container to account for taller header */
+  .container {
+    top: 34px;
+  }
+
+  /* Row 1 */
+  .status-bar .btn-subtle {
+    font-size: 14px;
+  }
+
+  .btn {
+    font-size: 15px;
+  }
+
+  header h1 {
+    font-size: 18px;
+  }
+
+  header h1 i {
+    font-size: 26px;
+  }
+
+  .font-size-select {
+    font-size: 12px;
+  }
+
+  .font-size-selector i {
+    font-size: 13px;
+  }
+
+  .fullscreen-toggle-btn i {
+    font-size: 14px;
+  }
+
+  .keyboard-shortcuts-help i {
+    font-size: 15px;
+  }
+
+  .user-email {
+    font-size: 13px;
+  }
+
+  .signout-icon {
+    font-size: 13px;
+  }
+
+  header {
+    padding: 3px 6px;
+  }
+
+  .panel-header h2 {
+    font-size: 17px;
+  }
+
+  .btn-icon {
+    font-size: 15px;
+  }
+
+  .btn-icon i {
+    font-size: 16px;
+  }
+
+  .metadata-item {
+    font-size: 15px;
+  }
+
+  .metadata-icon {
+    font-size: 14px;
+  }
+
+  .bpm-indicator-block {
+    font-size: 15px;
+  }
+
+  .status-message {
+    font-size: 13px;
+  }
 }
