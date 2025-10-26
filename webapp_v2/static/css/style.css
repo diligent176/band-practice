@@ -2913,8 +2913,6 @@ header h1 i {
     font-size: 17px;
   }
 
-  /* Make icon buttons a bit larger on very large viewports while keeping
-     vertical compactness by default */
   .btn-icon {
     font-size: 15px;
     width: 36px;
@@ -2924,7 +2922,7 @@ header h1 i {
   }
 
   .btn-icon i {
-    font-size: 16px;
+    font-size: 1.4em;
   }
 
   .metadata-item {

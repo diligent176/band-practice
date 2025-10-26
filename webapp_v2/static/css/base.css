@@ -1,7 +1,4 @@
-/* Base Styles - Shared across Admin and Viewer
- * Single source of truth for common UI patterns
- */
-
+/* Base Styles - Shared across Admin and Viewer */
 /* =========================================================================
    CSS VARIABLES - Design Tokens
    ========================================================================= */
@@ -162,11 +159,8 @@ body {
 }
 
 .btn-subtle {
-  /* Default button appearance: subtle green tint so most buttons look cohesive */
   background: var(--accent-green-08);
-  /* background: var(--bg-secondary); */
   color: var(--text-primary);
-  /* border-color: var(--accent-green-15); */
   border-color: var(--accent-green-12);
 }
 
