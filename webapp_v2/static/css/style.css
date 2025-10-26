@@ -199,7 +199,6 @@ body {
   line-height: 1.2;
 }
 
-
 /* tiny admin indicator shown in viewer header for admin users */
 .admin-indicator {
   display: inline-flex;
@@ -1130,13 +1129,20 @@ header h1 i {
   font-size: 9px;
   color: var(--text-primary);
   white-space: nowrap;
-  cursor: default;
+  cursor: pointer;
   height: 100%;
   display: flex;
   align-items: center;
   border: none;
   background: transparent;
   box-shadow: none;
+  transition: color 0.2s, background 0.2s;
+  border-radius: 4px;
+}
+
+.user-email:hover {
+  color: var(--accent-primary);
+  background: rgba(29, 185, 84, 0.1);
 }
 
 .signout-icon {
@@ -1188,166 +1194,42 @@ header h1 i {
   white-space: nowrap;
 }
 
-/* Buttons */
+/* Viewer Button Overrides - uses base.css .btn system */
 .btn {
   padding: 3px 8px;
-  border-radius: 3px;
   font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
+  border-radius: 3px;
   gap: 4px;
-  justify-content: center;
   border: 1px solid transparent;
-  box-sizing: border-box;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .btn i {
   font-size: 10px;
-  line-height: 1;
 }
 
 .btn-primary {
   background: var(--accent-green-10);
   border-color: var(--accent-green-25);
-  color: var(--text-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-green-15);
   border-color: var(--accent-green-35);
+  transform: none;
 }
 
 .btn-primary i {
   color: var(--accent-primary);
 }
 
-.btn-secondary {
-  background: rgba(68, 68, 68, 0.3);
-  border-color: rgba(68, 68, 68, 0.5);
-  color: var(--text-primary);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: rgba(68, 68, 68, 0.4);
-  border-color: rgba(68, 68, 68, 0.6);
-}
-
-.btn-secondary i {
-  color: var(--text-secondary);
-}
-
-.btn-small {
-  padding: 4px 8px;
-  font-size: 11px;
-}
-
-.btn-badge {
-  padding: 6px 12px;
-  background: var(--accent-green-10);
-  border: 1px solid var(--accent-green-25);
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.btn-badge:hover:not(:disabled) {
-  background: var(--accent-green-15);
-  border-color: var(--accent-green-35);
-}
-
-.btn-badge i {
-  color: var(--accent-primary);
-  font-size: 11px;
-}
-
 .btn-subtle {
   background: var(--accent-green-08);
-  border-color: var(--accent-green-20);
-  color: var(--text-primary);
+  border: 1px solid var(--accent-green-20);
 }
 
 .btn-subtle:hover:not(:disabled) {
   background: var(--accent-green-15);
   border-color: var(--accent-green-35);
-}
-
-.btn-subtle i {
-  color: var(--accent-primary);
-}
-
-/* Prominent buttons for Playlist/Song selector in header */
-.status-bar .btn-subtle {
-  padding: 4px 8px;
-  font-size: 10px;
-  font-weight: 600;
-  background: var(--accent-green-12);
-  border: 1px solid var(--accent-green-30);
-  flex-shrink: 0;
-}
-
-.status-bar .btn-subtle:hover:not(:disabled) {
-  background: var(--accent-green-20);
-  border-color: var(--accent-green-45);
-}
-
-.btn-icon {
-  padding: 2px 4px;
-  font-size: 11px;
-  min-width: auto;
-  border-radius: 3px;
-  background: var(--accent-green-04);
-  color: var(--text-primary);
-  border: 1px solid var(--accent-green-15);
-}
-
-.btn-icon:hover:not(:disabled) {
-  background: var(--accent-green-08);
-  border-color: var(--accent-green-25);
-}
-
-.btn-icon i {
-  color: rgba(29, 185, 84, 0.85);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.btn-icon .icon {
-  font-size: 12px;
-  margin: 0;
-}
-
-.btn-icon-danger {
-  background: rgba(204, 51, 51, 0.04);
-  border: 1px solid rgba(204, 51, 51, 0.12);
-}
-
-.btn-icon-danger:hover:not(:disabled) {
-  background: rgba(204, 51, 51, 0.15);
-  border-color: rgba(204, 51, 51, 0.4);
-}
-
-.btn-icon-danger i {
-  color: rgba(255, 107, 107, 0.5);
-  font-weight: 900;
-  transition: color 0.2s ease;
-}
-
-.btn-icon-danger:hover:not(:disabled) i {
-  color: var(--accent-error);
-}
-
-.icon {
-  font-size: 12px;
 }
 
 /* Main Container */
@@ -2100,130 +1982,6 @@ header h1 i {
   background: var(--text-muted);
 }
 
-/* Dialog Overlay */
-.dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9998;
-}
-
-.dialog {
-  background: var(--bg-tertiary);
-  padding: 30px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  min-width: 500px;
-  max-width: 600px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-}
-
-.dialog-medium {
-  background: var(--bg-tertiary);
-  padding: 12px 20px 20px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  width: 700px;
-  height: 90vh;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dialog h3 {
-  color: var(--accent-primary);
-  margin-bottom: 0;
-  font-size: 20px;
-}
-
-.dialog .input {
-  width: 100%;
-  padding: 12px 15px;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-
-.dialog .input[type="number"] {
-  color-scheme: dark;
-}
-
-.dialog .input:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
-}
-
-.dialog-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Large Dialog for Lyrics Editor */
-.dialog-large {
-  background: var(--bg-tertiary);
-  padding: 30px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  width: 1400px;
-  height: 85vh;
-  max-width: 95vw;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-/* Import dialog should be narrower than lyrics editor and responsive like dialog-medium */
-.dialog-import {
-  width: 700px;
-  max-width: 95vw;
-  height: auto;
-  max-height: 90vh;
-  padding: 12px 20px 20px 20px;
-  gap: 6px;
-}
-
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-  gap: 12px;
-}
-
-.dialog-header-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-/* Import dialog header has no title, just close button */
-.dialog-import .dialog-header {
-  justify-content: flex-end;
-  min-height: 0;
-  margin-bottom: 0;
-}
-
-.dialog-header h3 {
-  color: var(--accent-primary);
-  font-size: 20px;
-  margin: 0;
-  flex-shrink: 0;
-}
-
 .lyrics-editor-content {
   flex: 1;
   display: flex;
@@ -2395,88 +2153,6 @@ header h1 i {
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 10px;
-}
-
-.import-song-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  margin-bottom: 6px;
-  transition: all 0.2s;
-}
-
-.import-song-item:hover {
-  background: var(--bg-elevated);
-}
-
-.import-song-item.has-conflict {
-  /* Remove the yellow border - just use normal border */
-  border-color: var(--border-color);
-  background: var(--bg-tertiary);
-}
-
-.import-song-checkbox {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.import-song-art {
-  width: 50px;
-  height: 50px;
-  border-radius: 4px;
-  object-fit: cover;
-  background: var(--bg-primary);
-  flex-shrink: 0;
-}
-
-.import-song-art-placeholder {
-  width: 50px;
-  height: 50px;
-  border-radius: 4px;
-  background: var(--bg-primary);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-tertiary);
-  font-size: 20px;
-}
-
-.import-song-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.import-song-title {
-  font-weight: 500;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 14px;
-  margin-bottom: 2px;
-}
-
-.import-song-artist {
-  color: var(--text-secondary);
-  font-size: 11px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.import-song-artist i {
-  font-size: 10px;
-  opacity: 0.7;
 }
 
 .import-song-badges {
@@ -2732,10 +2408,70 @@ header h1 i {
     margin: 0 20px;
   }
 
-  .import-song-art {
-    width: 40px;
-    height: 40px;
-  }
+  
+}
+
+/* User List Dialog - uses base.css .user-card */
+.user-list-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.user-list-section-title {
+  color: var(--accent-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.community-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Spotify info section within user cards */
+.spotify-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+}
+
+.spotify-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.spotify-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.spotify-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-primary);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotify-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
 }
 
 /* Song Selector Dialog */
@@ -2769,92 +2505,10 @@ header h1 i {
   margin-bottom: 12px;
 }
 
-.song-search-input {
-  width: 100%;
-  padding: 10px 15px;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.song-search-input:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.2);
-}
-
-.song-selector-list {
-  flex: 1;
-  overflow-y: auto;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 2px;
-  display: block;
-}
-
-.song-selector-item {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 8px;
-  padding: 1px;
-  background: var(--bg-tertiary);
-  border: 1px solid transparent;
-  border-radius: 2px;
-  margin-bottom: 1px;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-height: 42px;
-}
-
-.song-selector-item:hover {
-  background: var(--bg-elevated);
-  border-color: var(--accent-primary);
-}
-
-.song-selector-item.selected {
-  background: var(--bg-elevated);
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
-}
-
-.song-selector-item-art {
-  width: 40px;
-  height: 100%;
-  min-height: 40px;
-  border-radius: 0;
-  object-fit: cover;
-  flex-shrink: 0;
-  background: var(--bg-primary);
-}
-
-.song-selector-item-art-placeholder {
-  width: 40px;
-  height: 100%;
-  min-height: 40px;
-  border-radius: 0;
-  flex-shrink: 0;
-  background: var(--bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: var(--text-muted);
-}
-
-.song-selector-item-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+/* Song Selector Overrides */
+.selector-item.song-item .selector-item-content {
+  padding: 4px 8px;
   gap: 12px;
-  padding-right: 32px;
-  /* Make room for trash icon */
 }
 
 .song-selector-item-main {
@@ -2864,25 +2518,6 @@ header h1 i {
   flex-direction: column;
   justify-content: center;
   gap: 2px;
-}
-
-.song-selector-item-title {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
-}
-
-.song-selector-item-artist {
-  color: var(--text-secondary);
-  font-size: 11px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
 }
 
 .song-selector-item-meta {
@@ -2895,6 +2530,7 @@ header h1 i {
   font-size: 11px;
   color: var(--text-secondary);
   line-height: 1.4;
+  padding-right: 32px;
 }
 
 .song-selector-item-meta-row {
@@ -2909,29 +2545,96 @@ header h1 i {
   color: var(--text-muted);
 }
 
-/* Collection Selector Styles */
-.collection-list {
+/* Trash icon positioning */
+.song-item-trash-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.song-item-trash-icon:hover {
+  color: var(--error);
+}
+
+.selector-item.song-item {
+  position: relative;
+}
+
+/* Collection Selector Overrides */
+.selector-item.collection-item .selector-item-content {
+  padding: 8px 12px;
+  gap: 12px;
+}
+
+.selector-item.collection-item.collection-active {
+  background: var(--accent-green-15);
+  border-color: var(--accent-primary);
+}
+
+.collection-main {
   flex: 1;
-  overflow-y: auto;
-  margin-bottom: 12px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.collection-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.collection-counts {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.collection-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.collection-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.collection-badge-owner {
+  background: var(--accent-green-15);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-green-30);
+}
+
+.collection-badge-collaborator {
+  background: rgba(100, 181, 246, 0.15);
+  color: #64B5F6;
+  border: 1px solid rgba(100, 181, 246, 0.3);
+}
+
+.collection-badge-readonly {
+  background: rgba(136, 136, 136, 0.15);
+  color: #888;
+  border: 1px solid rgba(136, 136, 136, 0.3);
+}
+
+.selector-item.collection-item .selector-item-actions {
+  flex-direction: column;
+  gap: 4px;
   padding-right: 8px;
-  padding-left: 2px;
-  /* Prevent left border clipping */
-}
-
-/* Custom scrollbar for collection list */
-.collection-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.collection-list::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-  border-radius: 3px;
-}
-
-.collection-list::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
 }
 
 .collection-list::-webkit-scrollbar-thumb:hover {
@@ -2959,27 +2662,6 @@ header h1 i {
 .collection-section-header .collection-badge {
   text-transform: none;
   margin-bottom: 1px;
-}
-
-.collection-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 8px;
-  min-height: 42px;
-  max-height: 42px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  margin-bottom: 3px;
-  position: relative;
-}
-
-.collection-item:hover {
-  background: var(--bg-tertiary);
-  border-color: var(--accent-green-35);
 }
 
 .collection-item.active {
@@ -3012,15 +2694,6 @@ header h1 i {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.collection-item-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
 }
 
 .collection-item-header {

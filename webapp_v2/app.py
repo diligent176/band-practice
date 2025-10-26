@@ -1290,11 +1290,52 @@ def get_current_user():
             'email': user.get('email'),
             'display_name': user.get('display_name'),
             'photo_url': user.get('photo_url'),
-            'is_admin': user.get('is_admin', False)
+            'is_admin': user.get('is_admin', False),
+            'created_at': user.get('created_at'),
+            'last_login_at': user.get('last_login_at'),
+            'spotify_display_name': user.get('spotify_display_name'),
+            'spotify_product': user.get('spotify_product'),
+            'spotify_profile_photo': user.get('spotify_profile_photo'),
+            'spotify_country': user.get('spotify_country')
         })
 
     except Exception as e:
         logger.error(f"Error getting user info: {e}", exc_info=True)
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/users/community', methods=['GET'])
+@require_auth
+def get_community_users():
+    """Get list of all users (excluding email addresses for privacy)"""
+    try:
+        # Get all users from the database
+        users = user_service.get_all_users(order_by='last_login_at', limit=1000)
+
+        # Filter out sensitive information (email addresses)
+        # Only include public profile information
+        community_users = []
+        for user in users:
+            community_users.append({
+                'uid': user.get('uid'),
+                'display_name': user.get('display_name'),
+                'photo_url': user.get('photo_url'),
+                'is_admin': user.get('is_admin', False),
+                'created_at': user.get('created_at'),
+                'last_login_at': user.get('last_login_at'),
+                'spotify_display_name': user.get('spotify_display_name'),
+                'spotify_product': user.get('spotify_product'),
+                'spotify_profile_photo': user.get('spotify_profile_photo'),
+                'spotify_country': user.get('spotify_country')
+            })
+
+        return jsonify({
+            'success': True,
+            'users': community_users
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting community users: {e}", exc_info=True)
         return jsonify({'error': str(e), 'success': False}), 500
 
 

@@ -2,6 +2,7 @@
 
 import { eventListenerFlags, registerDialogKeyboardHandler, unregisterDialogKeyboardHandler } from './dialogHelpers.js';
 import { registerDialogBackgroundClose, registerButtonListeners } from './uiHelpers.js';
+import './listNavigator.js'; // Import for side effects (adds ListNavigator to window)
 
 // Debug logging utility 
 // only logs in local dev or if debug flag is set in local storage
@@ -26,6 +27,7 @@ let songSelectorSortMode = localStorage.getItem('songSelectorSortMode') || 'name
 let filteredSongs = [];
 let selectedSongIndex = -1;
 let scrollDebounceTimer = null;
+let songNavigator = null; // Keyboard navigation for song selector
 
 // Collection management
 let currentCollection = null;
@@ -88,6 +90,11 @@ const confirmDialogTitle = document.getElementById('confirm-dialog-title');
 const confirmDialogMessage = document.getElementById('confirm-dialog-message');
 const confirmDialogConfirmBtn = document.getElementById('confirm-dialog-confirm-btn');
 const confirmDialogCancelBtn = document.getElementById('confirm-dialog-cancel-btn');
+
+const userListDialog = document.getElementById('user-list-dialog');
+const userListDialogClose = document.getElementById('user-list-dialog-close');
+const currentUserInfo = document.getElementById('current-user-info');
+const communityUsersList = document.getElementById('community-users-list');
 
 const bpmDialog = document.getElementById('bpm-dialog');
 const bpmDialogTitle = document.getElementById('bpm-dialog-title');
@@ -297,6 +304,9 @@ function setupEventListeners() {
     // Confirmation dialog close buttons
     confirmDialogCancelBtn.addEventListener('click', hideConfirmDialog);
 
+    // User list dialog close button
+    userListDialogClose.addEventListener('click', closeUserListDialog);
+
     // Use shared helper for dialog background click-to-close
     registerDialogBackgroundClose(songSelectorDialog, closeSongSelector);
     registerDialogBackgroundClose(lyricsEditorDialog, closeLyricsEditor);
@@ -307,6 +317,7 @@ function setupEventListeners() {
     registerDialogBackgroundClose(editCollectionDialog, closeEditCollectionDialog);
     registerDialogBackgroundClose(bpmDialog, closeBpmDialog);
     registerDialogBackgroundClose(bpmTapDialog, closeBpmTapTrainer);
+    registerDialogBackgroundClose(userListDialog, closeUserListDialog);
 
     toggleColumnsBtn.addEventListener('click', toggleColumns);
     fontSizeSelect.addEventListener('change', handleFontSizeChange);
@@ -956,7 +967,28 @@ async function openSongSelector() {
     // Render the song list from already-loaded songs
     filterSongsV2();
 
-    songSearchInput.focus();
+    // Initialize keyboard navigation
+    if (!songNavigator) {
+        songNavigator = new window.ListNavigator({
+            listContainer: songSelectorList,
+            itemSelector: '.selector-item',
+            selectedClass: 'selected',
+            searchInput: songSearchInput,
+            pageSize: 10,
+            onSelect: (index, item) => {
+                // Load the selected song
+                const songId = item.dataset.songId;
+                if (songId) {
+                    selectSong(songId);
+                }
+            },
+            onEscape: () => {
+                closeSongSelector();
+            }
+        });
+    }
+
+    songNavigator.init();
 
     // Add keyboard handler for song selector using shared helper
     registerDialogKeyboardHandler('songSelector', handleSongSelectorKeyboard);
@@ -967,7 +999,7 @@ async function openSongSelector() {
 
 function handleSongListClick(e) {
     // Find the clicked song item (could be the item itself or a child element)
-    const songItem = e.target.closest('.song-selector-item');
+    const songItem = e.target.closest('.selector-item');
     if (songItem && songItem.dataset.songId) {
         selectSong(songItem.dataset.songId);
     }
@@ -976,10 +1008,15 @@ function handleSongListClick(e) {
 function closeSongSelector() {
     songSelectorDialog.style.display = 'none';
     selectedSongIndex = -1;
-    
+
+    // Reset navigator
+    if (songNavigator) {
+        songNavigator.reset();
+    }
+
     // Remove keyboard handler using shared helper
     unregisterDialogKeyboardHandler('songSelector', handleSongSelectorKeyboard);
-    
+
     // Remove click delegation handler
     songSelectorList.removeEventListener('click', handleSongListClick);
 }
@@ -1070,14 +1107,14 @@ async function selectSong(songId) {
 function handleSongSelectorKeyboard(e) {
     // Only handle if song selector is visible
     if (songSelectorDialog.style.display !== 'flex') return;
-    
-    // ESC to close
-    if (e.key === 'Escape') {
-        e.preventDefault();
-        closeSongSelector();
+
+    // Let ListNavigator handle arrow keys, Page Up/Down, Home/End, Enter, Escape
+    if (songNavigator && songNavigator.handleKey(e)) {
+        // Update our internal index to match navigator
+        selectedSongIndex = songNavigator.getSelectedIndex();
         return;
     }
-    
+
     // Alt+T to cycle through sort modes (name → artist → playlist)
     if (e.altKey && (e.key === 't' || e.key === 'T')) {
         e.preventDefault();
@@ -1092,45 +1129,14 @@ function handleSongSelectorKeyboard(e) {
         showSortModeHint(songSelectorSortMode);
         return;
     }
-    
+
     // V2: Delete key to delete selected song
     if (e.key === 'Delete') {
         e.preventDefault();
-        if (selectedSongIndex >= 0 && selectedSongIndex < filteredSongs.length) {
-            const song = filteredSongs[selectedSongIndex];
+        const index = songNavigator.getSelectedIndex();
+        if (index >= 0 && index < filteredSongs.length) {
+            const song = filteredSongs[index];
             deleteSongWithConfirm(song.id);
-        }
-        return;
-    }
-    
-    // Arrow keys for navigation
-    if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (selectedSongIndex < filteredSongs.length - 1) {
-            selectedSongIndex++;
-            updateSongListSelection();
-        }
-        return;
-    }
-    
-    if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        if (selectedSongIndex > 0) {
-            selectedSongIndex--;
-            updateSongListSelection();
-        } else if (selectedSongIndex === -1 && filteredSongs.length > 0) {
-            selectedSongIndex = 0;
-            updateSongListSelection();
-        }
-        return;
-    }
-    
-    // Enter to select
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        if (selectedSongIndex >= 0 && selectedSongIndex < filteredSongs.length) {
-            const song = filteredSongs[selectedSongIndex];
-            selectSong(song.id);
         }
         return;
     }
@@ -1138,13 +1144,13 @@ function handleSongSelectorKeyboard(e) {
 
 function updateSongListSelection() {
     // Remove all selected classes
-    document.querySelectorAll('.song-selector-item').forEach(item => {
+    document.querySelectorAll('.selector-item').forEach(item => {
         item.classList.remove('selected');
     });
 
     // Add selected class to current index
     if (selectedSongIndex >= 0) {
-        const items = document.querySelectorAll('.song-selector-item');
+        const items = document.querySelectorAll('.selector-item');
         if (items[selectedSongIndex]) {
             items[selectedSongIndex].classList.add('selected');
 
@@ -2199,6 +2205,208 @@ function handleConfirmDialogKeyboard(e) {
         return;
     }
 }
+
+//=============================================================================
+// User List Dialog Functions
+//=============================================================================
+
+async function showUserListDialog() {
+    userListDialog.style.display = 'flex';
+
+    // Load current user data
+    try {
+        currentUserInfo.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner"></i> Loading...</div>';
+
+        const response = await authenticatedApiCall('/api/user');
+        const data = await response.json();
+
+        if (data.success && data.uid) {
+            renderCurrentUser(data);
+        } else {
+            currentUserInfo.innerHTML = '<div class="error">Failed to load user info</div>';
+        }
+    } catch (error) {
+        debug.error('Error loading current user:', error);
+        currentUserInfo.innerHTML = '<div class="error">Error loading user info</div>';
+    }
+
+    // Load community users
+    try {
+        communityUsersList.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner"></i> Loading community...</div>';
+
+        const response = await authenticatedApiCall('/api/users/community');
+        const data = await response.json();
+
+        if (data.success && data.users) {
+            renderCommunityUsers(data.users);
+        } else {
+            communityUsersList.innerHTML = '<div class="error">Failed to load community users</div>';
+        }
+    } catch (error) {
+        debug.error('Error loading community users:', error);
+        communityUsersList.innerHTML = '<div class="error">Error loading community users</div>';
+    }
+
+    // Add keyboard shortcuts
+    if (!eventListenerFlags.userListDialog) {
+        document.addEventListener('keydown', handleUserListDialogKeyboard, true);
+        eventListenerFlags.userListDialog = true;
+    }
+}
+
+function closeUserListDialog() {
+    userListDialog.style.display = 'none';
+
+    // Remove keyboard shortcuts
+    if (eventListenerFlags.userListDialog) {
+        document.removeEventListener('keydown', handleUserListDialogKeyboard, true);
+        eventListenerFlags.userListDialog = false;
+    }
+}
+
+function handleUserListDialogKeyboard(e) {
+    // Only handle if dialog is visible
+    if (userListDialog.style.display !== 'flex') return;
+
+    // ESC to close
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeUserListDialog();
+        return;
+    }
+}
+
+function renderCurrentUser(user) {
+    const photoUrl = user.photo_url || user.spotify_profile_photo;
+    const displayName = user.display_name || user.spotify_display_name || 'User';
+
+    let html = `
+        <div class="user-card user-card-current">
+            ${photoUrl
+                ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
+                : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
+            }
+            <div class="user-details">
+                <div class="user-name">${escapeHtml(displayName)}</div>
+                <div class="user-email">${escapeHtml(user.email || 'No email')}</div>
+                <div class="user-meta">
+                    ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                    ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                    ${user.created_at ? `<span class="user-info-item"><i class="fa-solid fa-calendar-plus"></i> Joined ${formatDateCompact(user.created_at)}</span>` : ''}
+                    ${user.last_login_at ? `<span class="user-info-item"><i class="fa-solid fa-clock"></i> Active ${formatDateCompact(user.last_login_at)}</span>` : ''}
+                </div>
+                ${user.spotify_display_name ? renderSpotifyInfo(user) : ''}
+            </div>
+        </div>
+    `;
+
+    currentUserInfo.innerHTML = html;
+}
+
+function renderCommunityUsers(users) {
+    // Filter out the current user from the community list
+    const currentUserUid = firebase.auth().currentUser?.uid;
+    const otherUsers = users.filter(u => u.uid !== currentUserUid);
+
+    if (otherUsers.length === 0) {
+        communityUsersList.innerHTML = `
+            <div class="empty-state">
+                <p style="color: var(--text-secondary); text-align: center; padding: 20px;">No other users yet. You're the first!</p>
+            </div>
+        `;
+        return;
+    }
+
+    const html = otherUsers.map(user => {
+        const photoUrl = user.photo_url || user.spotify_profile_photo;
+        const displayName = user.display_name || user.spotify_display_name || 'Anonymous User';
+
+        return `
+            <div class="user-card">
+                ${photoUrl
+                    ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
+                    : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
+                }
+                <div class="user-details">
+                    <div class="user-name">${escapeHtml(displayName)}</div>
+                    <div class="user-meta">
+                        ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                        ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                        ${user.created_at ? `<span class="user-info-item"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
+                        ${user.last_login_at ? `<span class="user-info-item"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
+                    </div>
+                    ${user.spotify_display_name ? renderSpotifyInfo(user) : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    communityUsersList.innerHTML = html;
+}
+
+function renderSpotifyInfo(user) {
+    if (!user.spotify_display_name) return '';
+
+    const spotifyPhoto = user.spotify_profile_photo;
+
+    return `
+        <div class="spotify-info">
+            ${spotifyPhoto
+                ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="spotify-photo" onerror="this.style.display='none'">`
+                : `<div class="spotify-photo" style="background: #282828; display: flex; align-items: center; justify-content: center;"><i class="fa-brands fa-spotify" style="color: #1db954; font-size: 20px;"></i></div>`
+            }
+            <div class="spotify-details">
+                <div class="spotify-name">${escapeHtml(user.spotify_display_name)}</div>
+                <div class="spotify-meta">
+                    ${user.spotify_country ? `${escapeHtml(user.spotify_country)}` : ''}
+                    ${user.spotify_product ? ` • ${escapeHtml(user.spotify_product)}` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function formatDateCompact(dateStr) {
+    if (!dateStr) return '—';
+
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '—';
+
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        // If today, show time only
+        if (diffDays === 0) {
+            return date.toLocaleString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        // If this year, show month and day
+        if (date.getFullYear() === now.getFullYear()) {
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Otherwise show year
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            year: 'numeric'
+        });
+    } catch (error) {
+        return '—';
+    }
+}
+
+// Export showUserListDialog to window for use in viewer.html
+window.showUserListDialog = showUserListDialog;
 
 //=============================================================================
 // BPM Dialog Functions
@@ -3262,14 +3470,14 @@ function highlightCollectionItem(index) {
     selectedCollectionIndex = index;
 
     // Remove highlight from all items
-    document.querySelectorAll('.collection-item').forEach(item => {
-        item.classList.remove('highlighted');
+    document.querySelectorAll('.selector-item.collection-item').forEach(item => {
+        item.classList.remove('selected');
     });
 
     // Add highlight to selected item
-    const items = document.querySelectorAll('.collection-item');
+    const items = document.querySelectorAll('.selector-item.collection-item');
     if (items[index]) {
-        items[index].classList.add('highlighted');
+        items[index].classList.add('selected');
         items[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
@@ -3277,7 +3485,7 @@ function highlightCollectionItem(index) {
 // Helper function to render a single collection item
 function renderCollectionItem(collection, index, section = 'yours') {
     const isActive = currentCollection && collection.id === currentCollection.id;
-    const activeClass = isActive ? 'active' : '';
+    const activeClass = isActive ? 'collection-active' : '';
     const canEdit = collection.name !== 'Default';
     const playlistCount = collection.playlist_count || 0;
     const songCount = collection.song_count || 0;
@@ -3321,27 +3529,27 @@ function renderCollectionItem(collection, index, section = 'yours') {
     let actionButtonsHtml = '';
     if (isOwner) {
         actionButtonsHtml = `
-            <div class="collection-item-actions">
-                <button class="collection-item-edit" data-collection-id="${collection.id}" title="Edit collection settings"><i class="fa-solid fa-gear"></i></button>
-                ${canEdit ? `<button class="collection-item-delete" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Del)"><i class="fa-solid fa-trash"></i></button>` : ''}
-            </div>
+            <button class="btn btn-small btn-secondary collection-item-edit" data-collection-id="${collection.id}" title="Edit collection settings"><i class="fa-solid fa-gear"></i></button>
+            ${canEdit ? `<button class="btn btn-small btn-secondary collection-item-delete" data-collection-id="${collection.id}" data-collection-name="${escapeHtml(collection.name)}" title="Delete collection (Del)"><i class="fa-solid fa-trash"></i></button>` : ''}
         `;
     }
 
     return `
-        <div class="collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
-            <div class="collection-item-icon">
+        <div class="selector-item collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
+            <div class="selector-item-art-placeholder">
                 ${imageHtml}
             </div>
-            <div class="collection-item-info">
-                <div class="collection-item-header">
-                    <span class="collection-item-name">${escapeHtml(collection.name)}</span>
-                    <span class="collection-item-counts">${countText}</span>
+            <div class="selector-item-content collection-content">
+                <div class="collection-main">
+                    <div class="selector-item-title">${escapeHtml(collection.name)}</div>
+                    ${collection.description ? `<div class="selector-item-subtitle">${escapeHtml(collection.description)}</div>` : ''}
                 </div>
-                ${collection.description ? `<div class="collection-item-description">${escapeHtml(collection.description)}</div>` : ''}
+                <div class="collection-meta">
+                    <span class="collection-counts">${countText}</span>
+                    ${badgesHtml ? `<div class="collection-badges">${badgesHtml}</div>` : ''}
+                </div>
             </div>
-            ${badgesHtml ? `<div class="collection-item-badges">${badgesHtml}</div>` : ''}
-            ${actionButtonsHtml}
+            ${actionButtonsHtml ? `<div class="selector-item-actions">${actionButtonsHtml}</div>` : ''}
         </div>
     `;
 }
@@ -5355,6 +5563,11 @@ function filterSongsV2() {
         // playlist sort maintains backend order
 
         renderSongListV2();
+
+        // Reset navigator selection when list changes
+        if (songNavigator) {
+            songNavigator.reset();
+        }
     } catch (error) {
         debug.error('❌ Error in filterSongsV2:', error);
     }
@@ -5440,8 +5653,8 @@ function renderSongListV2() {
 function renderSongItem(song, index) {
     const selectedClass = index === selectedSongIndex ? 'selected' : '';
     const albumArtHtml = song.album_art_url
-        ? `<img src="${escapeHtml(song.album_art_url)}" alt="Album art" class="song-selector-item-art">`
-        : `<div class="song-selector-item-art-placeholder">🎵</div>`;
+        ? `<img src="${escapeHtml(song.album_art_url)}" alt="Album art" class="selector-item-art">`
+        : `<div class="selector-item-art-placeholder">🎵</div>`;
 
     // Format BPM display with manual indicator if applicable
     let bpmDisplay = song.bpm || 'N/A';
@@ -5466,12 +5679,12 @@ function renderSongItem(song, index) {
         `;
     }
     return `
-        <div class="song-selector-item song-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
+        <div class="selector-item song-item ${selectedClass}" data-song-index="${index}" data-song-id="${song.id}">
             ${albumArtHtml}
-            <div class="song-selector-item-info">
+            <div class="selector-item-content">
                 <div class="song-selector-item-main">
-                    <div class="song-selector-item-title">${escapeHtml(song.title)}</div>
-                    <div class="song-selector-item-artist"><i class="fa-solid fa-microphone"></i> ${escapeHtml(song.artist)}</div>
+                    <div class="selector-item-title">${escapeHtml(song.title)}</div>
+                    <div class="selector-item-subtitle"><i class="fa-solid fa-microphone"></i> ${escapeHtml(song.artist)}</div>
                 </div>
                 <div class="song-selector-item-meta">
                     <div class="song-selector-item-meta-row"><i class="fa-solid fa-compact-disc"></i> ${escapeHtml(song.album || 'N/A')}</div>

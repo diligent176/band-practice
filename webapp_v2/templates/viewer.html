@@ -11,8 +11,9 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -331,7 +332,7 @@ END: Third repetition of chorus is acapella"></textarea>
                     <button id="collection-dialog-close" class="btn btn-small btn-secondary">✕</button>
                 </div>
                 <div class="collection-selector-content">
-                    <div id="collection-list" class="collection-list">
+                    <div id="collection-list" class="selector-list">
                         <div class="empty-state"><p>Loading collections...</p></div>
                     </div>
                 </div>
@@ -550,10 +551,10 @@ END: Third repetition of chorus is acapella"></textarea>
                         <button id="song-selector-close" class="btn btn-small btn-secondary">✕</button>
                     </div>
                 </div>
-                <div class="song-selector-search">
-                    <input type="text" id="song-search-input" class="song-search-input" placeholder="Type to filter songs..." autocomplete="off">
+                <div>
+                    <input type="text" id="song-search-input" class="selector-search" placeholder="Type to filter songs..." autocomplete="off">
                 </div>
-                <div id="song-selector-list" class="song-selector-list">
+                <div id="song-selector-list" class="selector-list">
                     <div class="empty-state"><p>Loading songs...</p></div>
                 </div>
             </div>
@@ -571,6 +572,33 @@ END: Third repetition of chorus is acapella"></textarea>
                     <button id="confirm-dialog-confirm-btn" class="btn btn-primary">
                         <i class="fa-solid fa-check"></i> Confirm
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- User List Dialog -->
+        <div id="user-list-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog-medium">
+                <div class="dialog-header">
+                    <h3><i class="fa-solid fa-users"></i> Community</h3>
+                    <button id="user-list-dialog-close" class="btn btn-small btn-secondary">✕</button>
+                </div>
+                <div class="user-list-content">
+                    <!-- Current User Section -->
+                    <div>
+                        <h4 class="user-list-section-title">You</h4>
+                        <div id="current-user-info">
+                            <div class="loading"><i class="fa-solid fa-spinner"></i> Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Community Section -->
+                    <div>
+                        <h4 class="user-list-section-title">Community</h4>
+                        <div id="community-users-list" class="community-users-list">
+                            <div class="loading"><i class="fa-solid fa-spinner"></i> Loading...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -777,7 +805,15 @@ END: Third repetition of chorus is acapella"></textarea>
                         console.log('Step E: Hiding auth gate, showing main app');
                         document.getElementById('auth-gate').style.display = 'none';
                         document.getElementById('main-app').style.display = 'block';
-                        document.getElementById('user-email').textContent = user.email;
+                        const userEmailEl = document.getElementById('user-email');
+                        userEmailEl.textContent = user.email;
+
+                        // Make user email clickable to open community dialog
+                        userEmailEl.addEventListener('click', () => {
+                            if (window.showUserListDialog) {
+                                window.showUserListDialog();
+                            }
+                        });
 
                         // If the server reports this user is an admin, add a tiny admin link next to the email
                         try {

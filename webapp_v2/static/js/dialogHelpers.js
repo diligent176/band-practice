@@ -12,7 +12,8 @@ export const eventListenerFlags = {
     confirmDialog: false,
     collectionDialog: false,
     newCollectionDialog: false,
-    editCollectionDialog: false
+    editCollectionDialog: false,
+    userListDialog: false
 };
 
 // Register dialog-level keyboard handler (prevents duplicate listeners)
