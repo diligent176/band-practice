@@ -234,50 +234,68 @@ function renderUsersTable(users) {
         <table>
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Status</th>
-                    <th>Spotify</th>
-                    <th>Created</th>
-                    <th>Last Login</th>
+                    <th style="width: 30%;">User</th>
+                    <th style="width: 35%;">Spotify Account</th>
+                    <th style="width: 12%;">Status</th>
+                    <th style="width: 11%;">Created</th>
+                    <th style="width: 12%;">Last Login</th>
                 </tr>
             </thead>
             <tbody>
                 ${users.map(user => `
                     <tr>
                         <td>
-                            <div class="user-cell">
-                                <img src="${user.photo_url || ''}" alt="${user.display_name || 'User'}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath fill=%22%23666%22 d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22/%3E%3C/svg%3E'">
-                                <div class="user-details">
-                                    <div class="user-name">${escapeHtml(user.display_name || 'Unknown')}</div>
-                                    <div class="user-email">${escapeHtml(user.email || '')}</div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="${user.photo_url || ''}"
+                                     alt="${user.display_name || 'User'}"
+                                     style="width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;"
+                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath fill=%22%23666%22 d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22/%3E%3C/svg%3E'">
+                                <div style="min-width: 0; flex: 1;">
+                                    <div style="font-weight: 600; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${escapeHtml(user.display_name || 'Unknown')}
+                                    </div>
+                                    <div style="color: #8899a6; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${escapeHtml(user.email || '')}
+                                    </div>
                                 </div>
                             </div>
-                        </td>
-                        <td>
-                            ${user.is_admin ? '<span class="badge admin">Admin</span>' : ''}
-                            ${user.email_verified ? '<span class="badge verified">Verified</span>' : '<span class="badge unverified">Unverified</span>'}
                         </td>
                         <td>
                             ${user.spotify_product ? `
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     ${user.spotify_profile_photo ? `
                                         <img src="${escapeHtml(user.spotify_profile_photo)}"
-                                             alt="Spotify profile"
-                                             style="width: 32px; height: 32px; border-radius: 50%;"
+                                             alt="Spotify"
+                                             style="width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;"
                                              onerror="this.style.display='none'">
-                                    ` : ''}
-                                    <div style="font-size: 12px;">
-                                        ${user.spotify_display_name ? `<div><strong>${escapeHtml(user.spotify_display_name)}</strong></div>` : ''}
-                                        <div><span class="badge" style="background: ${user.spotify_product === 'premium' ? '#1db954' : '#535353'};">${escapeHtml(user.spotify_product)}</span></div>
-                                        ${user.spotify_email ? `<div style="color: #8899a6;">${escapeHtml(user.spotify_email)}</div>` : ''}
-                                        ${user.spotify_country ? `<div style="color: #8899a6;">📍 ${escapeHtml(user.spotify_country)}</div>` : ''}
-                                        ${user.spotify_followers !== undefined ? `<div style="color: #8899a6;">👥 ${user.spotify_followers} followers</div>` : ''}
+                                    ` : `<div style="width: 32px; height: 32px; border-radius: 50%; background: #282828; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-brands fa-spotify" style="color: #1db954; font-size: 16px;"></i></div>`}
+                                    <div style="min-width: 0; flex: 1;">
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                            ${user.spotify_display_name ? `<span style="font-weight: 500; font-size: 13px; color: #fff;">${escapeHtml(user.spotify_display_name)}</span>` : ''}
+                                            <span class="badge" style="background: ${user.spotify_product === 'premium' ? '#1db954' : '#535353'}; padding: 2px 6px; font-size: 10px; text-transform: uppercase;">
+                                                ${escapeHtml(user.spotify_product)}
+                                            </span>
+                                        </div>
+                                        <div style="color: #8899a6; font-size: 11px; line-height: 1.4;">
+                                            ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                                            ${user.spotify_followers !== undefined ? `<span style="margin-left: ${user.spotify_country ? '8px' : '0'};">👥 ${user.spotify_followers}</span>` : ''}
+                                        </div>
                                     </div>
                                 </div>
-                            ` : '<span style="color: #8899a6;">Not connected</span>'}
+                            ` : '<span style="color: #535353; font-size: 12px;">—</span>'}
                         </td>
-                        <td class="timestamp">${formatDate(user.created_at)}</td>
-                        <td class="timestamp">${formatDate(user.last_login_at)}</td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                ${user.is_admin ? '<span class="badge admin" style="font-size: 10px; padding: 3px 6px;">Admin</span>' : ''}
+                                ${user.email_verified ? '<span class="badge verified" style="font-size: 10px; padding: 3px 6px;">Verified</span>' : '<span class="badge unverified" style="font-size: 10px; padding: 3px 6px;">Unverified</span>'}
+                            </div>
+                        </td>
+                        <td style="font-size: 12px; color: #8899a6; white-space: nowrap;">
+                            ${formatDateCompact(user.created_at)}
+                        </td>
+                        <td style="font-size: 12px; color: #8899a6; white-space: nowrap;">
+                            ${formatDateCompact(user.last_login_at)}
+                        </td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -394,7 +412,50 @@ function formatChanges(changes) {
 }
 
 /**
- * Format date/timestamp for display
+ * Format date/timestamp for display (compact version)
+ */
+function formatDateCompact(dateStr) {
+    if (!dateStr) return '—';
+
+    try {
+        const date = new Date(dateStr);
+
+        // Check if date is valid
+        if (isNaN(date.getTime())) return '—';
+
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        // If today, show time only
+        if (diffDays === 0) {
+            return date.toLocaleString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        // If this year, show month and day
+        if (date.getFullYear() === now.getFullYear()) {
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Otherwise show year
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            year: 'numeric'
+        });
+    } catch (error) {
+        return '—';
+    }
+}
+
+/**
+ * Format date/timestamp for display (full version)
  */
 function formatDate(dateStr) {
     if (!dateStr) return '-';
