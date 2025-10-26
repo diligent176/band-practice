@@ -4097,7 +4097,9 @@ async function initializeSpotifyPlayer() {
                 debug.log('📋 Spotify account info:', {
                     email: profile.email,
                     product: profile.product,
-                    country: profile.country
+                    country: profile.country,
+                    display_name: profile.display_name,
+                    followers: profile.followers?.total
                 });
 
                 // Save Spotify profile to Firestore user record
@@ -4113,7 +4115,10 @@ async function initializeSpotifyPlayer() {
                             country: profile.country,
                             display_name: profile.display_name,
                             id: profile.id,
-                            uri: profile.uri
+                            uri: profile.uri,
+                            images: profile.images,
+                            followers: profile.followers,
+                            external_urls: profile.external_urls
                         })
                     });
 

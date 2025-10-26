@@ -259,10 +259,20 @@ function renderUsersTable(users) {
                         </td>
                         <td>
                             ${user.spotify_product ? `
-                                <div style="font-size: 12px;">
-                                    <div><strong>${escapeHtml(user.spotify_product)}</strong></div>
-                                    ${user.spotify_email ? `<div style="color: #8899a6;">${escapeHtml(user.spotify_email)}</div>` : ''}
-                                    ${user.spotify_country ? `<div style="color: #8899a6;">${escapeHtml(user.spotify_country)}</div>` : ''}
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    ${user.spotify_profile_photo ? `
+                                        <img src="${escapeHtml(user.spotify_profile_photo)}"
+                                             alt="Spotify profile"
+                                             style="width: 32px; height: 32px; border-radius: 50%;"
+                                             onerror="this.style.display='none'">
+                                    ` : ''}
+                                    <div style="font-size: 12px;">
+                                        ${user.spotify_display_name ? `<div><strong>${escapeHtml(user.spotify_display_name)}</strong></div>` : ''}
+                                        <div><span class="badge" style="background: ${user.spotify_product === 'premium' ? '#1db954' : '#535353'};">${escapeHtml(user.spotify_product)}</span></div>
+                                        ${user.spotify_email ? `<div style="color: #8899a6;">${escapeHtml(user.spotify_email)}</div>` : ''}
+                                        ${user.spotify_country ? `<div style="color: #8899a6;">📍 ${escapeHtml(user.spotify_country)}</div>` : ''}
+                                        ${user.spotify_followers !== undefined ? `<div style="color: #8899a6;">👥 ${user.spotify_followers} followers</div>` : ''}
+                                    </div>
                                 </div>
                             ` : '<span style="color: #8899a6;">Not connected</span>'}
                         </td>

@@ -69,7 +69,8 @@ class UserService:
 
             # Update Spotify fields if provided
             spotify_fields = ['spotify_email', 'spotify_product', 'spotify_country',
-                            'spotify_display_name', 'spotify_id', 'spotify_uri']
+                            'spotify_display_name', 'spotify_id', 'spotify_uri',
+                            'spotify_profile_photo', 'spotify_followers', 'spotify_profile_url']
             for field in spotify_fields:
                 if field in user_data:
                     update_data[field] = user_data.get(field)
@@ -107,7 +108,8 @@ class UserService:
 
             # Add Spotify fields if provided
             spotify_fields = ['spotify_email', 'spotify_product', 'spotify_country',
-                            'spotify_display_name', 'spotify_id', 'spotify_uri']
+                            'spotify_display_name', 'spotify_id', 'spotify_uri',
+                            'spotify_profile_photo', 'spotify_followers', 'spotify_profile_url']
             for field in spotify_fields:
                 if field in user_data:
                     new_user_data[field] = user_data.get(field)

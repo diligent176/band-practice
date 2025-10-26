@@ -1329,6 +1329,18 @@ def update_spotify_profile():
         if 'uri' in data and data['uri']:
             spotify_data['spotify_uri'] = data['uri']
 
+        # Extract profile photo (first image in the images array)
+        if 'images' in data and data['images'] and len(data['images']) > 0:
+            spotify_data['spotify_profile_photo'] = data['images'][0].get('url')
+
+        # Extract follower count
+        if 'followers' in data and data['followers']:
+            spotify_data['spotify_followers'] = data['followers'].get('total', 0)
+
+        # Extract Spotify profile URL
+        if 'external_urls' in data and data['external_urls']:
+            spotify_data['spotify_profile_url'] = data['external_urls'].get('spotify')
+
         logger.info(f"Updating Spotify profile for user {uid} with data: {list(spotify_data.keys())}")
 
         # Update user in Firestore
