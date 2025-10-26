@@ -80,78 +80,99 @@ body {
    ========================================================================= */
 
 .btn {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border: none;
-  border-radius: var(--radius-pill);
-  font-size: 14px;
-  font-weight: 600;
+  padding: 6px 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 8px;
   white-space: nowrap;
-  color: var(--text-primary); /* Light font for dark theme */
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
 }
 
 /* Icons in buttons should be larger than text */
 .btn i {
-  font-size: 1.3em;
+  font-size: 1.4em;
+  transition: transform 0.15s ease;
+}
+
+.btn:hover:not(:disabled) i {
+  transform: scale(1.08);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 /* Button Variants */
 .btn-primary {
-  background: var(--accent-primary);
-  color: #000;
+  background: linear-gradient(135deg, var(--accent-green-15) 0%, var(--accent-green-10) 100%);
+  color: var(--text-primary);
+  border-color: var(--accent-green-25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: linear-gradient(135deg, var(--accent-green-20) 0%, var(--accent-green-15) 100%);
+  border-color: var(--accent-green-35);
+  box-shadow: 0 2px 6px rgba(29, 185, 84, 0.15);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
   background: var(--bg-tertiary);
   color: var(--text-primary);
+  border-color: var(--border-color);
 }
 
 .btn-secondary:hover:not(:disabled) {
   background: var(--bg-elevated);
+  border-color: var(--accent-green-20);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .btn-danger {
-  background: var(--error);
-  color: white;
+  background: rgba(224, 36, 94, 0.12);
+  color: #ff6b6b;
+  border-color: rgba(224, 36, 94, 0.25);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #c01d4f;
+  background: rgba(224, 36, 94, 0.18);
+  border-color: rgba(224, 36, 94, 0.4);
+  box-shadow: 0 1px 4px rgba(224, 36, 94, 0.2);
 }
 
 .btn-subtle {
-  background: var(--accent-green-08);
+  background: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--accent-green-20);
+  border-color: var(--accent-green-15);
 }
 
 .btn-subtle:hover:not(:disabled) {
-  background: var(--accent-green-15);
-  border-color: var(--accent-green-35);
+  background: linear-gradient(135deg, var(--accent-green-12) 0%, var(--accent-green-08) 100%);
+  border-color: var(--accent-green-25);
+  box-shadow: 0 1px 3px rgba(29, 185, 84, 0.1);
 }
 
 .btn-small {
-  padding: var(--spacing-xs) var(--spacing-md);
+  padding: 4px 12px;
   font-size: 12px;
 }
 
 .btn-icon-only {
-  padding: var(--spacing-sm);
-  border-radius: 50%;
+  padding: 6px;
+  border-radius: 4px;
+  aspect-ratio: 1;
+  justify-content: center;
 }
 
 /* =========================================================================
