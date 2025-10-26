@@ -31,6 +31,12 @@ class UserService:
                 - display_name: Full name from OAuth
                 - photo_url: Profile picture URL from OAuth
                 - email_verified: Whether email is verified
+                - spotify_email: Spotify account email (optional)
+                - spotify_product: Spotify product type (free/premium/open) (optional)
+                - spotify_country: Spotify account country (optional)
+                - spotify_display_name: Spotify display name (optional)
+                - spotify_id: Spotify user ID (optional)
+                - spotify_uri: Spotify user URI (optional)
 
         Returns:
             Dict containing the user document data with 'uid' field
@@ -60,6 +66,13 @@ class UserService:
             # Update locale if provided
             if 'locale' in user_data:
                 update_data['locale'] = user_data.get('locale')
+
+            # Update Spotify fields if provided
+            spotify_fields = ['spotify_email', 'spotify_product', 'spotify_country',
+                            'spotify_display_name', 'spotify_id', 'spotify_uri']
+            for field in spotify_fields:
+                if field in user_data:
+                    update_data[field] = user_data.get(field)
 
             # Explicitly preserve is_admin field if it exists (don't overwrite)
             # This field is set manually in Firestore console or via admin API
@@ -91,6 +104,13 @@ class UserService:
                 'last_login_at': now,
                 'updated_at': now
             }
+
+            # Add Spotify fields if provided
+            spotify_fields = ['spotify_email', 'spotify_product', 'spotify_country',
+                            'spotify_display_name', 'spotify_id', 'spotify_uri']
+            for field in spotify_fields:
+                if field in user_data:
+                    new_user_data[field] = user_data.get(field)
 
             doc_ref.set(new_user_data)
 

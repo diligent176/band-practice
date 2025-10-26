@@ -1292,6 +1292,48 @@ def get_current_user():
         return jsonify({'error': str(e), 'success': False}), 500
 
 
+@app.route('/api/user/spotify-profile', methods=['POST'])
+@require_auth
+def update_spotify_profile():
+    """Update user's Spotify profile information"""
+    try:
+        uid = g.user.get('uid')
+        data = request.get_json()
+
+        # Extract Spotify profile fields from request
+        spotify_data = {
+            'uid': uid
+        }
+
+        # Map Spotify API fields to our Firestore fields
+        if 'email' in data:
+            spotify_data['spotify_email'] = data['email']
+        if 'product' in data:
+            spotify_data['spotify_product'] = data['product']
+        if 'country' in data:
+            spotify_data['spotify_country'] = data['country']
+        if 'display_name' in data:
+            spotify_data['spotify_display_name'] = data['display_name']
+        if 'id' in data:
+            spotify_data['spotify_id'] = data['id']
+        if 'uri' in data:
+            spotify_data['spotify_uri'] = data['uri']
+
+        # Update user in Firestore
+        updated_user = user_service.create_or_update_user(spotify_data)
+
+        logger.info(f"✅ Updated Spotify profile for user {uid}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Spotify profile updated'
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating Spotify profile: {e}", exc_info=True)
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=os.getenv('FLASK_ENV') == 'development')

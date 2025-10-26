@@ -4065,6 +4065,28 @@ async function initializeSpotifyPlayer() {
                     country: profile.country
                 });
 
+                // Save Spotify profile to Firestore user record
+                try {
+                    await authenticatedApiCall('/api/user/spotify-profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: profile.email,
+                            product: profile.product,
+                            country: profile.country,
+                            display_name: profile.display_name,
+                            id: profile.id,
+                            uri: profile.uri
+                        })
+                    });
+                    debug.log('✅ Saved Spotify profile to user record');
+                } catch (error) {
+                    debug.warn('⚠️ Failed to save Spotify profile:', error);
+                    // Non-critical, continue anyway
+                }
+
                 if (profile.product !== 'premium') {
                     debug.error('❌ Account does not have Premium status. Product type:', profile.product);
                     showToast(`Spotify Premium required for playback. Current plan: ${profile.product}`, 'error');

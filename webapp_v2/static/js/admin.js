@@ -236,6 +236,7 @@ function renderUsersTable(users) {
                 <tr>
                     <th>User</th>
                     <th>Status</th>
+                    <th>Spotify</th>
                     <th>Created</th>
                     <th>Last Login</th>
                 </tr>
@@ -255,6 +256,15 @@ function renderUsersTable(users) {
                         <td>
                             ${user.is_admin ? '<span class="badge admin">Admin</span>' : ''}
                             ${user.email_verified ? '<span class="badge verified">Verified</span>' : '<span class="badge unverified">Unverified</span>'}
+                        </td>
+                        <td>
+                            ${user.spotify_product ? `
+                                <div style="font-size: 12px;">
+                                    <div><strong>${escapeHtml(user.spotify_product)}</strong></div>
+                                    ${user.spotify_email ? `<div style="color: #8899a6;">${escapeHtml(user.spotify_email)}</div>` : ''}
+                                    ${user.spotify_country ? `<div style="color: #8899a6;">${escapeHtml(user.spotify_country)}</div>` : ''}
+                                </div>
+                            ` : '<span style="color: #8899a6;">Not connected</span>'}
                         </td>
                         <td class="timestamp">${formatDate(user.created_at)}</td>
                         <td class="timestamp">${formatDate(user.last_login_at)}</td>
