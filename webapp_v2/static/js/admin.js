@@ -244,11 +244,11 @@ function renderUsersTable(users) {
             <tbody>
                 ${users.map(user => `
                     <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                        <td style="padding: 4px 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
                                 <img src="${user.photo_url || ''}"
                                      alt="${user.display_name || 'User'}"
-                                     style="width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;"
+                                     style="width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;"
                                      onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath fill=%22%23666%22 d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22/%3E%3C/svg%3E'">
                                 <div style="min-width: 0; flex: 1;">
                                     <div style="font-weight: 600; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -260,15 +260,20 @@ function renderUsersTable(users) {
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td style="padding: 4px 12px;">
                             ${user.spotify_product ? `
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                                <a href="${user.spotify_profile_url || '#'}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: opacity 0.2s;"
+                                   onmouseover="this.style.opacity='0.7'"
+                                   onmouseout="this.style.opacity='1'">
                                     ${user.spotify_profile_photo ? `
                                         <img src="${escapeHtml(user.spotify_profile_photo)}"
                                              alt="Spotify"
-                                             style="width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;"
+                                             style="width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;"
                                              onerror="this.style.display='none'">
-                                    ` : `<div style="width: 32px; height: 32px; border-radius: 50%; background: #282828; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-brands fa-spotify" style="color: #1db954; font-size: 16px;"></i></div>`}
+                                    ` : `<div style="width: 60px; height: 60px; border-radius: 50%; background: #282828; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-brands fa-spotify" style="color: #1db954; font-size: 26px;"></i></div>`}
                                     <div style="min-width: 0; flex: 1;">
                                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
                                             ${user.spotify_display_name ? `<span style="font-weight: 500; font-size: 13px; color: #fff;">${escapeHtml(user.spotify_display_name)}</span>` : ''}
@@ -281,20 +286,20 @@ function renderUsersTable(users) {
                                             ${user.spotify_followers !== undefined ? `<span style="margin-left: ${user.spotify_country ? '8px' : '0'};">👥 ${user.spotify_followers}</span>` : ''}
                                         </div>
                                     </div>
-                                </div>
+                                </a>
                             ` : '<span style="color: #535353; font-size: 12px;">—</span>'}
                         </td>
-                        <td>
+                        <td style="padding: 4px 12px;">
                             <div style="display: flex; flex-direction: column; gap: 3px;">
                                 ${user.is_admin ? '<span class="badge admin" style="font-size: 10px; padding: 3px 6px;">Admin</span>' : ''}
                                 ${user.email_verified ? '<span class="badge verified" style="font-size: 10px; padding: 3px 6px;">Verified</span>' : '<span class="badge unverified" style="font-size: 10px; padding: 3px 6px;">Unverified</span>'}
                             </div>
                         </td>
-                        <td style="font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
+                        <td style="padding: 4px 12px; font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
                             title="${formatDate(user.created_at)}">
                             ${formatDateCompact(user.created_at)}
                         </td>
-                        <td style="font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
+                        <td style="padding: 4px 12px; font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
                             title="${formatDate(user.last_login_at)}">
                             ${formatDateCompact(user.last_login_at)}
                         </td>
