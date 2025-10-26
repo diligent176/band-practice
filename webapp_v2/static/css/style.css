@@ -488,15 +488,6 @@ header h1 i {
   align-items: center;
 }
 
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  justify-content: center;
-  min-width: 0;
-}
-
 /* Right section container - creates a flex group */
 .header-single-row>.font-size-selector,
 .header-single-row>.fullscreen-toggle-btn,
@@ -1179,6 +1170,10 @@ header h1 i {
 .status-bar {
   display: flex;
   align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
 }
 
 .status-message {
@@ -2345,7 +2340,7 @@ header h1 i {
     margin: 0 20px;
   }
 
-  
+
 }
 
 /* User List Dialog - uses base.css .user-card */
@@ -2914,8 +2909,14 @@ header h1 i {
     font-size: 17px;
   }
 
+  /* Make icon buttons a bit larger on very large viewports while keeping
+     vertical compactness by default */
   .btn-icon {
     font-size: 15px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
   }
 
   .btn-icon i {
@@ -2934,7 +2935,4 @@ header h1 i {
     font-size: 15px;
   }
 
-  .status-message {
-    font-size: 13px;
-  }
 }
