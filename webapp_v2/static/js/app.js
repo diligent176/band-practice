@@ -5281,10 +5281,6 @@ function renderPlaylistItem(playlist, isLinked = false) {
         </div>
     ` : '';
 
-    if (isLinked) {
-        console.log(`    🔧 Generated unlink icon for playlist ${playlist.id}: ${playlist.name}`);
-    }
-
     // Link button for other playlists (inline icon)
     const linkIconHtml = !isLinked ? `<i class="fa-solid fa-link playlist-link-icon" data-playlist-url="${escapeHtml(playlist.playlist_url)}" title="Link to collection"></i>` : '';
 
@@ -5303,17 +5299,12 @@ function renderPlaylistItem(playlist, isLinked = false) {
 // V2: Render playlist dialog as ONE unified list with section headers (EXACTLY like collections)
 function renderPlaylistDialog() {
     const playlistList = document.getElementById('playlist-list');
-    if (!playlistList) {
-        console.error('❌ playlist-list element not found!');
-        return;
-    }
+    if (!playlistList) return;
 
     if (linkedPlaylists.length === 0 && otherPlaylists.length === 0) {
         playlistList.innerHTML = '<div class="empty-state"><p>No playlists found</p></div>';
         return;
     }
-
-    console.log(`📋 Rendering playlists: ${linkedPlaylists.length} linked, ${otherPlaylists.length} other`);
 
     let html = '';
 
@@ -5324,8 +5315,7 @@ function renderPlaylistDialog() {
                 <i class="fa-solid fa-link"></i> Playlists in This Collection
             </div>
         `;
-        linkedPlaylists.forEach((playlist, index) => {
-            console.log(`  ✓ Rendering linked playlist #${index}: ${playlist.name}`);
+        linkedPlaylists.forEach(playlist => {
             html += renderPlaylistItem(playlist, true);
         });
     }
@@ -5345,10 +5335,7 @@ function renderPlaylistDialog() {
     playlistList.innerHTML = html;
 
     // Add unlink click handlers
-    const unlinkIcons = playlistList.querySelectorAll('.playlist-unlink-icon');
-    console.log(`🔗 Found ${unlinkIcons.length} unlink icons in DOM`);
-    unlinkIcons.forEach((icon, index) => {
-        console.log(`  Icon #${index}: playlist-id=${icon.dataset.playlistId}`);
+    playlistList.querySelectorAll('.playlist-unlink-icon').forEach(icon => {
         icon.addEventListener('click', async (e) => {
             e.stopPropagation();
             const playlistId = icon.dataset.playlistId;
