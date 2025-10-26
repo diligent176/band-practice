@@ -717,8 +717,8 @@ async function loadSong(songId) {
             } else {
                 editNotesBtn.title = 'Edit notes (N)';
                 editLyricsBtn.title = 'Edit lyrics (E)';
-                fetchBpmBtn.title = 'Fetch BPM from API';
-                setBpmBtn.title = 'Set BPM manually';
+                fetchBpmBtn.title = 'Fetch BPM (F)';
+                setBpmBtn.title = 'Set BPM (B)';
             }
 
             setStatus('Song loaded' + (canEdit ? '' : ' (read-only)'), 'success');

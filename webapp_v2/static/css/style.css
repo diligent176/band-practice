@@ -2860,13 +2860,17 @@ header h1 i {
     top: 34px;
   }
 
-  /* Row 1 */
-  .status-bar .btn-subtle {
-    font-size: 14px;
-  }
-
   .btn {
     font-size: 15px;
+  }
+
+  .btn-subtle {
+    font-size: 14px;
+    padding: 4px 16px;
+  }
+
+  .status-bar {
+    font-size: 14px;
   }
 
   header h1 {

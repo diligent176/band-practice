@@ -90,12 +90,11 @@ body {
   transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   white-space: nowrap;
   color: var(--text-primary);
   position: relative;
   overflow: hidden;
-
   /* Default button appearance: subtle green tint so most buttons look cohesive */
   background: var(--accent-green-08);
   border-color: var(--accent-green-12);
@@ -163,9 +162,12 @@ body {
 }
 
 .btn-subtle {
-  background: var(--bg-secondary);
+  /* Default button appearance: subtle green tint so most buttons look cohesive */
+  background: var(--accent-green-08);
+  /* background: var(--bg-secondary); */
   color: var(--text-primary);
-  border-color: var(--accent-green-15);
+  /* border-color: var(--accent-green-15); */
+  border-color: var(--accent-green-12);
 }
 
 .btn-subtle:hover:not(:disabled) {
