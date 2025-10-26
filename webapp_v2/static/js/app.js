@@ -25,6 +25,7 @@ let isEditMode = false;
 let songSelectorSortMode = localStorage.getItem('songSelectorSortMode') || 'name';
 let filteredSongs = [];
 let selectedSongIndex = -1;
+let scrollDebounceTimer = null;
 
 // Collection management
 let currentCollection = null;
@@ -1140,13 +1141,28 @@ function updateSongListSelection() {
     document.querySelectorAll('.song-selector-item').forEach(item => {
         item.classList.remove('selected');
     });
-    
+
     // Add selected class to current index
     if (selectedSongIndex >= 0) {
         const items = document.querySelectorAll('.song-selector-item');
         if (items[selectedSongIndex]) {
             items[selectedSongIndex].classList.add('selected');
-            items[selectedSongIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Clear any pending scroll timer
+            if (scrollDebounceTimer) {
+                clearTimeout(scrollDebounceTimer);
+            }
+
+            // Use instant scroll immediately for responsiveness
+            items[selectedSongIndex].scrollIntoView({ behavior: 'instant', block: 'nearest' });
+
+            // Then schedule a smooth scroll to settle into final position
+            // This only happens if user stops navigating for 150ms
+            scrollDebounceTimer = setTimeout(() => {
+                if (items[selectedSongIndex]) {
+                    items[selectedSongIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 150);
         }
     }
 }
