@@ -215,8 +215,9 @@ body {
 }
 
 .badge-admin {
-  background: var(--accent-primary);
-  color: #000;
+  background: #0f7abd;
+  color: #b3c6ef;
+  max-width: 100px;
 }
 
 .badge-premium {
@@ -231,8 +232,9 @@ body {
 }
 
 .badge-verified {
-  background: var(--success);
+  background: #045420;
   color: white;
+  max-width: 100px;
 }
 
 .badge-error {

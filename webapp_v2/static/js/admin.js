@@ -292,8 +292,8 @@ function renderUsersTable(users) {
                         </td>
                         <td style="padding: 4px 12px;">
                             <div style="display: flex; flex-direction: column; gap: 3px;">
-                                ${user.is_admin ? '<span class="badge-admin" style="font-size: 10px; padding: 3px 6px;">Admin</span>' : ''}
-                                ${user.email_verified ? '<span class="badge-verified" style="font-size: 10px; padding: 3px 6px;">Verified</span>' : '<span class="badge unverified" style="font-size: 10px; padding: 3px 6px;">Unverified</span>'}
+                                ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                                ${user.email_verified ? '<span class="badge badge-verified">Verified</span>' : '<span class="badge badge-error">Unverified</span>'}
                             </div>
                         </td>
                         <td style="padding: 4px 12px; font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
