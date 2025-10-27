@@ -71,7 +71,7 @@ const refreshSongBtn = document.getElementById('refresh-song-btn');
 const fetchBpmBtn = document.getElementById('fetch-bpm-btn');
 const editLyricsBtn = document.getElementById('edit-lyrics-btn');
 const toggleColumnsBtn = document.getElementById('toggle-columns-btn');
-const fontSizeSelect = document.getElementById('font-size-select');
+const fontSizeSlider = document.getElementById('font-size-slider');
 const fullscreenToggleBtn = document.getElementById('fullscreen-toggle-btn');
 
 const lyricsEditorDialog = document.getElementById('lyrics-editor-dialog');
@@ -323,7 +323,7 @@ function setupEventListeners() {
     registerDialogBackgroundClose(userListDialog, closeUserListDialog);
 
     toggleColumnsBtn.addEventListener('click', toggleColumns);
-    fontSizeSelect.addEventListener('change', handleFontSizeChange);
+    fontSizeSlider.addEventListener('input', handleFontSizeChange);
 
     // Fullscreen toggle
     fullscreenToggleBtn.addEventListener('click', toggleFullscreen);
@@ -1783,16 +1783,6 @@ function loadColumnPreference(songId) {
     }
 }
 
-// Font scale mapping (name -> CSS variable value)
-const fontScales = {
-    'small': 0.846,    // 11px lyrics (13 * 0.846)
-    'medium': 1.0,     // 13px lyrics (base)
-    'large': 1.154,    // 15px lyrics
-    'xlarge': 1.308,   // 17px lyrics
-    'xxlarge': 1.538,  // 20px lyrics
-    'xxxlarge': 1.846  // 24px lyrics
-};
-
 // Set font scale via CSS variable
 function setFontScale(scale) {
     mainApp.style.setProperty('--font-scale', scale);
@@ -1821,46 +1811,30 @@ function adjustFontSize(direction) {
     // Update localStorage
     localStorage.setItem('bandPracticeFontScale', newScale);
 
-    // Update dropdown to closest match (optional - keeps UI in sync)
-    updateFontSizeDropdown(newScale);
+    // Update slider to match (keeps UI in sync with keyboard shortcuts)
+    updateFontSizeSlider(newScale);
 }
 
-// Update dropdown to nearest matching size
-function updateFontSizeDropdown(scale) {
-    // Find closest preset
-    let closest = 'medium';
-    let minDiff = Infinity;
-
-    for (const [name, presetScale] of Object.entries(fontScales)) {
-        const diff = Math.abs(scale - presetScale);
-        if (diff < minDiff) {
-            minDiff = diff;
-            closest = name;
-        }
-    }
-
-    fontSizeSelect.value = closest;
-    localStorage.setItem('bandPracticeFontSize', closest);
+// Update slider to match current scale (used by keyboard shortcuts)
+function updateFontSizeSlider(scale) {
+    fontSizeSlider.value = scale;
 }
 
-// Font Size Change Function - Now uses CSS variables!
+// Font Size Change Function - Now uses slider with CSS variables!
 function handleFontSizeChange(e) {
-    const fontSize = e.target.value;
-    const scale = fontScales[fontSize] || 1.0;
+    const scale = parseFloat(e.target.value);
 
     setFontScale(scale);
 
     // Save preference to localStorage
-    localStorage.setItem('bandPracticeFontSize', fontSize);
     localStorage.setItem('bandPracticeFontScale', scale);
 }
 
 // Load saved font size on init
 function loadFontSizePreference() {
-    const savedSize = localStorage.getItem('bandPracticeFontSize') || 'medium';
-    const savedScale = localStorage.getItem('bandPracticeFontScale') || fontScales['medium'];
+    const savedScale = parseFloat(localStorage.getItem('bandPracticeFontScale')) || 1.0;
 
-    fontSizeSelect.value = savedSize;
+    fontSizeSlider.value = savedScale;
     setFontScale(savedScale);
 }
 

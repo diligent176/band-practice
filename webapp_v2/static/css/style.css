@@ -816,33 +816,51 @@ header h1 i {
   color: var(--text-secondary);
 }
 
-.font-size-select {
-  padding: 0;
-  background: transparent;
-  color: var(--text-primary);
-  border: none;
-  font-size: 10px;
+.font-size-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  background: var(--card-border);
+  border-radius: 2px;
+  outline: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.font-size-slider:hover {
+  background: #444;
+}
+
+.font-size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--accent-primary);
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s;
-  height: 100%;
-  padding: 2px 4px;
-  display: flex;
-  align-items: center;
 }
 
-.font-size-select option {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  padding: 1px 6px;
+.font-size-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.font-size-select:hover {
-  color: var(--accent-primary);
+.font-size-slider::-webkit-slider-thumb:hover {
+  background: var(--accent-hover);
+  transform: scale(1.1);
 }
 
-.font-size-select:focus {
-  outline: none;
-  color: var(--accent-primary);
+.font-size-slider::-moz-range-thumb:hover {
+  background: var(--accent-hover);
+  transform: scale(1.1);
 }
 
 .fullscreen-toggle-btn {
@@ -2797,8 +2815,8 @@ header h1 i {
     font-size: 26px;
   }
 
-  .font-size-select {
-    font-size: 12px;
+  .font-size-slider {
+    width: 100px;
   }
 
   .font-size-selector i {
