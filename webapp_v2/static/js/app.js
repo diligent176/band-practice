@@ -4415,7 +4415,7 @@ async function initializeSpotifyPlayer() {
                     debug.error('   2. User needs to re-authorize to grant updated permissions');
                     debug.error('   👉 Solution: Disconnect Spotify and connect again');
 
-                    showToast('Spotify permissions error. Please reconnect your Spotify account to grant updated permissions.', 'error');
+                    showToast('Spotify permissions error. Ask an Admin to add you in Spotify Developer Dashboard.', 'error');
 
                     // Show the reconnect prompt with force_reauth
                     showSpotifyConnectPrompt(true);
