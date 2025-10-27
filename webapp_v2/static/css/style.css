@@ -491,29 +491,6 @@ header h1 i {
   align-items: center;
 }
 
-/* Right section container - creates a flex group */
-.header-single-row>.font-size-selector,
-.header-single-row>.fullscreen-toggle-btn,
-.header-single-row>.keyboard-shortcuts-help,
-.header-single-row>.user-info {
-  margin-left: auto;
-  gap: 0;
-}
-
-.header-single-row>.player-controls {
-  margin-left: auto;
-}
-
-.header-single-row>.font-size-selector {
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.header-single-row>.fullscreen-toggle-btn {
-  margin-left: 0;
-  margin-right: 0;
-}
-
 /* Player Controls */
 .player-controls {
   display: flex;
@@ -826,7 +803,7 @@ header h1 i {
   transition: all 0.2s ease;
   cursor: pointer;
   flex-shrink: 0;
-  height: 20px;
+  height: 1.4em;
 }
 
 .font-size-selector:hover {
@@ -881,7 +858,7 @@ header h1 i {
   transition: all 0.2s ease;
   cursor: pointer;
   flex-shrink: 0;
-  height: 20px;
+  height: 1.4em;
   width: 20px;
   margin-left: 0;
   margin-right: 0;
@@ -897,7 +874,7 @@ header h1 i {
 }
 
 .fullscreen-toggle-btn i {
-  font-size: 11px;
+  font-size: 1.2em;
   color: var(--text-secondary);
   transition: color 0.2s ease;
 }
@@ -932,7 +909,7 @@ header h1 i {
 }
 
 .keyboard-shortcuts-help i {
-  font-size: 12px;
+  font-size: 1.1em;
   color: var(--text-secondary);
 }
 
@@ -1077,56 +1054,13 @@ header h1 i {
   white-space: nowrap;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  flex-shrink: 0;
-  margin-left: 0;
-  margin-right: 3px;
-  height: 20px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 0 3px 3px 0;
-  padding: 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-}
-
-
-.user-info:hover {
-  background: #323232;
-  border-color: #444;
-}
-
-.user-email {
-  padding: 2px 4px;
-  font-size: 9px;
-  color: var(--text-primary);
-  white-space: nowrap;
-  cursor: pointer;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  transition: color 0.2s, background 0.2s;
-  border-radius: 4px;
-}
-
-.user-email:hover {
-  color: var(--accent-primary);
-  background: rgba(29, 185, 84, 0.1);
-}
-
 .signout-icon {
   padding: 0 6px;
-  height: 28px;
+  /* height: 28px; */
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 0.9em;
   color: var(--text-secondary);
   cursor: pointer;
   border-left: 1px solid var(--card-border);
@@ -1374,7 +1308,7 @@ header h1 i {
 }
 
 .metadata-item {
-  font-size: 11px;
+  font-size: 0.9em;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -1385,7 +1319,7 @@ header h1 i {
 }
 
 .metadata-icon {
-  font-size: 10px;
+  font-size: 1.1em;
   flex-shrink: 0;
   color: var(--text-secondary);
 }
@@ -1454,10 +1388,10 @@ header h1 i {
   gap: 4px;
   padding: 2px 6px;
   margin-left: 8px;
-  border-radius: 3px;
+  border-radius: 6px;
   background: var(--accent-green-15);
   border: 1px solid var(--accent-green-30);
-  font-size: 11px;
+  font-size: 0.8em;
   color: var(--text-primary);
   transition: background 0.1s ease, border-color 0.1s ease;
 }
@@ -2872,19 +2806,19 @@ header h1 i {
   }
 
   .fullscreen-toggle-btn i {
-    font-size: 14px;
+    font-size: 1.4em;
   }
 
   .keyboard-shortcuts-help i {
-    font-size: 15px;
+    font-size: 1.4em;
   }
 
   .user-email {
-    font-size: 13px;
+    font-size: 1em;
   }
 
   .signout-icon {
-    font-size: 13px;
+    font-size: 1em;
   }
 
   header {
@@ -2892,11 +2826,11 @@ header h1 i {
   }
 
   .panel-header h2 {
-    font-size: 17px;
+    font-size: 1.2em;
   }
 
   .btn-icon {
-    font-size: 15px;
+    font-size: 1.1em;
     width: 36px;
     height: 36px;
     min-width: 36px;
@@ -2904,19 +2838,19 @@ header h1 i {
   }
 
   .btn-icon i {
-    font-size: 1.4em;
+    font-size: 1.1em;
   }
 
   .metadata-item {
-    font-size: 15px;
+    font-size: 1.1em;
   }
 
   .metadata-icon {
-    font-size: 14px;
+    font-size: 1.1em;
   }
 
   .bpm-indicator-block {
-    font-size: 15px;
+    font-size: 1em;
   }
 
 }

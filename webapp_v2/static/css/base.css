@@ -375,21 +375,36 @@ body {
 .user-name {
   font-size: 16px;
   font-weight: 600;
+  height: 100%;
   color: var(--text-primary);
   margin-bottom: 4px;
-  white-space: nowrap;
+  /* white-space: nowrap; */
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .user-email {
-  font-size: 13px;
+  font-size: 0.9em;
   color: var(--text-secondary);
   margin-bottom: 6px;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 2px 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  height: 1.5em;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  transition: color 0.2s, background 0.2s;
+  border-radius: 4px;
 }
+
+.user-email:hover {
+  color: var(--accent-primary);
+  background: rgba(29, 185, 84, 0.1);
+}
+
 
 .user-meta {
   display: flex;
@@ -398,13 +413,27 @@ body {
   align-items: center;
 }
 
-.user-info-item {
-  font-size: 12px;
-  color: var(--text-secondary);
+.user-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 0;
+  margin-left: 2px;
+  margin-right: 2px;
+  font-size: 1em;
+  height: 1.45em;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0 3px 3px 0;
+  padding: 0px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 }
+
+.user-info:hover {
+  background: #323232;
+  border-color: #444;
+}
+
 
 /* =========================================================================
    LOADING STATES
