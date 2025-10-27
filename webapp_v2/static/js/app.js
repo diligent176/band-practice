@@ -2257,26 +2257,60 @@ function handleUserListDialogKeyboard(e) {
 }
 
 function renderCurrentUser(user) {
-    const photoUrl = user.photo_url || user.spotify_profile_photo;
-    const displayName = user.display_name || user.spotify_display_name || 'User';
+    const googlePhoto = user.photo_url;
+    const spotifyPhoto = user.spotify_profile_photo;
+    const displayName = user.display_name || 'User';
+    const spotifyName = user.spotify_display_name;
 
     let html = `
-        <div class="user-card user-card-current">
-            ${photoUrl
-                ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
-                : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
-            }
-            <div class="user-details">
-                <div class="user-name">${escapeHtml(displayName)}</div>
-                <div class="user-email">${escapeHtml(user.email || 'No email')}</div>
-                <div class="user-meta">
-                    ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
-                    ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
-                    ${user.created_at ? `<span class="user-info-item"><i class="fa-solid fa-calendar-plus"></i> Joined ${formatDateCompact(user.created_at)}</span>` : ''}
-                    ${user.last_login_at ? `<span class="user-info-item"><i class="fa-solid fa-clock"></i> Active ${formatDateCompact(user.last_login_at)}</span>` : ''}
+        <div class="user-card user-card-current user-card-community">
+            <div class="user-google-info">
+                ${googlePhoto
+                    ? `<img src="${escapeHtml(googlePhoto)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
+                    : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
+                }
+                <div class="user-google-details">
+                    <div class="user-google-name">${escapeHtml(displayName)}</div>
+                    <div class="user-google-email">${escapeHtml(user.email || 'No email')}</div>
+                    <div class="user-google-meta">
+                        ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                        ${user.created_at ? `<span class="user-date-item" title="Created ${formatDateForTooltip(user.created_at)}"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
+                        ${user.last_login_at ? `<span class="user-date-item" title="Last Active ${formatDateForTooltip(user.last_login_at)}"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
+                    </div>
                 </div>
-                ${user.spotify_display_name ? renderSpotifyInfo(user) : ''}
             </div>
+            ${spotifyName && user.spotify_profile_url ? `
+                <a href="${escapeHtml(user.spotify_profile_url)}" target="_blank" rel="noopener noreferrer" class="user-spotify-card user-spotify-card-link">
+                    ${spotifyPhoto
+                        ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
+                        : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
+                    }
+                    <div class="user-spotify-details">
+                        <div class="user-spotify-name-row">
+                            <span class="user-spotify-name">${escapeHtml(spotifyName)}</span>
+                            ${user.spotify_country ? `<span class="user-spotify-country">${escapeHtml(user.spotify_country)}</span>` : ''}
+                        </div>
+                        ${user.spotify_email ? `<div class="user-spotify-email">${escapeHtml(user.spotify_email)}</div>` : ''}
+                        ${user.spotify_product ? `<div class="user-spotify-badge"><span class="badge badge-${user.spotify_product}">${user.spotify_product}</span></div>` : ''}
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            ` : spotifyName ? `
+                <div class="user-spotify-card">
+                    ${spotifyPhoto
+                        ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
+                        : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
+                    }
+                    <div class="user-spotify-details">
+                        <div class="user-spotify-name-row">
+                            <span class="user-spotify-name">${escapeHtml(spotifyName)}</span>
+                            ${user.spotify_country ? `<span class="user-spotify-country">${escapeHtml(user.spotify_country)}</span>` : ''}
+                        </div>
+                        ${user.spotify_email ? `<div class="user-spotify-email">${escapeHtml(user.spotify_email)}</div>` : ''}
+                        ${user.spotify_product ? `<div class="user-spotify-badge"><span class="badge badge-${user.spotify_product}">${user.spotify_product}</span></div>` : ''}
+                    </div>
+                </div>
+            ` : '<div class="user-spotify-card"><div class="user-spotify-not-connected">Not Connected</div></div>'}
         </div>
     `;
 
@@ -2298,52 +2332,62 @@ function renderCommunityUsers(users) {
     }
 
     const html = otherUsers.map(user => {
-        const photoUrl = user.photo_url || user.spotify_profile_photo;
-        const displayName = user.display_name || user.spotify_display_name || 'Anonymous User';
+        const googlePhoto = user.photo_url;
+        const spotifyPhoto = user.spotify_profile_photo;
+        const displayName = user.display_name || 'Anonymous User';
+        const spotifyName = user.spotify_display_name;
 
         return `
-            <div class="user-card">
-                ${photoUrl
-                    ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
-                    : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
-                }
-                <div class="user-details">
-                    <div class="user-name">${escapeHtml(displayName)}</div>
-                    <div class="user-meta">
-                        ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
-                        ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
-                        ${user.created_at ? `<span class="user-info-item"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
-                        ${user.last_login_at ? `<span class="user-info-item"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
+            <div class="user-card user-card-community">
+                <div class="user-google-info">
+                    ${googlePhoto
+                        ? `<img src="${escapeHtml(googlePhoto)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
+                        : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
+                    }
+                    <div class="user-google-details">
+                        <div class="user-google-name">${escapeHtml(displayName)}</div>
+                        <div class="user-google-meta">
+                            ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                            ${user.created_at ? `<span class="user-date-item" title="Created ${formatDateForTooltip(user.created_at)}"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
+                            ${user.last_login_at ? `<span class="user-date-item" title="Last Active ${formatDateForTooltip(user.last_login_at)}"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
+                        </div>
                     </div>
-                    ${user.spotify_display_name ? renderSpotifyInfo(user) : ''}
                 </div>
+                ${spotifyName && user.spotify_profile_url ? `
+                    <a href="${escapeHtml(user.spotify_profile_url)}" target="_blank" rel="noopener noreferrer" class="user-spotify-card user-spotify-card-link">
+                        ${spotifyPhoto
+                            ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
+                            : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
+                        }
+                        <div class="user-spotify-details">
+                            <div class="user-spotify-name-row">
+                                <span class="user-spotify-name">${escapeHtml(spotifyName)}</span>
+                                ${user.spotify_country ? `<span class="user-spotify-country">${escapeHtml(user.spotify_country)}</span>` : ''}
+                            </div>
+                            ${user.spotify_product ? `<div class="user-spotify-badge"><span class="badge badge-${user.spotify_product}">${user.spotify_product}</span></div>` : ''}
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                ` : spotifyName ? `
+                    <div class="user-spotify-card">
+                        ${spotifyPhoto
+                            ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
+                            : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
+                        }
+                        <div class="user-spotify-details">
+                            <div class="user-spotify-name-row">
+                                <span class="user-spotify-name">${escapeHtml(spotifyName)}</span>
+                                ${user.spotify_country ? `<span class="user-spotify-country">${escapeHtml(user.spotify_country)}</span>` : ''}
+                            </div>
+                            ${user.spotify_product ? `<div class="user-spotify-badge"><span class="badge badge-${user.spotify_product}">${user.spotify_product}</span></div>` : ''}
+                        </div>
+                    </div>
+                ` : '<div class="user-spotify-card"><div class="user-spotify-not-connected">Not Connected</div></div>'}
             </div>
         `;
     }).join('');
 
     communityUsersList.innerHTML = html;
-}
-
-function renderSpotifyInfo(user) {
-    if (!user.spotify_display_name) return '';
-
-    const spotifyPhoto = user.spotify_profile_photo;
-
-    return `
-        <div class="spotify-info">
-            ${spotifyPhoto
-                ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="spotify-photo" onerror="this.style.display='none'">`
-                : `<div class="spotify-photo" style="background: #282828; display: flex; align-items: center; justify-content: center;"><i class="fa-brands fa-spotify" style="color: #1db954; font-size: 20px;"></i></div>`
-            }
-            <div class="spotify-details">
-                <div class="spotify-name">${escapeHtml(user.spotify_display_name)}</div>
-                <div class="spotify-meta">
-                    ${user.spotify_country ? `${escapeHtml(user.spotify_country)}` : ''}
-                    ${user.spotify_product ? ` • ${escapeHtml(user.spotify_product)}` : ''}
-                </div>
-            </div>
-        </div>
-    `;
 }
 
 function formatDateCompact(dateStr) {
@@ -2381,6 +2425,25 @@ function formatDateCompact(dateStr) {
         });
     } catch (error) {
         return '—';
+    }
+}
+
+function formatDateForTooltip(dateStr) {
+    if (!dateStr) return '';
+
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '';
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${year}/${month}/${day} ${hours}:${minutes}`;
+    } catch (error) {
+        return '';
     }
 }
 

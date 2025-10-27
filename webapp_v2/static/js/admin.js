@@ -281,6 +281,7 @@ function renderUsersTable(users) {
                                                 ${escapeHtml(user.spotify_product)}
                                             </span>
                                         </div>
+                                        ${user.spotify_email ? `<div style="color: #8899a6; font-size: 11px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(user.spotify_email)}</div>` : ''}
                                         <div style="color: #8899a6; font-size: 11px; line-height: 1.4;">
                                             ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
                                             ${user.spotify_followers !== undefined ? `<span style="margin-left: ${user.spotify_country ? '8px' : '0'};">👥 ${user.spotify_followers}</span>` : ''}
@@ -546,7 +547,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const query = e.target.value.toLowerCase();
             const filtered = allUsers.filter(user =>
                 (user.email && user.email.toLowerCase().includes(query)) ||
-                (user.display_name && user.display_name.toLowerCase().includes(query))
+                (user.display_name && user.display_name.toLowerCase().includes(query)) ||
+                (user.spotify_email && user.spotify_email.toLowerCase().includes(query)) ||
+                (user.spotify_display_name && user.spotify_display_name.toLowerCase().includes(query))
             );
             renderUsersTable(filtered);
         });

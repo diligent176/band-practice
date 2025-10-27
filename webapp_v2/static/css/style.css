@@ -2298,23 +2298,23 @@ header h1 i {
 .community-users-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 6px;
 }
 
 /* Spotify info section within user cards */
 .spotify-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-sm);
-  padding: var(--spacing-sm);
+  gap: 8px;
+  margin-top: 4px;
+  padding: 4px 6px;
   background: var(--bg-primary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .spotify-photo {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   flex-shrink: 0;
   object-fit: cover;
@@ -2326,18 +2326,20 @@ header h1 i {
 }
 
 .spotify-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--accent-primary);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .spotify-meta {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
+  line-height: 1.2;
 }
 
 /* Song Selector Dialog */
