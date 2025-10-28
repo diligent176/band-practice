@@ -2471,19 +2471,44 @@ header h1 i {
   white-space: nowrap;
 }
 
-/* Playlist-specific icons */
 .playlist-link-icon {
-  cursor: pointer;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(29, 185, 84, 0.08);
   color: var(--accent-primary);
-  opacity: 0.7;
-  margin-left: 8px;
-  font-size: 11px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0.5;
   transition: all 0.15s ease;
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
 .playlist-link-icon:hover {
-  opacity: 1;
-  transform: scale(1.1);
+  opacity: 1 !important;
+  background: rgba(29, 185, 84, 0.15) !important;
+  border-color: rgba(29, 185, 84, 0.4) !important;
+  transform: translateY(-50%) scale(1.05);
+}
+
+/* Drag and drop states for playlist reordering */
+.playlist-item.dragging {
+  opacity: 0.5;
+  background: var(--bg-elevated);
+  border: 1px dashed var(--accent-primary);
+}
+
+.playlist-item.drag-over {
+  border-top: 3px solid var(--accent-primary);
+  margin-top: -2px;
 }
 
 .collection-section-header {

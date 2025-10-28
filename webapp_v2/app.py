@@ -900,7 +900,7 @@ def unlink_playlist_from_collection(collection_id, playlist_id):
         # Note: Songs will be marked as removed during next sync
         return jsonify({
             'success': True,
-            'message': 'Playlist unlinked. Run sync to update songs.'
+            'message': 'Playlist unlinked.'
         })
     except Exception as e:
         logger.error(f"Error unlinking playlist: {e}")

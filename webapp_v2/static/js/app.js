@@ -2789,8 +2789,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function showImportDialog() {
-    // Load playlists first
-    await loadPlaylistsForDialog();
+    // Only load playlists if not already cached (for instant dialog opening)
+    // Playlists are pre-loaded during loadCurrentCollection() and switchCollection()
+    if (linkedPlaylists.length === 0 && otherPlaylists.length === 0) {
+        await loadPlaylistsForDialog();
+    } else {
+        // Just render from cache - instant!
+        renderPlaylistDialog();
+    }
 
     importDialog.style.display = 'flex';
 
@@ -2809,15 +2815,19 @@ async function showImportDialog() {
                 searchInput: null,
                 pageSize: 10,
                 onSelect: (index, item) => {
-                    // Click behavior depends on whether it's linked or has unlink icon
+                    // Check if it's a linked or unlinked playlist
                     const linkIcon = item.querySelector('.playlist-link-icon');
+                    const unlinkIcon = item.querySelector('.playlist-unlink-icon');
 
                     if (linkIcon) {
                         // It's an unlinked playlist - link it
                         const playlistUrl = linkIcon.dataset.playlistUrl;
                         if (playlistUrl) linkPlaylist(playlistUrl);
+                    } else if (unlinkIcon) {
+                        // It's a linked playlist - unlink it
+                        const playlistId = unlinkIcon.dataset.playlistId;
+                        if (playlistId) unlinkPlaylist(playlistId);
                     }
-                    // If it has unlink icon, don't do anything on Enter (user must click unlink)
                 },
                 onEscape: () => {
                     closeImportDialog();
@@ -2827,7 +2837,10 @@ async function showImportDialog() {
     }
 
     if (playlistNavigator) {
-        playlistNavigator.init();
+        // Reset to no selection (so Enter works in URL input initially)
+        // User can arrow down to select items, then Enter will work on list
+        playlistNavigator.reset();
+        playlistNavigator.scrollToTop();
     }
 
     // Add keyboard shortcuts using shared helper
@@ -2856,31 +2869,33 @@ async function handleImportDialogKeyboard(e) {
     // Only handle if import dialog is visible
     if (importDialog.style.display !== 'flex') return;
 
-    // Let ListNavigator handle arrow keys, Page Up/Down, Home/End, Enter, Escape
-    if (playlistNavigator && playlistNavigator.handleKey(e)) {
-        return;
-    }
+    // Special handling for ENTER key
+    if (e.key === 'Enter') {
+        // If user is navigating the list (currentIndex >= 0), let ListNavigator handle it
+        if (playlistNavigator && playlistNavigator.currentIndex >= 0) {
+            playlistNavigator.handleKey(e);
+            return;
+        }
 
-    // ENTER in the URL input should link the playlist
-    if (e.key === 'Enter' && e.target === importPlaylistUrl) {
-        e.preventDefault();
-        e.stopPropagation();
+        // Otherwise, if focus is in URL input and there's text, link the playlist
+        if (e.target === importPlaylistUrl) {
+            e.preventDefault();
+            e.stopPropagation();
 
-        if (importStepUrl.style.display === 'flex') {
             const url = importPlaylistUrl.value.trim();
             if (!url) {
                 showToast('Please enter a playlist URL', 'error');
                 return;
             }
 
-            // If an import button exists, trigger it; otherwise call linkPlaylist directly
-            const importLoadBtn = document.getElementById('import-load-btn') || document.querySelector('.import-playlist-link-btn');
-            if (importLoadBtn) {
-                importLoadBtn.click();
-            } else {
-                await linkPlaylist(url);
-            }
+            // Link the playlist
+            await linkPlaylist(url);
+            return;
         }
+    }
+
+    // Let ListNavigator handle arrow keys, Page Up/Down, Home/End, Escape
+    if (playlistNavigator && playlistNavigator.handleKey(e)) {
         return;
     }
 }
@@ -5305,7 +5320,7 @@ async function loadPlaylistsForDialog() {
 }
 
 // Helper to render a single playlist item (SAME STRUCTURE AS SONGS/COLLECTIONS)
-function renderPlaylistItem(playlist, isLinked = false) {
+function renderPlaylistItem(playlist, isLinked = false, index = -1) {
     const albumArtHtml = playlist.image_url
         ? `<img src="${escapeHtml(playlist.image_url)}" alt="${escapeHtml(playlist.name)}" class="selector-item-art">`
         : `<div class="selector-item-art-placeholder"><i class="fa-brands fa-spotify"></i></div>`;
@@ -5313,24 +5328,33 @@ function renderPlaylistItem(playlist, isLinked = false) {
     const trackText = `${playlist.total_tracks} track${playlist.total_tracks !== 1 ? 's' : ''}`;
     const statusBadge = isLinked ? ' • <i class="fa-solid fa-check"></i> Linked' : '';
 
-    // Unlink button for linked playlists (SAME STYLE AS TRASH ICON)
+    // Unlink button for linked playlists (right-aligned, same style as trash icon)
     const unlinkIconHtml = isLinked ? `
         <div class="song-item-trash-icon playlist-unlink-icon" data-playlist-id="${playlist.id}" title="Unlink from collection">
             <i class="fa-solid fa-unlink"></i>
         </div>
     ` : '';
 
-    // Link button for other playlists (inline icon)
-    const linkIconHtml = !isLinked ? `<i class="fa-solid fa-link playlist-link-icon" data-playlist-url="${escapeHtml(playlist.playlist_url)}" title="Link to collection"></i>` : '';
+    // Link button for other playlists (right-aligned, green accent)
+    const linkIconHtml = !isLinked ? `
+        <div class="playlist-link-icon" data-playlist-url="${escapeHtml(playlist.playlist_url)}" title="Link to collection">
+            <i class="fa-solid fa-link"></i>
+        </div>
+    ` : '';
+
+    // Make linked playlists draggable for reordering
+    const draggableAttrs = isLinked ? `draggable="true" data-index="${index}"` : '';
+    const draggableClass = isLinked ? 'draggable' : '';
 
     return `
-        <div class="selector-item playlist-item" data-playlist-id="${playlist.id}">
+        <div class="selector-item playlist-item ${draggableClass}" data-playlist-id="${playlist.id}" ${draggableAttrs} style="position: relative; cursor: ${isLinked ? 'move' : 'pointer'};">
             ${albumArtHtml}
             <div class="selector-item-content">
                 <div class="selector-item-title">${escapeHtml(playlist.name)}</div>
-                <div class="selector-item-subtitle">${escapeHtml(playlist.owner)} • ${trackText}${statusBadge} ${linkIconHtml}</div>
+                <div class="selector-item-subtitle">${escapeHtml(playlist.owner)} • ${trackText}${statusBadge}</div>
             </div>
             ${unlinkIconHtml}
+            ${linkIconHtml}
         </div>
     `;
 }
@@ -5347,15 +5371,16 @@ function renderPlaylistDialog() {
 
     let html = '';
 
-    // Render "Linked Playlists" section
+    // Render "Linked Playlists" section (draggable for reordering)
     if (linkedPlaylists.length > 0) {
         html += `
             <div class="collection-section-header">
                 <i class="fa-solid fa-link"></i> Playlists in This Collection
+                <span style="margin-left: auto; font-size: 10px; opacity: 0.6;">Drag to reorder</span>
             </div>
         `;
-        linkedPlaylists.forEach(playlist => {
-            html += renderPlaylistItem(playlist, true);
+        linkedPlaylists.forEach((playlist, index) => {
+            html += renderPlaylistItem(playlist, true, index);
         });
     }
 
@@ -5390,6 +5415,9 @@ function renderPlaylistDialog() {
             await linkPlaylist(playlistUrl);
         });
     });
+
+    // Setup drag-and-drop for linked playlists
+    setupPlaylistDragAndDrop();
 }
 
 // V2: Setup drag and drop for linked playlists
@@ -5397,8 +5425,10 @@ let draggedElement = null;
 let draggedIndex = null;
 
 function setupPlaylistDragAndDrop() {
-    const linkedList = document.getElementById('linked-playlists-list');
-    const playlistItems = linkedList.querySelectorAll('.playlist-item.draggable');
+    const playlistList = document.getElementById('playlist-list');
+    if (!playlistList) return;
+
+    const playlistItems = playlistList.querySelectorAll('.playlist-item.draggable');
 
     playlistItems.forEach((item) => {
         item.addEventListener('dragstart', handleDragStart);
@@ -5529,6 +5559,8 @@ async function linkPlaylist(playlistUrl) {
 
         if (data.success) {
             showToast(data.message, 'success');
+            // Clear the URL input
+            importPlaylistUrl.value = '';
             await loadPlaylistsForDialog();
             // Trigger sync (only if user has write access)
             if (canWriteToCurrentCollection()) {

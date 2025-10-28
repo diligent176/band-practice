@@ -960,13 +960,15 @@ class LyricsService:
                             # Add this playlist if not already in source
                             if playlist_id not in source_playlists:
                                 source_playlists.append(playlist_id)
-                            
+
                             # Update position for this playlist
                             playlist_positions[playlist_id] = track['position']
-                            
+
+                            # Clear removed flag if song is back in a playlist
                             self.firestore.create_or_update_song(song_id, {
                                 'source_playlist_ids': source_playlists,
-                                'playlist_positions': playlist_positions
+                                'playlist_positions': playlist_positions,
+                                'is_removed_from_spotify': False
                             })
                             stats['updated_songs'] += 1
                     else:
@@ -986,7 +988,8 @@ class LyricsService:
                             'bpm': 'N/A',
                             'notes': '',
                             'source_playlist_ids': [playlist_id],
-                            'playlist_positions': {playlist_id: track['position']}
+                            'playlist_positions': {playlist_id: track['position']},
+                            'is_removed_from_spotify': False
                         }
                         
                         self.firestore.create_or_update_song(song_id, song_data)
