@@ -64,6 +64,15 @@ class ListNavigator {
      * Call this from your dialog's keyboard handler
      */
     handleKey(e) {
+        // Always handle Escape, even when list is empty
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            if (this.onEscape) {
+                this.onEscape();
+            }
+            return true;
+        }
+
         const items = this.getItems();
         if (items.length === 0) return false;
 
@@ -104,13 +113,6 @@ class ListNavigator {
                     if (this.onSelect) {
                         this.onSelect(this.currentIndex, items[this.currentIndex]);
                     }
-                }
-                return true;
-
-            case 'Escape':
-                e.preventDefault();
-                if (this.onEscape) {
-                    this.onEscape();
                 }
                 return true;
         }

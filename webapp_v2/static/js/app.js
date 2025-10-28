@@ -1028,36 +1028,6 @@ function closeSongSelector() {
     songSelectorList.removeEventListener('click', handleSongListClick);
 }
 
-// Show temporary sort mode hint in Song Chooser
-function showSortModeHint(mode) {
-    // Remove any existing hint
-    const existingHint = document.querySelector('.sort-mode-hint');
-    if (existingHint) {
-        existingHint.remove();
-    }
-
-    // Create hint element
-    const hint = document.createElement('div');
-    hint.className = 'sort-mode-hint';
-
-    const modeLabels = {
-        'name': 'Sort: By Song Name',
-        'artist': 'Sort: By Artist',
-        'playlist': 'Sort: By Playlist'
-    };
-
-    hint.textContent = modeLabels[mode] || 'Sort: Unknown';
-
-    // Add to song selector dialog
-    songSelectorDialog.appendChild(hint);
-
-    // Remove after 2 seconds
-    setTimeout(() => {
-        hint.classList.add('fade-out');
-        setTimeout(() => hint.remove(), 300);
-    }, 2000);
-}
-
 // V2: Handle sort dropdown change
 function handleSortChange(e) {
     songSelectorSortMode = e.target.value;
@@ -1115,7 +1085,14 @@ function handleSongSelectorKeyboard(e) {
     // Only handle if song selector is visible
     if (songSelectorDialog.style.display !== 'flex') return;
 
-    // Let ListNavigator handle arrow keys, Page Up/Down, Home/End, Enter, Escape
+    // Always handle ESC to close, even if ListNavigator didn't handle it
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSongSelector();
+        return;
+    }
+
+    // Let ListNavigator handle arrow keys, Page Up/Down, Home/End, Enter
     if (songNavigator && songNavigator.handleKey(e)) {
         // Update our internal index to match navigator
         selectedSongIndex = songNavigator.getSelectedIndex();
@@ -1133,7 +1110,6 @@ function handleSongSelectorKeyboard(e) {
         localStorage.setItem('songSelectorSortMode', songSelectorSortMode);
         songSelectorSort.value = songSelectorSortMode;
         loadSongs();
-        showSortModeHint(songSelectorSortMode);
         return;
     }
 
