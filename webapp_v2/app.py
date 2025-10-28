@@ -1298,7 +1298,8 @@ def get_current_user():
             'spotify_product': user.get('spotify_product'),
             'spotify_profile_photo': user.get('spotify_profile_photo'),
             'spotify_profile_url': user.get('spotify_profile_url'),
-            'spotify_country': user.get('spotify_country')
+            'spotify_country': user.get('spotify_country'),
+            'spotify_followers': user.get('spotify_followers')
         })
 
     except Exception as e:
@@ -1329,7 +1330,8 @@ def get_community_users():
                 'spotify_product': user.get('spotify_product'),
                 'spotify_profile_photo': user.get('spotify_profile_photo'),
                 'spotify_profile_url': user.get('spotify_profile_url'),
-                'spotify_country': user.get('spotify_country')
+                'spotify_country': user.get('spotify_country'),
+                'spotify_followers': user.get('spotify_followers')
             })
 
         return jsonify({

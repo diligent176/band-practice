@@ -2266,12 +2266,13 @@ function renderCurrentUser(user) {
                         : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
                     }
                     <div class="user-spotify-details">
-                        <div class="user-spotify-name-row">
-                            <span class="user-spotify-name">${escapeHtml(spotifyName)}</span>
-                            ${user.spotify_country ? `<span class="user-spotify-country">${escapeHtml(user.spotify_country)}</span>` : ''}
+                        <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
+                        <div class="user-spotify-meta">
+                            ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                            ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                            ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
                         </div>
                         ${user.spotify_email ? `<div class="user-spotify-email">${escapeHtml(user.spotify_email)}</div>` : ''}
-                        ${user.spotify_product ? `<div class="user-spotify-badge"><span class="badge badge-${user.spotify_product}">${user.spotify_product}</span></div>` : ''}
                     </div>
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 </a>
@@ -2282,12 +2283,13 @@ function renderCurrentUser(user) {
                         : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
                     }
                     <div class="user-spotify-details">
-                        <div class="user-spotify-name-row">
-                            <span class="user-spotify-name">${escapeHtml(spotifyName)}</span>
-                            ${user.spotify_country ? `<span class="user-spotify-country">${escapeHtml(user.spotify_country)}</span>` : ''}
+                        <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
+                        <div class="user-spotify-meta">
+                            ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                            ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                            ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
                         </div>
                         ${user.spotify_email ? `<div class="user-spotify-email">${escapeHtml(user.spotify_email)}</div>` : ''}
-                        ${user.spotify_product ? `<div class="user-spotify-badge"><span class="badge badge-${user.spotify_product}">${user.spotify_product}</span></div>` : ''}
                     </div>
                 </div>
             ` : '<div class="user-spotify-card"><div class="user-spotify-not-connected">Not Connected</div></div>'}
@@ -2340,11 +2342,12 @@ function renderCommunityUsers(users) {
                             : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
                         }
                         <div class="user-spotify-details">
-                            <div class="user-spotify-name-row">
-                                <span class="user-spotify-name">${escapeHtml(spotifyName)}</span>
-                                ${user.spotify_country ? `<span class="user-spotify-country">${escapeHtml(user.spotify_country)}</span>` : ''}
+                            <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
+                            <div class="user-spotify-meta">
+                                ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                                ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                                ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
                             </div>
-                            ${user.spotify_product ? `<div class="user-spotify-badge"><span class="badge badge-${user.spotify_product}">${user.spotify_product}</span></div>` : ''}
                         </div>
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </a>
@@ -2355,11 +2358,12 @@ function renderCommunityUsers(users) {
                             : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
                         }
                         <div class="user-spotify-details">
-                            <div class="user-spotify-name-row">
-                                <span class="user-spotify-name">${escapeHtml(spotifyName)}</span>
-                                ${user.spotify_country ? `<span class="user-spotify-country">${escapeHtml(user.spotify_country)}</span>` : ''}
+                            <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
+                            <div class="user-spotify-meta">
+                                ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                                ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                                ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
                             </div>
-                            ${user.spotify_product ? `<div class="user-spotify-badge"><span class="badge badge-${user.spotify_product}">${user.spotify_product}</span></div>` : ''}
                         </div>
                     </div>
                 ` : '<div class="user-spotify-card"><div class="user-spotify-not-connected">Not Connected</div></div>'}

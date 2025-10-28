@@ -418,11 +418,24 @@ body {
   text-decoration: none;
   color: inherit;
   transition: opacity 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .user-spotify-card-link:hover {
   opacity: 0.8;
   background: rgba(0, 0, 0, 0.35);
+}
+
+.user-spotify-card .fa-arrow-up-right-from-square {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.4;
+  font-size: 13px;
+  pointer-events: none;
 }
 
 .user-spotify-photo {
@@ -449,6 +462,29 @@ body {
 .user-spotify-details {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-right: 30px;
+}
+
+.user-spotify-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  flex-wrap: wrap;
+}
+
+.user-spotify-meta .badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
+
+.user-spotify-meta span {
+  white-space: nowrap;
 }
 
 .user-spotify-name-row {
@@ -471,9 +507,8 @@ body {
 }
 
 .user-spotify-email {
-  font-size: 0.7em;
+  font-size: 11px;
   color: var(--text-secondary);
-  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
