@@ -399,8 +399,12 @@ function handleGlobalKeyboard(e) {
         return;
     }
 
-    // S for song selector
+    // S for song selector (unless collection dialog is open - then S is for Sync)
     if (e.key === 's' || e.key === 'S') {
+        // If collection dialog is open, let its handler handle S for Sync
+        if (collectionDialog.style.display === 'flex') {
+            return;
+        }
         e.preventDefault();
         openSongSelector();
         return;
@@ -3506,6 +3510,16 @@ function handleCollectionDialogKeyboard(e) {
         return;
     }
 
+    // S key to sync collection
+    if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        const syncBtn = document.getElementById('sync-collection-btn');
+        if (syncBtn && syncBtn.style.display !== 'none') {
+            syncBtn.click();
+        }
+        return;
+    }
+
     // Delete key to delete collection
     if (e.key === 'Delete' || (e.altKey && (e.key === 'd' || e.key === 'D'))) {
         e.preventDefault();
@@ -3577,8 +3591,12 @@ function renderCollectionItem(collection, index, section = 'yours') {
         }
     }
 
-    // Settings gear icon (inline with metadata, only for owners)
-    const settingsIconHtml = isOwner ? `<i class="fa-solid fa-gear collection-settings-icon" data-collection-id="${collection.id}" title="Edit collection settings"></i>` : '';
+    // Settings gear icon (positioned right, next to trash icon)
+    const settingsIconHtml = isOwner ? `
+        <div class="collection-settings-icon" data-collection-id="${collection.id}" title="Edit collection settings">
+            <i class="fa-solid fa-gear"></i>
+        </div>
+    ` : '';
 
     // Trash icon for deletion (SAME STYLE AS SONGS)
     let trashIconHtml = '';
@@ -3591,12 +3609,13 @@ function renderCollectionItem(collection, index, section = 'yours') {
     }
 
     return `
-        <div class="selector-item collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}">
+        <div class="selector-item collection-item ${activeClass}" data-collection-id="${collection.id}" data-collection-index="${index}" style="position: relative;">
             ${albumArtHtml}
             <div class="selector-item-content">
                 <div class="selector-item-title">${escapeHtml(collection.name)}</div>
-                <div class="selector-item-subtitle">${countText}${badgesText} ${settingsIconHtml}</div>
+                <div class="selector-item-subtitle">${countText}${badgesText}</div>
             </div>
+            ${settingsIconHtml}
             ${trashIconHtml}
         </div>
     `;
