@@ -473,7 +473,7 @@ function renderAuditLogsTable(logs) {
 
                     return `
                     <tr>
-                        <td class="date-cell">${formatAuditDate(log.timestamp)}</td>
+                        <td class="date-cell" title="${formatDate(log.timestamp)}">${formatAuditDate(log.timestamp)}</td>
                         <td>
                             <div class="user-email-cell">${escapeHtml(log.user_email || 'Unknown')}</div>
                         </td>

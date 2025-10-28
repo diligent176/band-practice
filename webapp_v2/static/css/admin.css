@@ -330,7 +330,7 @@ table thead th {
   padding: 6px 10px;
   text-align: left;
   color: var(--text-secondary);
-  font-size: 0.938em;
+  font-size: 0.813em;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -342,7 +342,7 @@ table tbody td {
   padding: 6px 10px;
   border-bottom: 1px solid var(--card-border);
   color: var(--text-primary);
-  font-size: 1.063em;
+  font-size: 0.938em;
   line-height: 1.4;
 }
 
@@ -368,7 +368,7 @@ table tbody tr:hover {
 /* User cell */
 .user-cell {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -383,12 +383,15 @@ table tbody tr:hover {
 .user-info {
   min-width: 0;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .user-display-name {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 1.063em;
+  font-size: 0.938em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -397,11 +400,12 @@ table tbody tr:hover {
 
 .user-email-text {
   color: var(--text-secondary);
-  font-size: 0.938em;
+  font-size: 0.813em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.3;
+  display: block;
 }
 
 /* Spotify account cell */
@@ -456,13 +460,13 @@ table tbody tr:hover {
 
 .spotify-display-name {
   font-weight: 500;
-  font-size: 1.063em;
+  font-size: 0.938em;
   color: var(--text-primary);
 }
 
 .spotify-email-text {
   color: var(--text-secondary);
-  font-size: 0.938em;
+  font-size: 0.813em;
   margin-bottom: 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -471,7 +475,7 @@ table tbody tr:hover {
 
 .spotify-details {
   color: var(--text-secondary);
-  font-size: 0.938em;
+  font-size: 0.813em;
   line-height: 1.3;
 }
 
@@ -493,7 +497,7 @@ table tbody tr:hover {
 
 /* Date cells */
 .date-cell {
-  font-size: 1em;
+  font-size: 0.875em;
   color: var(--text-secondary);
   white-space: nowrap;
   cursor: help;
@@ -502,7 +506,7 @@ table tbody tr:hover {
 /* Audit log specific */
 .user-email-cell {
   color: var(--text-primary);
-  font-size: 1em;
+  font-size: 0.875em;
 }
 
 .resource-cell {
@@ -512,7 +516,7 @@ table tbody tr:hover {
 }
 
 .resource-name {
-  font-size: 1em;
+  font-size: 0.875em;
   color: var(--text-primary);
   line-height: 1.3;
   font-weight: 500;
@@ -520,13 +524,14 @@ table tbody tr:hover {
 
 /* Badge styles */
 .badge {
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: var(--radius-sm);
-  font-size: 1.125em;
+  font-size: 0.688em;
   font-weight: 600;
   text-transform: uppercase;
   display: inline-block;
   line-height: 1.2;
+  letter-spacing: 0.03em;
 }
 
 .badge-admin {
@@ -1072,7 +1077,7 @@ table tbody tr:hover {
 
 /* Value cells */
 .value-cell {
-  font-size: 1.063em;
+  font-size: 0.875em;
   line-height: 1.4;
   max-width: 300px;
 }
