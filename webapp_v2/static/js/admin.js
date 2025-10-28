@@ -11,6 +11,10 @@ let currentUser = null;
 let idToken = null;
 let allUsers = [];
 let allLogs = [];
+let displayedLogs = [];
+let logsOffset = 0;
+let logsLimit = 50;
+let hasMoreLogs = true;
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -56,8 +60,8 @@ auth.onAuthStateChanged(async (user) => {
 
             if (isAdmin) {
                 // Show admin panel
-                document.getElementById('auth-gate').style.display = 'none';
-                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('auth-gate').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
 
                 // Set user info in header
                 const photoImg = document.getElementById('user-photo');
@@ -90,8 +94,8 @@ auth.onAuthStateChanged(async (user) => {
         idToken = null;
 
         // Show auth gate
-        document.getElementById('auth-gate').style.display = 'flex';
-        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('auth-gate').classList.remove('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
 
         // Render FirebaseUI
         ui.start('#firebaseui-auth-container', uiConfig);
@@ -234,74 +238,70 @@ function renderUsersTable(users) {
         <table>
             <thead>
                 <tr>
-                    <th style="width: 30%;">User</th>
-                    <th style="width: 35%;">Spotify Account</th>
-                    <th style="width: 12%;">Status</th>
-                    <th style="width: 11%;">Created</th>
-                    <th style="width: 12%;">Last Login</th>
+                    <th class="col-user">User</th>
+                    <th class="col-spotify">Spotify Account</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-created">Created</th>
+                    <th class="col-login">Last Login</th>
                 </tr>
             </thead>
             <tbody>
                 ${users.map(user => `
                     <tr>
-                        <td style="padding: 4px 12px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
+                        <td>
+                            <div class="user-cell">
                                 <img src="${user.photo_url || ''}"
                                      alt="${user.display_name || 'User'}"
-                                     style="width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;"
+                                     class="user-avatar"
                                      onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath fill=%22%23666%22 d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22/%3E%3C/svg%3E'">
-                                <div style="min-width: 0; flex: 1;">
-                                    <div style="font-weight: 600; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <div class="user-info">
+                                    <div class="user-display-name">
                                         ${escapeHtml(user.display_name || 'Unknown')}
                                     </div>
-                                    <div style="color: #8899a6; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <div class="user-email-text">
                                         ${escapeHtml(user.email || '')}
                                     </div>
                                 </div>
                             </div>
                         </td>
-                        <td style="padding: 4px 12px;">
+                        <td>
                             ${user.spotify_product ? `
                                 <a href="${user.spotify_profile_url || '#'}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: opacity 0.2s;"
-                                   onmouseover="this.style.opacity='0.7'"
-                                   onmouseout="this.style.opacity='1'">
+                                   class="spotify-link">
                                     ${user.spotify_profile_photo ? `
                                         <img src="${escapeHtml(user.spotify_profile_photo)}"
                                              alt="Spotify"
-                                             style="width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;"
+                                             class="spotify-avatar"
                                              onerror="this.style.display='none'">
-                                    ` : `<div style="width: 60px; height: 60px; border-radius: 50%; background: #282828; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-brands fa-spotify" style="color: #1db954; font-size: 26px;"></i></div>`}
-                                    <div style="min-width: 0; flex: 1;">
-                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                                            ${user.spotify_display_name ? `<span style="font-weight: 500; font-size: 13px; color: #fff;">${escapeHtml(user.spotify_display_name)}</span>` : ''}
-                                            <span class="badge" style="background: ${user.spotify_product === 'premium' ? '#1db954' : '#535353'}; padding: 2px 6px; font-size: 10px; text-transform: uppercase;">
+                                    ` : `<div class="spotify-avatar-placeholder"><i class="fa-brands fa-spotify"></i></div>`}
+                                    <div class="spotify-info">
+                                        <div class="spotify-name-row">
+                                            ${user.spotify_display_name ? `<span class="spotify-display-name">${escapeHtml(user.spotify_display_name)}</span>` : ''}
+                                            <span class="badge ${user.spotify_product === 'premium' ? 'badge-premium' : 'badge-free'}">
                                                 ${escapeHtml(user.spotify_product)}
                                             </span>
                                         </div>
-                                        ${user.spotify_email ? `<div style="color: #8899a6; font-size: 11px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(user.spotify_email)}</div>` : ''}
-                                        <div style="color: #8899a6; font-size: 11px; line-height: 1.4;">
+                                        ${user.spotify_email ? `<div class="spotify-email-text">${escapeHtml(user.spotify_email)}</div>` : ''}
+                                        <div class="spotify-details">
                                             ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
-                                            ${user.spotify_followers !== undefined ? `<span style="margin-left: ${user.spotify_country ? '8px' : '0'};">👥 ${user.spotify_followers}</span>` : ''}
+                                            ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
                                         </div>
                                     </div>
                                 </a>
-                            ` : '<span style="color: #535353; font-size: 12px;">—</span>'}
+                            ` : '<span class="no-spotify">—</span>'}
                         </td>
-                        <td style="padding: 4px 12px;">
-                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                        <td>
+                            <div class="status-cell">
                                 ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
                                 ${user.email_verified ? '<span class="badge badge-verified">Verified</span>' : '<span class="badge badge-error">Unverified</span>'}
                             </div>
                         </td>
-                        <td style="padding: 4px 12px; font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
-                            title="${formatDate(user.created_at)}">
+                        <td class="date-cell" title="${formatDate(user.created_at)}">
                             ${formatDateCompact(user.created_at)}
                         </td>
-                        <td style="padding: 4px 12px; font-size: 12px; color: #8899a6; white-space: nowrap; cursor: help;"
-                            title="${formatDate(user.last_login_at)}">
+                        <td class="date-cell" title="${formatDate(user.last_login_at)}">
                             ${formatDateCompact(user.last_login_at)}
                         </td>
                     </tr>
@@ -314,22 +314,102 @@ function renderUsersTable(users) {
 }
 
 /**
- * Load audit logs from API
+ * Load audit logs from API with pagination
  */
-async function loadAuditLogs() {
+async function loadAuditLogs(reset = false) {
     const container = document.getElementById('audit-logs-table-container');
-    container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> Loading audit logs...</div>';
+    const paginationContainer = document.getElementById('audit-logs-pagination');
+
+    if (reset) {
+        logsOffset = 0;
+        displayedLogs = [];
+        hasMoreLogs = true;
+        container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> Loading audit logs...</div>';
+    }
 
     try {
-        const data = await apiRequest('/api/admin/audit-logs?limit=100');
-        allLogs = data.logs;
+        // Build query parameters
+        const params = new URLSearchParams({
+            limit: logsLimit,
+            offset: logsOffset
+        });
+
+        // Add date filters if set
+        const startDate = document.getElementById('log-start-date')?.value;
+        const endDate = document.getElementById('log-end-date')?.value;
+
+        if (startDate) {
+            const startDateTime = new Date(startDate);
+            startDateTime.setHours(0, 0, 0, 0);
+            params.append('start_date', startDateTime.toISOString());
+        }
+
+        if (endDate) {
+            const endDateTime = new Date(endDate);
+            endDateTime.setHours(23, 59, 59, 999);
+            params.append('end_date', endDateTime.toISOString());
+        }
+
+        const data = await apiRequest(`/api/admin/audit-logs?${params.toString()}`);
+        const newLogs = data.logs;
+
+        // Check if we have more logs to load
+        hasMoreLogs = newLogs.length === logsLimit;
+
+        // Add new logs to displayed logs
+        displayedLogs = displayedLogs.concat(newLogs);
+        allLogs = displayedLogs;
+
+        // Update offset for next load
+        logsOffset += newLogs.length;
 
         // Render logs table
-        renderAuditLogsTable(allLogs);
+        renderAuditLogsTable(displayedLogs);
+
+        // Update pagination controls
+        document.getElementById('logs-count').textContent = displayedLogs.length;
+
+        if (hasMoreLogs) {
+            paginationContainer.classList.remove('hidden');
+            document.getElementById('load-more-logs').disabled = false;
+        } else {
+            if (displayedLogs.length > 0) {
+                paginationContainer.classList.remove('hidden');
+            }
+            document.getElementById('load-more-logs').disabled = true;
+        }
     } catch (error) {
         console.error('Error loading audit logs:', error);
         container.innerHTML = `<div class="error">Failed to load audit logs: ${error.message}</div>`;
     }
+}
+
+/**
+ * Load more audit logs (pagination)
+ */
+async function loadMoreLogs() {
+    const button = document.getElementById('load-more-logs');
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    button.disabled = true;
+
+    await loadAuditLogs(false);
+
+    if (!hasMoreLogs) {
+        button.innerHTML = '<i class="fas fa-check"></i> All Loaded';
+    } else {
+        button.innerHTML = originalText;
+    }
+}
+
+/**
+ * Clear date filter
+ */
+function clearDateFilter() {
+    document.getElementById('log-start-date').value = '';
+    document.getElementById('log-end-date').value = '';
+    loadAuditLogs(true);
 }
 
 /**
@@ -352,29 +432,29 @@ function renderAuditLogsTable(logs) {
         <table>
             <thead>
                 <tr>
-                    <th>Timestamp</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Resource</th>
-                    <th>Changes</th>
+                    <th class="col-timestamp">Timestamp</th>
+                    <th class="col-user-email">User</th>
+                    <th class="col-action">Action</th>
+                    <th class="col-resource">Resource</th>
+                    <th class="col-changes">Changes</th>
                 </tr>
             </thead>
             <tbody>
                 ${logs.map(log => `
                     <tr>
-                        <td class="timestamp">${formatAuditDate(log.timestamp)}</td>
+                        <td class="date-cell">${formatAuditDate(log.timestamp)}</td>
                         <td>
-                            <div class="user-email">${escapeHtml(log.user_email || 'Unknown')}</div>
+                            <div class="user-email-cell">${escapeHtml(log.user_email || 'Unknown')}</div>
                         </td>
                         <td>
                             <span class="action-badge ${getActionClass(log.action)}">${escapeHtml(log.action)}</span>
                         </td>
                         <td>
-                            <div>${escapeHtml(log.resource_type || 'N/A')}</div>
-                            ${log.resource_name ? `<div style="font-size: 12px; color: #8899a6;">${escapeHtml(log.resource_name)}</div>` : ''}
+                            <div class="resource-cell">${escapeHtml(log.resource_type || 'N/A')}</div>
+                            ${log.resource_name ? `<div class="resource-name">${escapeHtml(log.resource_name)}</div>` : ''}
                         </td>
                         <td>
-                            ${formatChanges(log.changes)}
+                            ${formatChanges(log.changes, log)}
                         </td>
                     </tr>
                 `).join('')}
@@ -401,20 +481,37 @@ function getActionClass(action) {
 /**
  * Format changes object for display
  */
-function formatChanges(changes) {
+function formatChanges(changes, log) {
     if (!changes) return '-';
 
     const entries = Object.entries(changes);
     if (entries.length === 0) return '-';
 
+    // Check if this is a lyrics or notes change (diffable)
+    const isDiffable = entries.some(([key]) =>
+        key === 'lyrics' || key === 'drummer_notes' || key === 'old_value' || key === 'new_value'
+    );
+
+    if (isDiffable) {
+        return `<div class="changes-clickable" onclick='openDiffModal(${JSON.stringify(log).replace(/'/g, "&apos;")})'>
+            ${entries.map(([key, value]) => {
+                let displayValue = value;
+                if (typeof value === 'string' && value.length > 100) {
+                    displayValue = value.substring(0, 100) + '...';
+                }
+                return `<div class="changes-details"><strong>${escapeHtml(key)}:</strong> <code>${escapeHtml(String(displayValue))}</code></div>`;
+            }).join('')}
+            <div class="changes-details" style="color: var(--accent-primary); margin-top: 4px;">
+                <i class="fas fa-code-compare"></i> Click to view diff
+            </div>
+        </div>`;
+    }
+
     return entries.map(([key, value]) => {
         let displayValue = value;
-
-        // Truncate long strings
         if (typeof value === 'string' && value.length > 100) {
             displayValue = value.substring(0, 100) + '...';
         }
-
         return `<div class="changes-details"><strong>${escapeHtml(key)}:</strong> <code>${escapeHtml(String(displayValue))}</code></div>`;
     }).join('');
 }
@@ -538,7 +635,249 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Search functionality
+// Store current diff data for view switching
+let currentDiffData = null;
+
+/**
+ * Open diff viewer modal
+ */
+function openDiffModal(log) {
+    const modal = document.getElementById('diff-modal');
+    const changes = log.changes || {};
+
+    // Find the field that changed (lyrics, notes, etc.)
+    const field = Object.keys(changes)[0];
+    const oldValue = changes.old_value || changes[field]?.old_value || '';
+    const newValue = changes.new_value || changes[field]?.new_value || changes[field] || '';
+
+    // Store diff data for view switching
+    currentDiffData = {
+        oldValue,
+        newValue,
+        filename: log.resource_name || 'file'
+    };
+
+    // Populate modal info
+    document.getElementById('diff-field').textContent = field || 'Unknown';
+    document.getElementById('diff-action').textContent = log.action || 'Unknown';
+    document.getElementById('diff-resource').textContent = log.resource_name || log.resource_type || 'Unknown';
+    document.getElementById('diff-user').textContent = log.user_email || 'Unknown';
+    document.getElementById('diff-time').textContent = formatDate(log.timestamp);
+
+    // Generate and display both diff views
+    displayUnifiedDiff(oldValue, newValue, currentDiffData.filename);
+    displaySplitDiff(oldValue, newValue);
+
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Close diff viewer modal
+ */
+function closeDiffModal() {
+    document.getElementById('diff-modal').classList.add('hidden');
+}
+
+/**
+ * Switch between unified and split diff views
+ */
+function switchDiffView(view) {
+    const unifiedView = document.getElementById('diff-output-unified');
+    const splitView = document.getElementById('diff-output-split');
+    const buttons = document.querySelectorAll('.view-toggle-btn');
+
+    // Update button states
+    buttons.forEach(btn => {
+        if (btn.dataset.view === view) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Toggle views
+    if (view === 'unified') {
+        unifiedView.classList.remove('hidden');
+        splitView.classList.add('hidden');
+    } else {
+        unifiedView.classList.add('hidden');
+        splitView.classList.remove('hidden');
+    }
+}
+
+/**
+ * Display unified diff (git diff style) using jsdiff library
+ */
+function displayUnifiedDiff(oldText, newText, filename) {
+    const container = document.getElementById('diff-output-unified');
+
+    if (!window.Diff) {
+        container.innerHTML = '<div class="error">Diff library not loaded</div>';
+        return;
+    }
+
+    // Create unified diff using jsdiff
+    const diff = Diff.createPatch(
+        filename,
+        oldText || '',
+        newText || '',
+        'Old',
+        'New',
+        { context: 3 }
+    );
+
+    // Parse and render the unified diff
+    renderUnifiedDiff(diff, container);
+}
+
+/**
+ * Render unified diff output (like git diff)
+ */
+function renderUnifiedDiff(diffText, container) {
+    const lines = diffText.split('\n');
+    let html = '<div class="unified-diff">';
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        // Skip the first few metadata lines from jsdiff output
+        if (i < 2) continue;
+
+        if (line.startsWith('@@')) {
+            // Hunk header (chunk location info)
+            html += `<div class="diff-hunk-header">${escapeHtml(line)}</div>`;
+        } else if (line.startsWith('-') && !line.startsWith('---')) {
+            // Removed line
+            html += `<div class="diff-line diff-line-removed"><span class="diff-marker">-</span>${escapeHtml(line.substring(1))}</div>`;
+        } else if (line.startsWith('+') && !line.startsWith('+++')) {
+            // Added line
+            html += `<div class="diff-line diff-line-added"><span class="diff-marker">+</span>${escapeHtml(line.substring(1))}</div>`;
+        } else if (line.startsWith(' ')) {
+            // Context line (unchanged)
+            html += `<div class="diff-line diff-line-context"><span class="diff-marker"> </span>${escapeHtml(line.substring(1))}</div>`;
+        } else if (line.startsWith('---') || line.startsWith('+++')) {
+            // File header
+            html += `<div class="diff-file-header">${escapeHtml(line)}</div>`;
+        } else if (line.trim() === '') {
+            // Empty line
+            html += `<div class="diff-line diff-line-context"><span class="diff-marker"> </span></div>`;
+        }
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+/**
+ * Display split diff (side-by-side) using jsdiff library
+ */
+function displaySplitDiff(oldText, newText) {
+    const oldContainer = document.getElementById('diff-split-old');
+    const newContainer = document.getElementById('diff-split-new');
+
+    if (!window.Diff) {
+        oldContainer.innerHTML = '<div class="error">Diff library not loaded</div>';
+        newContainer.innerHTML = '<div class="error">Diff library not loaded</div>';
+        return;
+    }
+
+    // Compute line-by-line diff
+    const diffs = Diff.diffLines(oldText || '', newText || '');
+
+    let oldHtml = '';
+    let newHtml = '';
+    let oldLineNum = 1;
+    let newLineNum = 1;
+
+    diffs.forEach(part => {
+        const lines = part.value.split('\n');
+        // Remove last empty line if present
+        if (lines[lines.length - 1] === '') {
+            lines.pop();
+        }
+
+        if (part.added) {
+            // Added lines - show only in new pane
+            lines.forEach(line => {
+                newHtml += `<div class="split-diff-line split-line-added">`;
+                newHtml += `<span class="split-line-number">${newLineNum++}</span>`;
+                newHtml += `<span class="split-marker">+</span>`;
+                newHtml += `<span class="split-content">${escapeHtml(line)}</span>`;
+                newHtml += `</div>`;
+            });
+        } else if (part.removed) {
+            // Removed lines - show only in old pane
+            lines.forEach(line => {
+                oldHtml += `<div class="split-diff-line split-line-removed">`;
+                oldHtml += `<span class="split-line-number">${oldLineNum++}</span>`;
+                oldHtml += `<span class="split-marker">-</span>`;
+                oldHtml += `<span class="split-content">${escapeHtml(line)}</span>`;
+                oldHtml += `</div>`;
+            });
+        } else {
+            // Unchanged lines - show in both panes
+            lines.forEach(line => {
+                oldHtml += `<div class="split-diff-line">`;
+                oldHtml += `<span class="split-line-number">${oldLineNum++}</span>`;
+                oldHtml += `<span class="split-marker"> </span>`;
+                oldHtml += `<span class="split-content">${escapeHtml(line)}</span>`;
+                oldHtml += `</div>`;
+
+                newHtml += `<div class="split-diff-line">`;
+                newHtml += `<span class="split-line-number">${newLineNum++}</span>`;
+                newHtml += `<span class="split-marker"> </span>`;
+                newHtml += `<span class="split-content">${escapeHtml(line)}</span>`;
+                newHtml += `</div>`;
+            });
+        }
+    });
+
+    oldContainer.innerHTML = oldHtml || '<div class="split-empty">(empty)</div>';
+    newContainer.innerHTML = newHtml || '<div class="split-empty">(empty)</div>';
+
+    // Sync scroll between panes
+    syncSplitScroll();
+}
+
+/**
+ * Synchronize scrolling between split panes
+ */
+function syncSplitScroll() {
+    const oldPane = document.getElementById('diff-split-old');
+    const newPane = document.getElementById('diff-split-new');
+
+    if (!oldPane || !newPane) return;
+
+    let isOldScrolling = false;
+    let isNewScrolling = false;
+
+    oldPane.addEventListener('scroll', () => {
+        if (isNewScrolling) return;
+        isOldScrolling = true;
+        newPane.scrollTop = oldPane.scrollTop;
+        setTimeout(() => { isOldScrolling = false; }, 10);
+    });
+
+    newPane.addEventListener('scroll', () => {
+        if (isOldScrolling) return;
+        isNewScrolling = true;
+        oldPane.scrollTop = newPane.scrollTop;
+        setTimeout(() => { isNewScrolling = false; }, 10);
+    });
+}
+
+// Keyboard shortcut to close modal (Escape key)
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('diff-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            closeDiffModal();
+        }
+    }
+});
+
+// Search functionality and date filter listeners
 document.addEventListener('DOMContentLoaded', () => {
     // User search
     const userSearch = document.getElementById('user-search');
@@ -555,17 +894,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Log search
+    // Log search (client-side filter on already loaded logs)
     const logSearch = document.getElementById('log-search');
     if (logSearch) {
         logSearch.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
-            const filtered = allLogs.filter(log =>
+            const filtered = displayedLogs.filter(log =>
                 (log.user_email && log.user_email.toLowerCase().includes(query)) ||
                 (log.action && log.action.toLowerCase().includes(query)) ||
                 (log.resource_name && log.resource_name.toLowerCase().includes(query))
             );
             renderAuditLogsTable(filtered);
+        });
+    }
+
+    // Date filter listeners
+    const startDateInput = document.getElementById('log-start-date');
+    const endDateInput = document.getElementById('log-end-date');
+
+    if (startDateInput) {
+        startDateInput.addEventListener('change', () => {
+            loadAuditLogs(true);
+        });
+    }
+
+    if (endDateInput) {
+        endDateInput.addEventListener('change', () => {
+            loadAuditLogs(true);
         });
     }
 });

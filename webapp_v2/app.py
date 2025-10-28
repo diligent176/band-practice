@@ -1244,18 +1244,41 @@ def admin_set_user_admin(user_id):
 def admin_get_audit_logs():
     """Get audit logs (admin only)"""
     try:
+        from datetime import datetime
+
         limit = int(request.args.get('limit', 100))
         offset = int(request.args.get('offset', 0))
         user_id = request.args.get('user_id')
         action = request.args.get('action')
         resource_type = request.args.get('resource_type')
 
+        # Parse date filters if provided
+        start_date = None
+        end_date = None
+
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+
+        if start_date_str:
+            try:
+                start_date = datetime.fromisoformat(start_date_str.replace('Z', '+00:00'))
+            except ValueError:
+                pass
+
+        if end_date_str:
+            try:
+                end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00'))
+            except ValueError:
+                pass
+
         logs = audit_service.get_logs(
             limit=limit,
             offset=offset,
             user_id=user_id,
             action=action,
-            resource_type=resource_type
+            resource_type=resource_type,
+            start_date=start_date,
+            end_date=end_date
         )
 
         logger.info(f"Admin {g.user.get('email')} retrieved {len(logs)} audit logs")

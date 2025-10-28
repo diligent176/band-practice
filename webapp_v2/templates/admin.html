@@ -20,20 +20,20 @@
     <!-- Authentication Gate -->
     <div id="auth-gate">
         <h2><i class="fas fa-shield-halved"></i> Admin Panel Login</h2>
-        <p style="color: #8899a6;">Please sign in with your admin account</p>
+        <p class="auth-subtitle">Please sign in with your admin account</p>
         <div id="firebaseui-auth-container"></div>
     </div>
 
     <!-- Main Admin Panel (hidden until authenticated) -->
-    <div id="admin-panel" style="display: none;">
+    <div id="admin-panel" class="hidden">
         <div class="admin-container">
             <div class="admin-header">
                 <h1><i class="fas fa-shield-halved"></i> Admin Panel</h1>
                 <div class="admin-user-info">
                     <img id="user-photo" src="" alt="User">
                     <div>
-                        <div id="user-name" style="font-weight: 600;"></div>
-                        <div id="user-email" style="font-size: 12px; color: #8899a6;"></div>
+                        <div id="user-name" class="user-name"></div>
+                        <div id="user-email" class="user-email"></div>
                     </div>
                     <button class="btn btn-secondary" onclick="signOut()">
                         <i class="fas fa-sign-out-alt"></i> Sign Out
@@ -81,17 +81,86 @@
             <!-- Audit Logs Tab -->
             <div id="audit-logs-tab" class="tab-content">
                 <div class="data-table">
-                    <div class="table-controls">
-                        <input type="text" class="search-box" id="log-search" placeholder="Search logs...">
-                        <button class="btn" onclick="loadAuditLogs()">
-                            <i class="fas fa-refresh"></i> Refresh
+                    <div class="table-controls compact">
+                        <input type="text" class="search-box compact" id="log-search" placeholder="Search logs...">
+                        <input type="date" id="log-start-date" class="date-picker compact" placeholder="Start date">
+                        <span class="date-separator">to</span>
+                        <input type="date" id="log-end-date" class="date-picker compact" placeholder="End date">
+                        <button class="btn btn-icon compact" onclick="clearDateFilter()" title="Clear dates">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <button class="btn compact" onclick="loadAuditLogs(true)">
+                            <i class="fas fa-search"></i> Search
                         </button>
                     </div>
                     <div id="audit-logs-table-container"></div>
+                    <div id="audit-logs-pagination" class="pagination-controls hidden">
+                        <div class="pagination-info">
+                            <span id="logs-count">0</span> logs
+                        </div>
+                        <button class="btn btn-secondary btn-sm" id="load-more-logs" onclick="loadMoreLogs()">
+                            <i class="fas fa-chevron-down"></i> Load More
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Diff Viewer Modal -->
+    <div id="diff-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="closeDiffModal()"></div>
+        <div class="modal-content diff-modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-code-compare"></i> <span id="diff-title">Change Comparison</span></h2>
+                <div class="modal-header-actions">
+                    <div class="view-toggle">
+                        <button class="btn btn-sm view-toggle-btn active" data-view="unified" onclick="switchDiffView('unified')">
+                            <i class="fas fa-align-left"></i> Unified
+                        </button>
+                        <button class="btn btn-sm view-toggle-btn" data-view="split" onclick="switchDiffView('split')">
+                            <i class="fas fa-columns"></i> Split
+                        </button>
+                    </div>
+                    <button class="btn-close" onclick="closeDiffModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="diff-info">
+                    <div><strong>Field:</strong> <span id="diff-field"></span></div>
+                    <div><strong>Action:</strong> <span id="diff-action"></span></div>
+                    <div><strong>Song:</strong> <span id="diff-resource"></span></div>
+                    <div><strong>User:</strong> <span id="diff-user"></span></div>
+                    <div><strong>Time:</strong> <span id="diff-time"></span></div>
+                </div>
+                <div class="diff-viewer" id="diff-viewer">
+                    <!-- Unified view -->
+                    <div id="diff-output-unified" class="diff-output unified-view"></div>
+
+                    <!-- Split view -->
+                    <div id="diff-output-split" class="diff-output split-view hidden">
+                        <div class="split-pane">
+                            <div class="split-pane-header old">
+                                <i class="fas fa-file-lines"></i> Old Value
+                            </div>
+                            <div id="diff-split-old" class="split-pane-content"></div>
+                        </div>
+                        <div class="split-pane">
+                            <div class="split-pane-header new">
+                                <i class="fas fa-file-lines"></i> New Value
+                            </div>
+                            <div id="diff-split-new" class="split-pane-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diff Library (jsdiff) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
