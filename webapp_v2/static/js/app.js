@@ -2251,12 +2251,12 @@ function renderCurrentUser(user) {
                 }
                 <div class="user-google-details">
                     <div class="user-google-name">${escapeHtml(displayName)}</div>
-                    <div class="user-google-email">${escapeHtml(user.email || 'No email')}</div>
                     <div class="user-google-meta">
                         ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
                         ${user.created_at ? `<span class="user-date-item" title="Created ${formatDateForTooltip(user.created_at)}"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
                         ${user.last_login_at ? `<span class="user-date-item" title="Last Active ${formatDateForTooltip(user.last_login_at)}"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
                     </div>
+                    <div class="user-google-email">${escapeHtml(user.email || 'No email')}</div>
                 </div>
             </div>
             ${spotifyName && user.spotify_profile_url ? `
