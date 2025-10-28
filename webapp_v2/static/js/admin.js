@@ -432,32 +432,66 @@ function renderAuditLogsTable(logs) {
         <table>
             <thead>
                 <tr>
-                    <th class="col-timestamp">Timestamp</th>
+                    <th class="col-timestamp">Time</th>
                     <th class="col-user-email">User</th>
-                    <th class="col-action">Action</th>
-                    <th class="col-resource">Resource</th>
-                    <th class="col-changes">Changes</th>
+                    <th class="col-song">Song</th>
+                    <th class="col-changed">Changed</th>
+                    <th class="col-old-value">Old Value</th>
+                    <th class="col-new-value">New Value</th>
                 </tr>
             </thead>
             <tbody>
-                ${logs.map(log => `
+                ${logs.map(log => {
+                    // Extract field name from changes or action
+                    const changes = log.changes || {};
+                    let field = 'unknown';
+                    let oldValue = '';
+                    let newValue = '';
+
+                    // Try to get field from action name
+                    if (log.action) {
+                        if (log.action.includes('lyrics')) field = 'lyrics';
+                        else if (log.action.includes('note')) field = 'drummer_notes';
+                        else if (log.action.includes('bpm')) field = 'bpm';
+                    }
+
+                    // Extract values from changes object
+                    if (changes.field) field = changes.field;
+                    if (changes.old_value !== undefined) oldValue = changes.old_value;
+                    if (changes.new_value !== undefined) newValue = changes.new_value;
+
+                    // Fallback: check for direct field keys
+                    const changeKeys = Object.keys(changes);
+                    if (changeKeys.length > 0 && !changes.field) {
+                        const key = changeKeys[0];
+                        if (key !== 'old_value' && key !== 'new_value') {
+                            field = key;
+                            oldValue = changes.old_value || '';
+                            newValue = changes[key] || changes.new_value || '';
+                        }
+                    }
+
+                    return `
                     <tr>
                         <td class="date-cell">${formatAuditDate(log.timestamp)}</td>
                         <td>
                             <div class="user-email-cell">${escapeHtml(log.user_email || 'Unknown')}</div>
                         </td>
                         <td>
-                            <span class="action-badge ${getActionClass(log.action)}">${escapeHtml(log.action)}</span>
+                            <div class="resource-name">${escapeHtml(log.resource_name || 'Unknown')}</div>
                         </td>
                         <td>
-                            <div class="resource-cell">${escapeHtml(log.resource_type || 'N/A')}</div>
-                            ${log.resource_name ? `<div class="resource-name">${escapeHtml(log.resource_name)}</div>` : ''}
+                            ${getFieldBadge(field)}
                         </td>
-                        <td>
-                            ${formatChanges(log.changes, log)}
+                        <td class="value-cell">
+                            ${formatValue(oldValue, field)}
+                        </td>
+                        <td class="value-cell">
+                            ${formatValue(newValue, field)}
+                            ${shouldShowDiff(field) ? `<div class="diff-link" onclick='openDiffModal(${JSON.stringify(log).replace(/'/g, "&apos;")})'><i class="fas fa-code-compare"></i> View diff</div>` : ''}
                         </td>
                     </tr>
-                `).join('')}
+                `}).join('')}
             </tbody>
         </table>
     `;
@@ -466,7 +500,52 @@ function renderAuditLogsTable(logs) {
 }
 
 /**
- * Get CSS class for action type
+ * Get badge for field type with distinct colors
+ */
+function getFieldBadge(field) {
+    if (!field) return '<span class="field-badge">Unknown</span>';
+
+    const fieldMap = {
+        'lyrics': { label: 'LYRICS', class: 'field-badge-lyrics' },
+        'drummer_notes': { label: 'NOTES', class: 'field-badge-notes' },
+        'bpm': { label: 'BPM', class: 'field-badge-bpm' },
+        'title': { label: 'TITLE', class: 'field-badge-meta' },
+        'artist': { label: 'ARTIST', class: 'field-badge-meta' }
+    };
+
+    const config = fieldMap[field] || { label: field.toUpperCase(), class: 'field-badge-default' };
+    return `<span class="field-badge ${config.class}">${config.label}</span>`;
+}
+
+/**
+ * Check if field should show diff viewer
+ */
+function shouldShowDiff(field) {
+    return field === 'lyrics' || field === 'drummer_notes';
+}
+
+/**
+ * Format value for display in table
+ */
+function formatValue(value, field) {
+    if (!value) return '<span class="empty-value">(empty)</span>';
+
+    // For BPM and other short values, show directly
+    if (field === 'bpm' || typeof value === 'number') {
+        return `<span class="value-short">${escapeHtml(String(value))}</span>`;
+    }
+
+    // For long text (lyrics, notes), truncate
+    const text = String(value);
+    if (text.length > 80) {
+        return `<span class="value-long" title="${escapeHtml(text)}">${escapeHtml(text.substring(0, 80))}...</span>`;
+    }
+
+    return `<span class="value-short">${escapeHtml(text)}</span>`;
+}
+
+/**
+ * Get CSS class for action type (deprecated, kept for compatibility)
  */
 function getActionClass(action) {
     if (!action) return '';

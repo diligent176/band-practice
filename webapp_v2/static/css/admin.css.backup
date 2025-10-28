@@ -20,7 +20,7 @@ body.admin-page {
 }
 
 .user-email {
-  font-size: 1.063em;
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
@@ -41,7 +41,7 @@ body.admin-page {
 
 .admin-header h1 {
   margin: 0;
-  font-size: 1.5em;
+  font-size: 24px;
   color: var(--accent-primary);
   display: flex;
   align-items: center;
@@ -78,7 +78,7 @@ body.admin-page {
   color: var(--text-secondary);
   border: none;
   cursor: pointer;
-  font-size: 1.125em;
+  font-size: 14px;
   border-bottom: 2px solid transparent;
   transition: all var(--transition-base);
 }
@@ -123,14 +123,14 @@ body.admin-page {
 .stat-card h3 {
   margin: 0 0 8px 0;
   color: var(--text-secondary);
-  font-size: 1em;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .stat-card .value {
-  font-size: 1.75em;
+  font-size: 28px;
   font-weight: 600;
   color: var(--accent-primary);
 }
@@ -164,7 +164,7 @@ body.admin-page {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-size: 1.063em;
+  font-size: 12px;
   cursor: pointer;
   transition: border-color var(--transition-base);
   min-width: 130px;
@@ -172,7 +172,7 @@ body.admin-page {
 
 .date-picker.compact {
   padding: 4px 6px;
-  font-size: 1em;
+  font-size: 11px;
   min-width: 110px;
 }
 
@@ -188,19 +188,19 @@ body.admin-page {
 
 .date-separator {
   color: var(--text-secondary);
-  font-size: 1em;
+  font-size: 11px;
   margin: 0 2px;
   white-space: nowrap;
 }
 
 .btn-sm {
   padding: 5px 10px;
-  font-size: 1em;
+  font-size: 11px;
 }
 
 .btn.compact {
   padding: 5px 12px;
-  font-size: 1em;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -224,7 +224,7 @@ body.admin-page {
 
 .pagination-info {
   color: var(--text-secondary);
-  font-size: 1em;
+  font-size: 11px;
 }
 
 .pagination-info span {
@@ -238,7 +238,7 @@ body.admin-page {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-size: 1.063em;
+  font-size: 12px;
   flex: 1;
   min-width: 200px;
   max-width: 300px;
@@ -247,7 +247,7 @@ body.admin-page {
 
 .search-box.compact {
   padding: 5px 8px;
-  font-size: 1em;
+  font-size: 11px;
   min-width: 150px;
 }
 
@@ -259,7 +259,7 @@ body.admin-page {
 .action-badge {
   padding: 2px 6px;
   border-radius: var(--radius-sm);
-  font-size: 1.125em;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   line-height: 1.2;
@@ -282,11 +282,11 @@ body.admin-page {
 
 .timestamp {
   color: var(--text-secondary);
-  font-size: 1em;
+  font-size: 11px;
 }
 
 .changes-details {
-  font-size: 0.938em;
+  font-size: 10px;
   color: var(--text-secondary);
   margin-top: 2px;
   line-height: 1.3;
@@ -297,7 +297,7 @@ body.admin-page {
   padding: 1px 4px;
   border-radius: var(--radius-sm);
   font-family: 'Courier New', monospace;
-  font-size: 1.125em;
+  font-size: 9px;
 }
 
 #auth-gate {
@@ -330,7 +330,7 @@ table thead th {
   padding: 6px 10px;
   text-align: left;
   color: var(--text-secondary);
-  font-size: 0.938em;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -342,7 +342,7 @@ table tbody td {
   padding: 6px 10px;
   border-bottom: 1px solid var(--card-border);
   color: var(--text-primary);
-  font-size: 1.063em;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -350,20 +350,18 @@ table tbody tr:hover {
   background: var(--bg-tertiary);
 }
 
-/* Column widths - Users table */
+/* Column widths */
 .col-user { width: 30%; }
 .col-spotify { width: 35%; }
 .col-status { width: 12%; }
 .col-created { width: 11%; }
 .col-login { width: 12%; }
 
-/* Column widths - Audit logs table */
-.col-timestamp { width: 10%; }
-.col-user-email { width: 15%; }
-.col-song { width: 20%; }
-.col-changed { width: 10%; }
-.col-old-value { width: 22%; }
-.col-new-value { width: 23%; }
+.col-timestamp { width: 15%; }
+.col-user-email { width: 20%; }
+.col-action { width: 15%; }
+.col-resource { width: 20%; }
+.col-changes { width: 30%; }
 
 /* User cell */
 .user-cell {
@@ -388,7 +386,7 @@ table tbody tr:hover {
 .user-display-name {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 1.063em;
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -397,7 +395,7 @@ table tbody tr:hover {
 
 .user-email-text {
   color: var(--text-secondary);
-  font-size: 0.938em;
+  font-size: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -439,7 +437,7 @@ table tbody tr:hover {
 
 .spotify-avatar-placeholder i {
   color: #1db954;
-  font-size: 1em;
+  font-size: 16px;
 }
 
 .spotify-info {
@@ -456,13 +454,13 @@ table tbody tr:hover {
 
 .spotify-display-name {
   font-weight: 500;
-  font-size: 1.063em;
+  font-size: 12px;
   color: var(--text-primary);
 }
 
 .spotify-email-text {
   color: var(--text-secondary);
-  font-size: 0.938em;
+  font-size: 10px;
   margin-bottom: 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -471,7 +469,7 @@ table tbody tr:hover {
 
 .spotify-details {
   color: var(--text-secondary);
-  font-size: 0.938em;
+  font-size: 10px;
   line-height: 1.3;
 }
 
@@ -481,7 +479,7 @@ table tbody tr:hover {
 
 .no-spotify {
   color: #535353;
-  font-size: 1em;
+  font-size: 11px;
 }
 
 /* Status cell */
@@ -493,7 +491,7 @@ table tbody tr:hover {
 
 /* Date cells */
 .date-cell {
-  font-size: 1em;
+  font-size: 11px;
   color: var(--text-secondary);
   white-space: nowrap;
   cursor: help;
@@ -502,27 +500,27 @@ table tbody tr:hover {
 /* Audit log specific */
 .user-email-cell {
   color: var(--text-primary);
-  font-size: 1em;
+  font-size: 11px;
 }
 
 .resource-cell {
   color: var(--text-primary);
-  font-size: 1em;
+  font-size: 11px;
   line-height: 1.3;
 }
 
 .resource-name {
-  font-size: 1em;
-  color: var(--text-primary);
+  font-size: 10px;
+  color: var(--text-secondary);
   line-height: 1.3;
-  font-weight: 500;
+  margin-top: 1px;
 }
 
 /* Badge styles */
 .badge {
   padding: 2px 6px;
   border-radius: var(--radius-sm);
-  font-size: 1.125em;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   display: inline-block;
@@ -562,7 +560,7 @@ table tbody tr:hover {
 }
 
 .loading i {
-  font-size: 1.5em;
+  font-size: 24px;
   animation: spin 1s linear infinite;
 }
 
@@ -594,7 +592,7 @@ table tbody tr:hover {
 
 .empty-state p {
   margin: 0;
-  font-size: 1.125em;
+  font-size: 14px;
 }
 
 /* Modal styles */
@@ -667,7 +665,7 @@ table tbody tr:hover {
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.125em;
+  font-size: 18px;
   color: var(--accent-primary);
   display: flex;
   align-items: center;
@@ -691,7 +689,7 @@ table tbody tr:hover {
 
 .view-toggle-btn {
   padding: 4px 10px;
-  font-size: 1em;
+  font-size: 11px;
   background: transparent;
   border: none;
   color: var(--text-secondary);
@@ -715,7 +713,7 @@ table tbody tr:hover {
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  font-size: 1.125em;
+  font-size: 18px;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: var(--radius-sm);
@@ -744,7 +742,7 @@ table tbody tr:hover {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
-  font-size: 1em;
+  font-size: 11px;
   flex-wrap: wrap;
 }
 
@@ -771,7 +769,7 @@ table tbody tr:hover {
   flex: 1;
   overflow: auto;
   font-family: 'Courier New', Monaco, monospace;
-  font-size: 1.125em;
+  font-size: 13px;
   line-height: 1.5;
   padding: 0;
 }
@@ -803,7 +801,7 @@ table tbody tr:hover {
 
 .split-pane-header {
   padding: 8px 12px;
-  font-size: 1.063em;
+  font-size: 12px;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -826,7 +824,7 @@ table tbody tr:hover {
   flex: 1;
   overflow: auto;
   font-family: 'Courier New', Monaco, monospace;
-  font-size: 1.063em;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -844,7 +842,7 @@ table tbody tr:hover {
   user-select: none;
   flex-shrink: 0;
   padding-right: 8px;
-  font-size: 1em;
+  font-size: 11px;
 }
 
 .split-marker {
@@ -902,7 +900,7 @@ table tbody tr:hover {
   color: var(--text-secondary);
   font-weight: 600;
   border-bottom: 1px solid var(--card-border);
-  font-size: 1.063em;
+  font-size: 12px;
 }
 
 .diff-hunk-header {
@@ -912,7 +910,7 @@ table tbody tr:hover {
   font-weight: 600;
   border-top: 1px solid var(--card-border);
   border-bottom: 1px solid var(--card-border);
-  font-size: 1.063em;
+  font-size: 12px;
   user-select: none;
 }
 
@@ -1003,17 +1001,17 @@ table tbody tr:hover {
   }
 
   table {
-    font-size: 1em;
+    font-size: 11px;
   }
 
   table thead th {
     padding: 4px 6px;
-    font-size: 1.125em;
+    font-size: 9px;
   }
 
   table tbody td {
     padding: 4px 6px;
-    font-size: 1em;
+    font-size: 11px;
   }
 
   .user-avatar,
@@ -1024,101 +1022,6 @@ table tbody tr:hover {
   }
 
   .spotify-avatar-placeholder i {
-    font-size: 1.125em;
+    font-size: 14px;
   }
-}
-
-/* Field badges - distinct colors for different field types */
-.field-badge {
-  padding: 0.25em 0.625em;
-  border-radius: var(--radius-sm);
-  font-size: 1em;
-  font-weight: 600;
-  text-transform: uppercase;
-  display: inline-block;
-  line-height: 1.2;
-  letter-spacing: 0.05em;
-}
-
-.field-badge-lyrics {
-  background: rgba(138, 43, 226, 0.2);
-  color: #ba7fff;
-  border: 1px solid rgba(138, 43, 226, 0.4);
-}
-
-.field-badge-notes {
-  background: rgba(255, 165, 0, 0.2);
-  color: #ffb347;
-  border: 1px solid rgba(255, 165, 0, 0.4);
-}
-
-.field-badge-bpm {
-  background: rgba(30, 144, 255, 0.2);
-  color: #5eb3ff;
-  border: 1px solid rgba(30, 144, 255, 0.4);
-}
-
-.field-badge-meta {
-  background: rgba(100, 100, 100, 0.2);
-  color: #999;
-  border: 1px solid rgba(100, 100, 100, 0.4);
-}
-
-.field-badge-default {
-  background: rgba(100, 100, 100, 0.2);
-  color: #999;
-  border: 1px solid rgba(100, 100, 100, 0.4);
-}
-
-/* Value cells */
-.value-cell {
-  font-size: 1.063em;
-  line-height: 1.4;
-  max-width: 300px;
-}
-
-.value-short {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.value-long {
-  color: var(--text-primary);
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.empty-value {
-  color: var(--text-secondary);
-  font-style: italic;
-  opacity: 0.6;
-}
-
-/* Diff link */
-.diff-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375em;
-  margin-top: 0.5em;
-  padding: 0.25em 0.5em;
-  background: rgba(29, 185, 84, 0.1);
-  color: var(--accent-primary);
-  font-size: 1em;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  border: 1px solid rgba(29, 185, 84, 0.3);
-}
-
-.diff-link:hover {
-  background: rgba(29, 185, 84, 0.2);
-  border-color: rgba(29, 185, 84, 0.5);
-  transform: translateY(-1px);
-}
-
-.diff-link i {
-  font-size: 1em;
 }
