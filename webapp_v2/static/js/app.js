@@ -2021,13 +2021,17 @@ function tightenLyrics() {
         const prevLine = i > 0 ? lines[i - 1].trim() : '';
         const previousLineWasHeader = /^\[.*\]/.test(prevLine);
 
-        // Check if next line is a header
-        const nextLine = i < lines.length - 1 ? lines[i + 1].trim() : '';
-        const nextLineIsHeader = /^\[.*\]/.test(nextLine);
-
-        // Skip blank lines that are immediately before or after headers
-        if (isBlank && (previousLineWasHeader || nextLineIsHeader)) {
+        // Skip blank lines immediately AFTER headers
+        if (isBlank && previousLineWasHeader) {
             continue;
+        }
+
+        // Ensure one blank line BEFORE headers (unless it's the first line)
+        if (isHeader && tightenedLines.length > 0) {
+            const lastLineIsBlank = tightenedLines[tightenedLines.length - 1].trim() === '';
+            if (!lastLineIsBlank) {
+                tightenedLines.push('');
+            }
         }
 
         // Add the line
@@ -2041,7 +2045,7 @@ function tightenLyrics() {
     updateLyricsEditorLineNumbers();
 
     // Show feedback
-    showToast('Removed blank lines around section headers', 'success');
+    showToast('Cleaned up blank lines around section headers', 'success');
 }
 
 // Generic function to insert section headers in lyrics editor
