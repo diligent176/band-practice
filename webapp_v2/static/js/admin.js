@@ -428,6 +428,14 @@ function renderAuditLogsTable(logs) {
         return;
     }
 
+    // Create a user lookup map by email
+    const userMap = {};
+    allUsers.forEach(user => {
+        if (user.email) {
+            userMap[user.email] = user;
+        }
+    });
+
     const html = `
         <table>
             <thead>
@@ -471,11 +479,30 @@ function renderAuditLogsTable(logs) {
                         }
                     }
 
+                    // Get user data for this log entry
+                    const user = userMap[log.user_email];
+                    const userCellHtml = user ?
+                        `<div class="user-cell">
+                            <img src="${escapeHtml(user.photo_url || '')}"
+                                 alt="${escapeHtml(user.display_name || 'User')}"
+                                 class="user-avatar"
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath fill=%22%23666%22 d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22/%3E%3C/svg%3E'">
+                            <div class="user-info">
+                                <div class="user-display-name">
+                                    ${escapeHtml(user.display_name || 'Unknown')}
+                                </div>
+                                <div class="user-email-text">
+                                    ${escapeHtml(user.email || '')}
+                                </div>
+                            </div>
+                        </div>` :
+                        `<div class="user-email-cell">${escapeHtml(log.user_email || 'Unknown')}</div>`;
+
                     return `
                     <tr>
                         <td class="date-cell" title="${formatDate(log.timestamp)}">${formatAuditDate(log.timestamp)}</td>
                         <td>
-                            <div class="user-email-cell">${escapeHtml(log.user_email || 'Unknown')}</div>
+                            ${userCellHtml}
                         </td>
                         <td>
                             <div class="resource-name">${escapeHtml(log.resource_name || 'Unknown')}</div>

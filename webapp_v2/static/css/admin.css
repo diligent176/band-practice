@@ -377,7 +377,7 @@ table tbody tr:hover {
 }
 
 .col-user-email {
-  width: 15%;
+  width: 25%;
 }
 
 .col-song {
@@ -389,11 +389,11 @@ table tbody tr:hover {
 }
 
 .col-old-value {
-  width: 22%;
+  width: 17.5%;
 }
 
 .col-new-value {
-  width: 23%;
+  width: 17.5%;
 }
 
 /* User cell */
