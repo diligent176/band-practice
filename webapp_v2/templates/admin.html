@@ -53,15 +53,15 @@
             <!-- Users Tab -->
             <div id="users-tab" class="tab-content active">
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Total Users</h3>
+                    <div class="stat-card active" data-filter="all" onclick="filterUsers('all')">
+                        <h3>All</h3>
                         <div class="value" id="total-users">-</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Admin Users</h3>
+                    <div class="stat-card" data-filter="admin" onclick="filterUsers('admin')">
+                        <h3>Admin</h3>
                         <div class="value" id="admin-users">-</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card" data-filter="active" onclick="filterUsers('active')">
                         <h3>Active Today</h3>
                         <div class="value" id="active-today">-</div>
                     </div>
@@ -70,9 +70,6 @@
                 <div class="data-table">
                     <div class="table-controls">
                         <input type="text" class="search-box" id="user-search" placeholder="Search users...">
-                        <button class="btn" onclick="loadUsers()">
-                            <i class="fas fa-refresh"></i> Refresh
-                        </button>
                     </div>
                     <div id="users-table-container"></div>
                 </div>

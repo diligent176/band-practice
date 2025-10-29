@@ -15,6 +15,7 @@ let displayedLogs = [];
 let logsOffset = 0;
 let logsLimit = 50;
 let hasMoreLogs = true;
+let userFilter = 'all'; // Current user filter: 'all', 'admin', 'active'
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -216,6 +217,38 @@ async function loadUsers() {
         console.error('Error loading users:', error);
         container.innerHTML = `<div class="error">Failed to load users: ${error.message}</div>`;
     }
+}
+
+/**
+ * Filter users based on selected filter
+ */
+function filterUsers(filter) {
+    userFilter = filter;
+
+    // Update active button
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
+        if (card.dataset.filter === filter) {
+            card.classList.add('active');
+        }
+    });
+
+    // Apply filter and render
+    let filteredUsers = allUsers;
+
+    if (filter === 'admin') {
+        filteredUsers = allUsers.filter(u => u.is_admin);
+    } else if (filter === 'active') {
+        const now = new Date();
+        const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
+        filteredUsers = allUsers.filter(u => {
+            if (!u.last_login_at) return false;
+            const lastLogin = new Date(u.last_login_at);
+            return lastLogin > oneDayAgo;
+        });
+    }
+
+    renderUsersTable(filteredUsers);
 }
 
 /**

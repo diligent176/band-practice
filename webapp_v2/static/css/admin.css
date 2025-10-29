@@ -102,35 +102,52 @@ body.admin-page {
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: var(--spacing-lg);
+  display: flex;
+  gap: 6px;
+  margin-bottom: var(--spacing-md);
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .stat-card {
-  background: var(--card-bg);
-  padding: 16px 20px;
-  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--card-border);
-  transition: background var(--transition-base);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .stat-card:hover {
   background: var(--bg-tertiary);
+  border-color: var(--accent-primary);
+}
+
+.stat-card.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+}
+
+.stat-card.active h3,
+.stat-card.active .value {
+  color: white;
 }
 
 .stat-card h3 {
-  margin: 0 0 8px 0;
+  margin: 0;
   color: var(--text-secondary);
-  font-size: 1em;
+  font-size: 0.875em;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .stat-card .value {
-  font-size: 1.75em;
+  font-size: 1.25em;
   font-weight: 600;
   color: var(--accent-primary);
 }
