@@ -446,6 +446,7 @@ function renderAuditLogsTable(logs) {
                     <th class="col-changed">Changed</th>
                     <th class="col-old-value">Old Value</th>
                     <th class="col-new-value">New Value</th>
+                    <th class="col-diff">Diff</th>
                 </tr>
             </thead>
             <tbody>
@@ -515,7 +516,9 @@ function renderAuditLogsTable(logs) {
                         </td>
                         <td class="value-cell">
                             ${formatValue(newValue, field)}
-                            ${shouldShowDiff(field) ? `<div class="diff-link" onclick='openDiffModal(${JSON.stringify(log).replace(/'/g, "&apos;")})'><i class="fas fa-code-compare"></i> View diff</div>` : ''}
+                        </td>
+                        <td class="diff-cell">
+                            ${shouldShowDiff(field) ? `<button class="btn btn-sm diff-button" onclick='openDiffModal(${JSON.stringify(log).replace(/'/g, "&apos;")})'><i class="fas fa-code-compare"></i> Diff</button>` : '-'}
                         </td>
                     </tr>
                 `}).join('')}
