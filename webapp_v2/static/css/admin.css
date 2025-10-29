@@ -400,12 +400,13 @@ table tbody tr:hover {
 .user-cell {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 2px;
 }
 
 .user-avatar {
   width: 32px;
   height: 32px;
+  margin-right: 8px;
   border-radius: 50%;
   flex-shrink: 0;
   object-fit: cover;
@@ -418,11 +419,12 @@ table tbody tr:hover {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .user-display-name {
   font-weight: 600;
-  height: 50%;
   color: var(--text-primary);
   font-size: 0.938em;
   white-space: nowrap;
@@ -434,7 +436,6 @@ table tbody tr:hover {
 .user-email-text {
   color: var(--text-secondary);
   font-size: 0.813em;
-  height: 50%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
