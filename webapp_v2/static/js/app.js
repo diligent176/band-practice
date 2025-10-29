@@ -883,10 +883,18 @@ async function manuallyFetchBpm() {
 async function saveNotes() {
     if (!currentSong) return;
 
-    try {
-        showLoading('Saving notes...');
-        const notes = notesTextarea.value;
+    const notes = notesTextarea.value;
 
+    // Optimistic update - close editor immediately for snappier UX
+    currentSong.notes = notes;
+    exitEditMode();
+    renderNotes();
+
+    // Show saving status
+    setStatus('Saving notes...', 'info');
+
+    // Save in background (fire-and-forget)
+    try {
         const response = await authenticatedApiCall(`/api/songs/${currentSong.id}/notes`, {
             method: 'PUT',
             body: JSON.stringify({ notes })
@@ -895,18 +903,14 @@ async function saveNotes() {
         const data = await response.json();
 
         if (data.success) {
-            currentSong.notes = notes;
-            exitEditMode();
-            renderNotes();
-            // showToast('Notes saved successfully!', 'success');
             setStatus('Notes saved', 'success');
         } else {
+            setStatus('Failed to save notes', 'error');
             showToast('Failed to save notes', 'error');
         }
     } catch (error) {
+        setStatus('Error saving notes', 'error');
         showToast('Error saving notes: ' + error.message, 'error');
-    } finally {
-        hideLoading();
     }
 }
 
@@ -2070,10 +2074,16 @@ function insertOutro() { insertSectionHeader('[Outro]'); }
 async function saveLyrics() {
     if (!currentSong) return;
 
-    try {
-        showLoading('Saving lyrics...');
-        const lyrics = lyricsEditorTextarea.value;
+    const lyrics = lyricsEditorTextarea.value;
 
+    // Close editor immediately for snappier UX
+    closeLyricsEditor();
+
+    // Show saving status
+    setStatus('Saving lyrics...', 'info');
+
+    // Save in background (fire-and-forget)
+    try {
         const response = await authenticatedApiCall(`/api/songs/${currentSong.id}/lyrics`, {
             method: 'PUT',
             body: JSON.stringify({ lyrics })
@@ -2082,18 +2092,17 @@ async function saveLyrics() {
         const data = await response.json();
 
         if (data.success) {
+            // Update with server response (includes lyrics_numbered and is_customized flag)
             currentSong = data.song;
-            renderSong();
-            closeLyricsEditor();
-            // showToast('Lyrics saved and marked as customized!', 'success');
+            renderSong(); // Re-render with numbered lyrics from server
             setStatus('Lyrics customized', 'success');
         } else {
+            setStatus('Failed to save lyrics', 'error');
             showToast('Failed to save lyrics', 'error');
         }
     } catch (error) {
+        setStatus('Error saving lyrics', 'error');
         showToast('Error saving lyrics: ' + error.message, 'error');
-    } finally {
-        hideLoading();
     }
 }
 
