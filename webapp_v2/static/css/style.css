@@ -1653,8 +1653,8 @@ header h1 i {
 
 .song-structure-block {
   position: relative;
-  background: var(--bg-tertiary);
-  color: rgba(255, 152, 0, 0.7);
+  background: var(--bg-elevated);
+  color: rgba(255, 152, 0, 0.85);
   font-weight: 600;
   font-size: 0.86em;
   padding: 5px 14px 5px 14px;
@@ -1662,6 +1662,8 @@ header h1 i {
   /* Create chevron shape: arrow point on right, indent on left */
   /* Using sharper 12px arrow point for more pronounced edges */
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%);
+  /* Thin border via drop-shadow for better contrast */
+  filter: drop-shadow(0 0 0.5px rgba(255, 152, 0, 0.3));
 }
 
 /* Notes Editor */
