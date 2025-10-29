@@ -134,8 +134,8 @@ def update_notes(song_id):
         if not has_permission:
             return jsonify({'error': 'You do not have permission to edit this song', 'success': False}), 403
 
-        # Get old notes for audit log
-        old_notes = song.get('drummer_notes', '') if song else ''
+        # Get old notes for audit log (field is 'notes' in Firestore)
+        old_notes = song.get('notes', '') if song else ''
 
         logger.info(f"User {user_email} updating notes for song {song_id}")
         firestore.update_notes(song_id, notes)
@@ -150,7 +150,7 @@ def update_notes(song_id):
             resource_name=f"{song.get('title', '')} - {song.get('artist', '')}" if song else None,
             collection_id=song.get('collection_id') if song else None,
             changes={
-                'field': 'drummer_notes',
+                'field': 'notes',
                 'old_value': old_notes,
                 'new_value': notes
             }
@@ -184,7 +184,7 @@ def update_lyrics(song_id):
         # Update lyrics and mark as customized
         firestore.update_lyrics(song_id, lyrics, is_customized=True)
 
-        # Log to audit
+        # Log to audit (store complete lyrics for full diff view)
         audit_service.log_action(
             user_id=g.user.get('uid'),
             user_email=user_email,
@@ -195,8 +195,8 @@ def update_lyrics(song_id):
             collection_id=song.get('collection_id') if song else None,
             changes={
                 'field': 'lyrics',
-                'old_value': old_lyrics[:500] if old_lyrics else '',  # Truncate for storage
-                'new_value': lyrics[:500] if lyrics else ''
+                'old_value': old_lyrics or '',
+                'new_value': lyrics or ''
             }
         )
 

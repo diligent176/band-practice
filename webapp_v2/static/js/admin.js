@@ -507,7 +507,7 @@ function getFieldBadge(field) {
 
     const fieldMap = {
         'lyrics': { label: 'LYRICS', class: 'field-badge-lyrics' },
-        'drummer_notes': { label: 'NOTES', class: 'field-badge-notes' },
+        'notes': { label: 'NOTES', class: 'field-badge-notes' },
         'bpm': { label: 'BPM', class: 'field-badge-bpm' },
         'title': { label: 'TITLE', class: 'field-badge-meta' },
         'artist': { label: 'ARTIST', class: 'field-badge-meta' }
@@ -521,7 +521,7 @@ function getFieldBadge(field) {
  * Check if field should show diff viewer
  */
 function shouldShowDiff(field) {
-    return field === 'lyrics' || field === 'drummer_notes';
+    return field === 'lyrics' || field === 'notes';
 }
 
 /**

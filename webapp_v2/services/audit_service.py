@@ -56,14 +56,9 @@ class AuditService:
                 audit_entry['collection_id'] = collection_id
 
             if changes:
-                # Truncate long values to avoid excessive storage
-                truncated_changes = {}
-                for key, value in changes.items():
-                    if isinstance(value, str) and len(value) > 500:
-                        truncated_changes[key] = value[:500] + '... [truncated]'
-                    else:
-                        truncated_changes[key] = value
-                audit_entry['changes'] = truncated_changes
+                # Store changes (no truncation - we need full context for diffs)
+                # Note: For very large files, consider storing diffs in separate collection
+                audit_entry['changes'] = changes
 
             if metadata:
                 audit_entry['metadata'] = metadata
