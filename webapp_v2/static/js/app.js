@@ -1305,12 +1305,8 @@ function renderNotes() {
         html += '<div class="song-structure-section">';
         html += '<div class="song-structure-title">Song Structure</div>';
         html += '<div class="song-structure-blocks">';
-        structure.forEach((section, index) => {
+        structure.forEach((section) => {
             html += `<div class="song-structure-block">${escapeHtml(section)}</div>`;
-            // Add arrow between blocks (but not after the last one)
-            if (index < structure.length - 1) {
-                html += '<i class="fa-solid fa-arrow-right song-structure-arrow"></i>';
-            }
         });
         html += '</div>';
         html += '</div>';
