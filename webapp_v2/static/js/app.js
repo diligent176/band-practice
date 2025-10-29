@@ -2250,60 +2250,75 @@ function renderCurrentUser(user) {
     const spotifyPhoto = user.spotify_profile_photo;
     const displayName = user.display_name || 'User';
     const spotifyName = user.spotify_display_name;
+    const hasSpotifyUrl = spotifyName && user.spotify_profile_url;
 
-    let html = `
-        <div class="user-card user-card-current user-card-community">
-            <div class="user-google-info">
-                ${googlePhoto
-                    ? `<img src="${escapeHtml(googlePhoto)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
-                    : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
+    const userCardContent = `
+        <div class="user-google-info">
+            ${googlePhoto
+                ? `<img src="${escapeHtml(googlePhoto)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
+                : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
+            }
+            <div class="user-google-details">
+                <div class="user-google-name">${escapeHtml(displayName)}</div>
+                <div class="user-google-meta">
+                    ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                    ${user.created_at ? `<span class="user-date-item" title="Created ${formatDateForTooltip(user.created_at)}"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
+                    ${user.last_login_at ? `<span class="user-date-item" title="Last Active ${formatDateForTooltip(user.last_login_at)}"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
+                </div>
+                <div class="user-google-email">${escapeHtml(user.email || 'No email')}</div>
+            </div>
+        </div>
+        ${spotifyName && user.spotify_profile_url ? `
+            <div class="user-spotify-card">
+                ${spotifyPhoto
+                    ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
+                    : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
                 }
-                <div class="user-google-details">
-                    <div class="user-google-name">${escapeHtml(displayName)}</div>
-                    <div class="user-google-meta">
-                        ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
-                        ${user.created_at ? `<span class="user-date-item" title="Created ${formatDateForTooltip(user.created_at)}"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
-                        ${user.last_login_at ? `<span class="user-date-item" title="Last Active ${formatDateForTooltip(user.last_login_at)}"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
+                <div class="user-spotify-details">
+                    <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
+                    <div class="user-spotify-meta">
+                        ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                        ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                        ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
                     </div>
-                    <div class="user-google-email">${escapeHtml(user.email || 'No email')}</div>
+                    ${user.spotify_email ? `<div class="user-spotify-email">${escapeHtml(user.spotify_email)}</div>` : ''}
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </div>
+        ` : spotifyName ? `
+            <div class="user-spotify-card">
+                ${spotifyPhoto
+                    ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
+                    : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
+                }
+                <div class="user-spotify-details">
+                    <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
+                    <div class="user-spotify-meta">
+                        ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                        ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                        ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
+                    </div>
+                    ${user.spotify_email ? `<div class="user-spotify-email">${escapeHtml(user.spotify_email)}</div>` : ''}
                 </div>
             </div>
-            ${spotifyName && user.spotify_profile_url ? `
-                <a href="${escapeHtml(user.spotify_profile_url)}" target="_blank" rel="noopener noreferrer" class="user-spotify-card user-spotify-card-link">
-                    ${spotifyPhoto
-                        ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
-                        : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
-                    }
-                    <div class="user-spotify-details">
-                        <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
-                        <div class="user-spotify-meta">
-                            ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
-                            ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
-                            ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
-                        </div>
-                        ${user.spotify_email ? `<div class="user-spotify-email">${escapeHtml(user.spotify_email)}</div>` : ''}
-                    </div>
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                </a>
-            ` : spotifyName ? `
-                <div class="user-spotify-card">
-                    ${spotifyPhoto
-                        ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
-                        : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
-                    }
-                    <div class="user-spotify-details">
-                        <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
-                        <div class="user-spotify-meta">
-                            ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
-                            ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
-                            ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
-                        </div>
-                        ${user.spotify_email ? `<div class="user-spotify-email">${escapeHtml(user.spotify_email)}</div>` : ''}
-                    </div>
-                </div>
-            ` : '<div class="user-spotify-card"><div class="user-spotify-not-connected">Not Connected</div></div>'}
-        </div>
+        ` : '<div class="user-spotify-card"><div class="user-spotify-not-connected">Not Connected</div></div>'}
     `;
+
+    // Wrap entire card in anchor if spotify_profile_url exists, otherwise just a div
+    let html;
+    if (hasSpotifyUrl) {
+        html = `
+            <a href="${escapeHtml(user.spotify_profile_url)}" target="_blank" rel="noopener noreferrer" class="user-card user-card-current user-card-community user-card-link">
+                ${userCardContent}
+            </a>
+        `;
+    } else {
+        html = `
+            <div class="user-card user-card-current user-card-community">
+                ${userCardContent}
+            </div>
+        `;
+    }
 
     currentUserInfo.innerHTML = html;
 }
@@ -2327,57 +2342,71 @@ function renderCommunityUsers(users) {
         const spotifyPhoto = user.spotify_profile_photo;
         const displayName = user.display_name || 'Anonymous User';
         const spotifyName = user.spotify_display_name;
+        const hasSpotifyUrl = spotifyName && user.spotify_profile_url;
 
-        return `
-            <div class="user-card user-card-community">
-                <div class="user-google-info">
-                    ${googlePhoto
-                        ? `<img src="${escapeHtml(googlePhoto)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
-                        : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
+        const userCardContent = `
+            <div class="user-google-info">
+                ${googlePhoto
+                    ? `<img src="${escapeHtml(googlePhoto)}" alt="${escapeHtml(displayName)}" class="user-photo" onerror="this.outerHTML='<div class=\\'user-photo user-photo-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'">`
+                    : `<div class="user-photo user-photo-placeholder"><i class="fa-solid fa-user"></i></div>`
+                }
+                <div class="user-google-details">
+                    <div class="user-google-name">${escapeHtml(displayName)}</div>
+                    <div class="user-google-meta">
+                        ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                        ${user.created_at ? `<span class="user-date-item" title="Created ${formatDateForTooltip(user.created_at)}"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
+                        ${user.last_login_at ? `<span class="user-date-item" title="Last Active ${formatDateForTooltip(user.last_login_at)}"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+            ${spotifyName && user.spotify_profile_url ? `
+                <div class="user-spotify-card">
+                    ${spotifyPhoto
+                        ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
+                        : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
                     }
-                    <div class="user-google-details">
-                        <div class="user-google-name">${escapeHtml(displayName)}</div>
-                        <div class="user-google-meta">
-                            ${user.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''}
-                            ${user.created_at ? `<span class="user-date-item" title="Created ${formatDateForTooltip(user.created_at)}"><i class="fa-solid fa-calendar-plus"></i> ${formatDateCompact(user.created_at)}</span>` : ''}
-                            ${user.last_login_at ? `<span class="user-date-item" title="Last Active ${formatDateForTooltip(user.last_login_at)}"><i class="fa-solid fa-clock"></i> ${formatDateCompact(user.last_login_at)}</span>` : ''}
+                    <div class="user-spotify-details">
+                        <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
+                        <div class="user-spotify-meta">
+                            ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                            ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                            ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </div>
+            ` : spotifyName ? `
+                <div class="user-spotify-card">
+                    ${spotifyPhoto
+                        ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
+                        : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
+                    }
+                    <div class="user-spotify-details">
+                        <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
+                        <div class="user-spotify-meta">
+                            ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
+                            ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
+                            ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
                         </div>
                     </div>
                 </div>
-                ${spotifyName && user.spotify_profile_url ? `
-                    <a href="${escapeHtml(user.spotify_profile_url)}" target="_blank" rel="noopener noreferrer" class="user-spotify-card user-spotify-card-link">
-                        ${spotifyPhoto
-                            ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
-                            : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
-                        }
-                        <div class="user-spotify-details">
-                            <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
-                            <div class="user-spotify-meta">
-                                ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
-                                ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
-                                ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
-                            </div>
-                        </div>
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </a>
-                ` : spotifyName ? `
-                    <div class="user-spotify-card">
-                        ${spotifyPhoto
-                            ? `<img src="${escapeHtml(spotifyPhoto)}" alt="Spotify" class="user-spotify-photo" onerror="this.outerHTML='<div class=\\'user-spotify-placeholder\\'><i class=\\'fa-brands fa-spotify\\'></i></div>'">`
-                            : `<div class="user-spotify-placeholder"><i class="fa-brands fa-spotify"></i></div>`
-                        }
-                        <div class="user-spotify-details">
-                            <div class="user-spotify-name">${escapeHtml(spotifyName)}</div>
-                            <div class="user-spotify-meta">
-                                ${user.spotify_product ? `<span class="badge badge-${user.spotify_product}">${user.spotify_product}</span>` : ''}
-                                ${user.spotify_country ? `<span>📍 ${escapeHtml(user.spotify_country)}</span>` : ''}
-                                ${user.spotify_followers !== undefined ? `<span>👥 ${user.spotify_followers}</span>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                ` : '<div class="user-spotify-card"><div class="user-spotify-not-connected">Not Connected</div></div>'}
-            </div>
+            ` : '<div class="user-spotify-card"><div class="user-spotify-not-connected">Not Connected</div></div>'}
         `;
+
+        // Wrap entire card in anchor if spotify_profile_url exists, otherwise just a div
+        if (hasSpotifyUrl) {
+            return `
+                <a href="${escapeHtml(user.spotify_profile_url)}" target="_blank" rel="noopener noreferrer" class="user-card user-card-community user-card-link">
+                    ${userCardContent}
+                </a>
+            `;
+        } else {
+            return `
+                <div class="user-card user-card-community">
+                    ${userCardContent}
+                </div>
+            `;
+        }
     }).join('');
 
     communityUsersList.innerHTML = html;
