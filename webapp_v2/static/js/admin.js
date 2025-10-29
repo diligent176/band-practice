@@ -747,6 +747,10 @@ function openDiffModal(log) {
     displayUnifiedDiff(oldValue, newValue, currentDiffData.filename);
     displaySplitDiff(oldValue, newValue);
 
+    // Apply saved diff view preference (default to 'unified')
+    const savedView = localStorage.getItem('diffViewPreference') || 'unified';
+    switchDiffView(savedView);
+
     // Show modal
     modal.classList.remove('hidden');
 }
@@ -783,6 +787,9 @@ function switchDiffView(view) {
         unifiedView.classList.add('hidden');
         splitView.classList.remove('hidden');
     }
+
+    // Save preference to localStorage
+    localStorage.setItem('diffViewPreference', view);
 }
 
 /**
