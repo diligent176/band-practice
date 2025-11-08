@@ -1511,6 +1511,12 @@ header h1 i {
   column-rule: 1px solid var(--border-color);
 }
 
+#lyrics-content-inner.lyrics-columns-3 {
+  column-count: 3;
+  column-gap: 16px;
+  column-rule: 1px solid var(--border-color);
+}
+
 /* Dynamic Font Sizing System - CSS Variables (replaces 112 lines of redundant classes!) */
 #main-app {
   --font-scale: 1.0;
@@ -1664,6 +1670,58 @@ header h1 i {
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%);
   /* Thin border via drop-shadow for better contrast */
   filter: drop-shadow(0 0 0.5px rgba(255, 152, 0, 0.3));
+}
+
+/* Minimalist Mode for Notes Panel (3 column view) */
+.notes-panel.minimalist-mode {
+  /* Shrink the notes panel to show only song structure */
+  flex: 0 0 160px !important;
+  /* Fixed width instead of flex grow */
+  min-width: 160px;
+  max-width: 160px;
+}
+
+/* When notes panel is minimalist, lyrics panel should grow to fill space */
+.panels:has(.notes-panel.minimalist-mode) .lyrics-panel {
+  flex: 1 1 auto !important;
+  /* Grow to fill all available space */
+  max-width: none;
+}
+
+.notes-panel.minimalist-mode .panel-header h2 {
+  font-size: 0.9em;
+}
+
+.notes-panel.minimalist-mode .note-block {
+  /* Hide note blocks but keep them in DOM for functionality */
+  display: none;
+}
+
+.notes-panel.minimalist-mode .empty-state {
+  /* Hide empty state in minimalist mode */
+  display: none;
+}
+
+.notes-panel.minimalist-mode .song-structure-section {
+  /* Remove top border and margin since notes are hidden */
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.notes-panel.minimalist-mode .song-structure-title {
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+.notes-panel.minimalist-mode .song-structure-block {
+  font-size: 0.75em;
+  padding: 4px 10px;
+}
+
+/* Hide resize handle in minimalist mode (3 column view) */
+.resize-handle.minimalist-mode {
+  display: none;
 }
 
 /* Notes Editor */

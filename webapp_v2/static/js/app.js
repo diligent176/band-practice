@@ -1719,43 +1719,69 @@ function showToast(message, type = 'info') {
 }
 
 // Column Toggle Function
-let isColumnMode2 = false;
+let columnMode = 2; // Can be 1, 2, or 3
 
 function toggleColumns() {
-    isColumnMode2 = !isColumnMode2;
+    // Cycle through: 2 -> 3 -> 1 -> 2
+    columnMode = columnMode === 2 ? 3 : (columnMode === 3 ? 1 : 2);
 
-    if (isColumnMode2) {
-        lyricsContentInner.classList.remove('lyrics-columns-1');
-        lyricsContentInner.classList.add('lyrics-columns-2');
+    // Remove all column classes
+    lyricsContentInner.classList.remove('lyrics-columns-1', 'lyrics-columns-2', 'lyrics-columns-3');
+
+    // Add the appropriate class
+    lyricsContentInner.classList.add(`lyrics-columns-${columnMode}`);
+
+    // Update notes panel and resize handle - add minimalist mode for 3 columns
+    const notesPanel = document.getElementById('notes-panel');
+    const resizeHandle = document.getElementById('resize-handle');
+
+    if (columnMode === 3) {
+        notesPanel.classList.add('minimalist-mode');
+        if (resizeHandle) resizeHandle.classList.add('minimalist-mode');
     } else {
-        lyricsContentInner.classList.remove('lyrics-columns-2');
-        lyricsContentInner.classList.add('lyrics-columns-1');
+        notesPanel.classList.remove('minimalist-mode');
+        if (resizeHandle) resizeHandle.classList.remove('minimalist-mode');
     }
 
     // Save column preference for this song
     if (currentSong) {
-        saveColumnPreference(currentSong.id, isColumnMode2);
+        saveColumnPreference(currentSong.id, columnMode);
     }
 }
 
-function saveColumnPreference(songId, is2Column) {
+function saveColumnPreference(songId, columns) {
     const preferences = JSON.parse(localStorage.getItem('bandPracticeColumnPreferences') || '{}');
-    preferences[songId] = is2Column;
+    preferences[songId] = columns;
     localStorage.setItem('bandPracticeColumnPreferences', JSON.stringify(preferences));
 }
 
 function loadColumnPreference(songId) {
     const preferences = JSON.parse(localStorage.getItem('bandPracticeColumnPreferences') || '{}');
-    const is2Column = preferences[songId] !== undefined ? preferences[songId] : true; // Default to 2 columns
+    const savedColumns = preferences[songId];
 
-    isColumnMode2 = is2Column;
-
-    if (isColumnMode2) {
-        lyricsContentInner.classList.remove('lyrics-columns-1');
-        lyricsContentInner.classList.add('lyrics-columns-2');
+    // Handle legacy boolean values (true = 2 columns, false = 1 column)
+    if (typeof savedColumns === 'boolean') {
+        columnMode = savedColumns ? 2 : 1;
     } else {
-        lyricsContentInner.classList.remove('lyrics-columns-2');
-        lyricsContentInner.classList.add('lyrics-columns-1');
+        columnMode = savedColumns !== undefined ? savedColumns : 2; // Default to 2 columns
+    }
+
+    // Remove all column classes
+    lyricsContentInner.classList.remove('lyrics-columns-1', 'lyrics-columns-2', 'lyrics-columns-3');
+
+    // Add the appropriate class
+    lyricsContentInner.classList.add(`lyrics-columns-${columnMode}`);
+
+    // Update notes panel and resize handle - add minimalist mode for 3 columns
+    const notesPanel = document.getElementById('notes-panel');
+    const resizeHandle = document.getElementById('resize-handle');
+
+    if (columnMode === 3) {
+        notesPanel.classList.add('minimalist-mode');
+        if (resizeHandle) resizeHandle.classList.add('minimalist-mode');
+    } else {
+        notesPanel.classList.remove('minimalist-mode');
+        if (resizeHandle) resizeHandle.classList.remove('minimalist-mode');
     }
 }
 
