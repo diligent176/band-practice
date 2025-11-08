@@ -206,12 +206,11 @@ let volumeBeforeMute = 1.0; // Default volume (0.0 to 1.0)
 // BPM animation state tracking (to prevent unnecessary restarts)
 let lastBpmAnimationState = {
     isAnimating: false,
-    bpm: null,
-    isPaused: null
+    bpm: null
 };
 
 // Import shared utility functions
-import { debounce, throttle, escapeHtml } from './utils.js';
+import { debounce, escapeHtml } from './utils.js';
 
 // Initialize - called from viewer.html after auth is complete
 window.initializeApp = function(apiCallFunction) {
@@ -1071,14 +1070,11 @@ async function selectSong(songId) {
     }
     isMuted = false;
 
-    // Stop BPM indicator pulsing (but keep toggle state)
-    stopBpmIndicatorPulsing();
-    
+    // BPM indicator will automatically restart when new song loads (if enabled)
     // Reset animation state tracking when changing songs
     lastBpmAnimationState = {
         isAnimating: false,
-        bpm: null,
-        isPaused: null
+        bpm: null
     };
 
     closeSongSelector();
@@ -4573,14 +4569,12 @@ async function initializeSpotifyPlayer() {
             debug.log('⚠️ Device has gone offline:', device_id);
         });
 
-        // Player state changed - update UI with smart throttling
-        // Progress bar updates frequently, BPM indicator is throttled
-        const throttledUpdateBpmIndicator = throttle(updateBpmIndicator, 100);
+        // Player state changed - update UI
         spotifyPlayer.addListener('player_state_changed', state => {
             if (!state) return;
-            
+
             updatePlayerUI(state);  // Always update progress bar immediately
-            throttledUpdateBpmIndicator();  // Throttle BPM updates only
+            // Note: BPM indicator runs independently of playback state
             
             // Start or stop progress interval based on play state
             if (!state.paused) {
@@ -4860,8 +4854,6 @@ function updatePlayerUI(state) {
         }
     }
 
-    // Note: BPM indicator update is now throttled separately in the player_state_changed listener
-
     // Update progress bar and time display (needs to be smooth, no throttling)
     const position = state.position;
     const duration = state.duration;
@@ -5107,10 +5099,9 @@ function handleFullscreenChange() {
 }
 
 function updateBpmIndicator() {
-    // CRITICAL: This function is called frequently by Spotify state updates
-    // We use state tracking to prevent unnecessary animation restarts
-    // Animation should ONLY change when: play/pause, BPM change, or song change
-    
+    // BPM indicator now runs independently of Spotify playback state
+    // It starts when a song is loaded (if enabled) and only stops when disabled or no BPM
+
     // If indicator is disabled, stop and return
     if (!bpmIndicatorEnabled) {
         if (lastBpmAnimationState.isAnimating) {
@@ -5139,32 +5130,18 @@ function updateBpmIndicator() {
         return;
     }
 
-    // Check if Spotify is playing to start/stop animation
-    checkIfPlaying().then(isPlaying => {
-        // Check if state actually changed before doing anything
-        const stateChanged = (
-            isPlaying !== lastBpmAnimationState.isPaused ||
-            bpm !== lastBpmAnimationState.bpm
-        );
+    // Check if BPM changed - only restart animation if needed
+    const bpmChanged = bpm !== lastBpmAnimationState.bpm;
 
-        if (isPlaying && bpmIndicatorEnabled) {
-            // Only call startBpmIndicator if state changed
-            if (stateChanged || !lastBpmAnimationState.isAnimating) {
-                startBpmIndicator(bpm);
-                lastBpmAnimationState.isAnimating = true;
-                lastBpmAnimationState.isPaused = isPlaying;
-                lastBpmAnimationState.bpm = bpm;
-            }
-            // Otherwise, animation is already running correctly - don't touch it!
-        } else {
-            // Stop animation when paused (only if currently animating)
-            if (lastBpmAnimationState.isAnimating) {
-                stopBpmIndicatorPulsing();
-                lastBpmAnimationState.isAnimating = false;
-                lastBpmAnimationState.isPaused = isPlaying;
-            }
+    if (bpmIndicatorEnabled) {
+        // Start or update animation
+        if (bpmChanged || !lastBpmAnimationState.isAnimating) {
+            startBpmIndicator(bpm);
+            lastBpmAnimationState.isAnimating = true;
+            lastBpmAnimationState.bpm = bpm;
         }
-    });
+        // Otherwise, animation is already running correctly - don't touch it!
+    }
 }
 
 function stopBpmIndicatorPulsing() {
