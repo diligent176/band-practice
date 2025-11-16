@@ -15,6 +15,21 @@
       },
       "args": ["run", "--host=127.0.0.1", "--port=8080", "--debug"],
       "jinja": true
+    },
+    {
+      "name": "Flask: Band Practice PRO V3 webapp",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "flask",
+      "cwd": "${workspaceFolder}/webapp_v3",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "FLASK_APP": "webapp_v3/app.py",
+        "FLASK_ENV": "development",
+        "FLASK_DEBUG": "1"
+      },
+      "args": ["run", "--host=127.0.0.1", "--port=8080", "--debug"],
+      "jinja": true
     }
   ]
 }
