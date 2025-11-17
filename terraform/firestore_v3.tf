@@ -127,6 +127,23 @@ resource "google_firestore_index" "playlists_v3_by_spotify_id" {
   }
 }
 
+# Index: Query playlist memory by user and last accessed (for recent playlists)
+resource "google_firestore_index" "playlist_memory_v3_recent" {
+  project    = var.project_id
+  database   = "(default)"
+  collection = "playlist_memory_v3"
+
+  fields {
+    field_path = "user_uid"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "last_accessed_at"
+    order      = "DESCENDING"
+  }
+}
+
 # ============================================================================
 # FIRESTORE SECURITY RULES
 # ============================================================================
