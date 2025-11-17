@@ -88,9 +88,6 @@ FIREBASE_API_KEY=your_firebase_key
 FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 FIREBASE_PROJECT_ID=your-project-id
 
-# User Access (comma-separated emails)
-ALLOWED_USERS=user1@gmail.com,user2@gmail.com
-
 # Flask
 SECRET_KEY=your-random-secret-key
 
@@ -103,7 +100,7 @@ SCRAPER_API_KEY=your_scraper_key
 
 ## Usage
 
-1. **Sign In** - Authenticate with Google (must be in ALLOWED_USERS)
+1. **Sign In** - Authenticate with Google
 2. **Create Collection** - Organize songs by band/project
 3. **Import Playlist** - Paste Spotify playlist URL and select songs
 4. **View Lyrics** - Lyrics load automatically when you open a song
@@ -116,8 +113,8 @@ Debug logging is automatically enabled on localhost and disabled in production. 
 
 ```javascript
 // In browser console
-localStorage.setItem('debugMode', 'true')   // Enable debug logs
-localStorage.setItem('debugMode', 'false')  // Disable debug logs
+localStorage.setItem("debugMode", "true"); // Enable debug logs
+localStorage.setItem("debugMode", "false"); // Disable debug logs
 // Refresh the page
 ```
 
@@ -142,6 +139,7 @@ localStorage.setItem('debugMode', 'false')  // Disable debug logs
 ## Cost
 
 With GCP free tier:
+
 - Cloud Run: 2M requests/month FREE
 - Firestore: 50K reads, 20K writes/day FREE
 - Cloud Build: 120 build-minutes/day FREE
@@ -177,7 +175,6 @@ Then redeploy the application (push to main).
 ## Security
 
 - Firebase Authentication on all endpoints
-- User whitelist via `ALLOWED_USERS`
 - All secrets in Google Secret Manager
 - HTTPS enforced (Cloud Run default)
 - Terraform-managed IAM permissions

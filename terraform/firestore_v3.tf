@@ -42,7 +42,7 @@ resource "google_firestore_index" "songs_v3_search_by_title" {
   }
 }
 
-# Index: Query collections by owner
+# Index: Query collections by owner_uid and name (for get_user_collections)
 resource "google_firestore_index" "collections_v3_by_owner" {
   project    = var.project_id
   database   = "(default)"
@@ -54,12 +54,12 @@ resource "google_firestore_index" "collections_v3_by_owner" {
   }
 
   fields {
-    field_path = "updated_at"
-    order      = "DESCENDING"
+    field_path = "name"
+    order      = "ASCENDING"
   }
 }
 
-# Index: Query collections by collaborator
+# Index: Query collections by collaborator and name (for shared collections)
 resource "google_firestore_index" "collections_v3_by_collaborator" {
   project    = var.project_id
   database   = "(default)"
@@ -71,8 +71,25 @@ resource "google_firestore_index" "collections_v3_by_collaborator" {
   }
 
   fields {
-    field_path = "updated_at"
-    order      = "DESCENDING"
+    field_path = "name"
+    order      = "ASCENDING"
+  }
+}
+
+# Index: Query Personal Collection by owner_uid and is_personal flag
+resource "google_firestore_index" "collections_v3_personal" {
+  project    = var.project_id
+  database   = "(default)"
+  collection = "collections_v3"
+
+  fields {
+    field_path = "owner_uid"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "is_personal"
+    order      = "ASCENDING"
   }
 }
 
