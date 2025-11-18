@@ -367,6 +367,25 @@ def import_playlist():
             'updated_at': datetime.utcnow()
         })
 
+        # Start background lyrics fetching for this collection
+        # This runs in a separate thread so it doesn't block the response
+        import threading
+        from services.lyrics_service_v3 import LyricsServiceV3
+        
+        def fetch_lyrics_background():
+            try:
+                logger.info(f"Starting background lyrics fetch for collection {collection_id}")
+                lyrics_service = LyricsServiceV3()
+                lyrics_service.batch_fetch_lyrics_for_collection(collection_id)
+                logger.info(f"Completed background lyrics fetch for collection {collection_id}")
+            except Exception as e:
+                logger.error(f"Error in background lyrics fetch: {e}")
+        
+        # Start background thread (daemon=True so it doesn't block app shutdown)
+        lyrics_thread = threading.Thread(target=fetch_lyrics_background, daemon=True)
+        lyrics_thread.start()
+        logger.info("Background lyrics fetching started")
+
         return jsonify({
             'message': 'Playlist imported successfully',
             'playlist_id': playlist_id,
@@ -447,14 +466,69 @@ def unlink_playlist(collection_id):
 @app.route('/api/v3/songs/<song_id>', methods=['GET', 'PUT'])
 def song(song_id):
     """Get or update a song"""
-    # TODO: Implement in Phase 4+
+    # TODO: Implement in Phase 5+
     return jsonify({'error': 'Not implemented yet'}), 501
 
 @app.route('/api/v3/songs/<song_id>/fetch-lyrics', methods=['POST'])
-def fetch_lyrics(song_id):
-    """Trigger lyrics fetch for a song"""
-    # TODO: Implement in Phase 4
-    return jsonify({'error': 'Not implemented yet'}), 501
+@require_auth
+def fetch_song_lyrics(song_id):
+    """Manually trigger lyrics fetch for a song (collection owner only)"""
+    try:
+        user_id = request.user_id
+        
+        # Get force_customized flag from query params
+        force_customized = request.args.get('force_customized', 'false').lower() == 'true'
+        
+        # Get song to verify collection ownership
+        from firebase_admin import firestore
+        from services.lyrics_service_v3 import LyricsServiceV3
+        from services.collections_service_v3 import CollectionsService
+        
+        db = firestore.client()
+        song_ref = db.collection('songs_v3').document(song_id)
+        song_doc = song_ref.get()
+        
+        if not song_doc.exists:
+            return jsonify({'error': 'Song not found'}), 404
+            
+        song_data = song_doc.to_dict()
+        collection_id = song_data.get('collection_id')
+        
+        # Verify user owns the collection
+        collections_service = CollectionsService()
+        collection = collections_service.get_collection(collection_id, user_id)
+        
+        if not collection:
+            return jsonify({'error': 'Collection not found'}), 404
+            
+        if collection['owner_uid'] != user_id:
+            return jsonify({'error': 'Only collection owner can refresh lyrics'}), 403
+        
+        # Fetch lyrics with appropriate flags
+        lyrics_service = LyricsServiceV3()
+        success = lyrics_service.fetch_and_update_song_lyrics(
+            song_id=song_id,
+            force=True,  # Always force refresh for manual fetch
+            force_customized=force_customized
+        )
+        
+        if success:
+            return jsonify({
+                'message': 'Lyrics fetched successfully',
+                'song_id': song_id,
+                'was_customized': song_data.get('is_customized', False),
+                'force_customized': force_customized
+            }), 200
+        else:
+            return jsonify({
+                'error': 'Failed to fetch lyrics',
+                'is_customized': song_data.get('is_customized', False),
+                'hint': 'Use ?force_customized=true to overwrite customized lyrics'
+            }), 400
+            
+    except Exception as e:
+        logger.error(f"Error fetching lyrics for song {song_id}: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # Spotify endpoints (to be implemented in Phase 6)
 @app.route('/api/v3/spotify/auth-url', methods=['GET'])

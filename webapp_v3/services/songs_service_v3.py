@@ -96,17 +96,16 @@ class SongsService:
                         'spotify_track_id': spotify_track_id,
                         'spotify_uri': track_data.get('spotify_uri', ''),
                         'spotify_url': track_data.get('spotify_url', ''),
-                        'duration_ms': track_data.get('duration_ms', 0),
-                        
-                        # Lyrics (to be fetched in Phase 4)
-                        'lyrics': '',
-                        'lyrics_numbered': '',
-                        'lyrics_fetched': False,
-                        
-                        # BPM (to be fetched)
-                        'bpm': 'N/A',
-                        
-                        # Practice notes
+                    'duration_ms': track_data.get('duration_ms', 0),
+                    
+                    # Lyrics (to be fetched in Phase 4)
+                    'lyrics': '',
+                    'lyrics_numbered': '',
+                    'lyrics_fetched': False,
+                    'is_customized': False,
+                    
+                    # BPM (to be fetched)
+                    'bpm': 'N/A',                        # Practice notes
                         'notes': '',
                         
                         # Playlist tracking (V2 pattern)
@@ -226,6 +225,7 @@ class SongsService:
                     'lyrics': '',
                     'lyrics_numbered': '',
                     'lyrics_fetched': False,
+                    'is_customized': False,
                     
                     # BPM (to be fetched)
                     'bpm': 'N/A',
