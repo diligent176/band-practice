@@ -42,6 +42,79 @@ resource "google_firestore_index" "songs_v3_search_by_title" {
   }
 }
 
+# Index: Query songs by collection and source playlist (for unlinking)
+resource "google_firestore_index" "songs_v3_by_collection_and_playlist" {
+  project    = var.project_id
+  database   = "(default)"
+  collection = "songs_v3"
+
+  fields {
+    field_path = "collection_id"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path   = "source_playlist_ids"
+    array_config = "CONTAINS"
+  }
+}
+
+# Index: Query songs by collection, artist, and title (for sorting)
+resource "google_firestore_index" "songs_v3_by_collection_artist_title" {
+  project    = var.project_id
+  database   = "(default)"
+  collection = "songs_v3"
+
+  fields {
+    field_path = "collection_id"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "artist"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "title"
+    order      = "ASCENDING"
+  }
+}
+
+# Index: Query songs without lyrics (for background fetching in Phase 4)
+resource "google_firestore_index" "songs_v3_needs_lyrics" {
+  project    = var.project_id
+  database   = "(default)"
+  collection = "songs_v3"
+
+  fields {
+    field_path = "lyrics_fetched"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "created_at"
+    order      = "ASCENDING"
+  }
+}
+
+# Index: Query songs by Spotify track ID (for deduplication checks)
+resource "google_firestore_index" "songs_v3_by_spotify_track" {
+  project    = var.project_id
+  database   = "(default)"
+  collection = "songs_v3"
+
+  fields {
+    field_path = "collection_id"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "spotify_track_id"
+    order      = "ASCENDING"
+  }
+}
+
 # Index: Query collections by owner_uid and name (for get_user_collections)
 resource "google_firestore_index" "collections_v3_by_owner" {
   project    = var.project_id
