@@ -207,6 +207,7 @@ class CollectionsService:
     def delete_collection(self, collection_id: str, user_id: str) -> bool:
         """
         Delete a collection (only owner can delete, cannot delete Personal Collection).
+        Also deletes all songs in the collection.
 
         Args:
             collection_id: Collection document ID
@@ -232,6 +233,13 @@ class CollectionsService:
             if collection_data.get('is_personal'):
                 raise ValueError("Cannot delete Personal Collection")
 
+            # Delete all songs in this collection
+            from services.songs_service_v3 import SongsService
+            songs_service = SongsService()
+            songs_deleted = songs_service.delete_songs_in_collection(collection_id)
+            logger.info(f"Deleted {songs_deleted} songs from collection {collection_id}")
+
+            # Delete the collection
             doc_ref.delete()
             logger.info(f"Deleted collection {collection_id}")
             return True

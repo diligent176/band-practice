@@ -326,55 +326,44 @@ def import_playlist():
         # Save playlist memory
         playlist_service.save_playlist_memory(user_id, playlist_id, playlist_metadata)
 
-        # Store playlist in playlists_v3 collection
-        playlist_ref = db.collection('playlists_v3').document(playlist_id)
-        playlist_doc = {
-            'spotify_playlist_id': playlist_id,
-            'playlist_name': playlist_metadata['playlist_name'],
-            'playlist_owner': playlist_metadata['playlist_owner'],
-            'playlist_url': playlist_metadata['playlist_url'],
-            'image_url': playlist_metadata.get('image_url', ''),
-            'track_count': len(tracks),
-            'imported_by_uid': user_id,
-            'imported_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
-        }
-        playlist_ref.set(playlist_doc, merge=True)
+        # Create songs using SongsService batch operation (much faster!)
+        from services.songs_service_v3 import SongsService
+        songs_service = SongsService()
+        
+        # Prepare tracks data with positions
+        tracks_with_positions = [
+            {'track': track, 'position': position}
+            for position, track in enumerate(tracks)
+        ]
+        
+        # Batch create/update all songs in one operation
+        result = songs_service.batch_create_or_update_songs(
+            collection_id=collection_id,
+            playlist_id=playlist_id,
+            tracks_data=tracks_with_positions,
+            user_id=user_id
+        )
+        
+        logger.info(f"Batch import: {result['created']} created, {result['updated']} updated")
 
-        # Create songs in songs_v3 collection (metadata only, no lyrics yet)
-        songs_created = 0
-        for track in tracks:
-            song_data = {
-                'collection_id': collection_id,
-                'title': track['title'],
-                'artist': track['artist'],
-                'album': track.get('album', ''),
-                'spotify_track_id': track.get('spotify_track_id'),
-                'spotify_url': track.get('spotify_url'),
-                'duration_ms': track.get('duration_ms'),
-                'lyrics': '',  # Will be fetched in Phase 4
-                'has_lyrics': False,
-                'created_at': datetime.utcnow(),
-                'updated_at': datetime.utcnow(),
-                'created_by_uid': user_id
-            }
+        # Calculate actual song count from database (after deduplication)
+        all_songs = songs_service.get_songs_in_collection(collection_id)
+        actual_song_count = len(all_songs)
 
-            # Create song document
-            song_ref = db.collection('songs_v3').document()
-            song_ref.set(song_data)
-            songs_created += 1
-
-        # Update collection's linked_playlists
+        # Update collection's linked_playlists and song_count
         collection_ref = db.collection('collections_v3').document(collection_id)
         collection_ref.update({
             'linked_playlists': firestore.ArrayUnion([{
                 'playlist_id': playlist_id,
                 'playlist_name': playlist_metadata['playlist_name'],
+                'playlist_owner': playlist_metadata['playlist_owner'],
                 'playlist_url': playlist_metadata['playlist_url'],
                 'image_url': playlist_metadata.get('image_url', ''),
                 'track_count': len(tracks),
-                'linked_at': datetime.utcnow()
+                'linked_at': datetime.utcnow(),
+                'last_synced_at': datetime.utcnow()  # For future re-sync feature
             }]),
+            'song_count': actual_song_count,
             'updated_at': datetime.utcnow()
         })
 
@@ -382,8 +371,10 @@ def import_playlist():
             'message': 'Playlist imported successfully',
             'playlist_id': playlist_id,
             'playlist_name': playlist_metadata['playlist_name'],
-            'songs_created': songs_created,
-            'track_count': len(tracks)
+            'songs_created': result['created'],
+            'songs_updated': result['updated'],
+            'track_count': len(tracks),
+            'total_songs_in_collection': actual_song_count
         }), 200
 
     except Exception as e:
@@ -393,7 +384,7 @@ def import_playlist():
 @app.route('/api/v3/collections/<collection_id>/unlink-playlist', methods=['POST'])
 @require_auth
 def unlink_playlist(collection_id):
-    """Unlink a playlist from a collection"""
+    """Unlink a playlist from a collection and remove songs that are no longer referenced"""
     try:
         user_id = request.user_id
         data = request.get_json()
@@ -412,6 +403,11 @@ def unlink_playlist(collection_id):
         if collection['owner_uid'] != user_id:
             return jsonify({'error': 'You do not own this collection'}), 403
 
+        # Remove playlist references from songs (deletes songs with no other references)
+        from services.songs_service_v3 import SongsService
+        songs_service = SongsService()
+        song_stats = songs_service.delete_songs_for_playlist(collection_id, playlist_id)
+
         # Remove playlist from linked_playlists array
         from firebase_admin import firestore
         from datetime import datetime
@@ -420,16 +416,12 @@ def unlink_playlist(collection_id):
         # Get current linked playlists
         linked_playlists = collection.get('linked_playlists', [])
 
-        # Find the playlist to unlink and get its track count
-        playlist_to_unlink = next((p for p in linked_playlists if p.get('playlist_id') == playlist_id), None)
-        tracks_to_remove = playlist_to_unlink.get('track_count', 0) if playlist_to_unlink else 0
-
         # Filter out the playlist to unlink
         updated_playlists = [p for p in linked_playlists if p.get('playlist_id') != playlist_id]
 
-        # Calculate new song count
-        current_song_count = collection.get('song_count', 0)
-        new_song_count = max(0, current_song_count - tracks_to_remove)
+        # Calculate actual song count from database
+        remaining_songs = songs_service.get_songs_in_collection(collection_id)
+        new_song_count = len(remaining_songs)
 
         # Update collection
         collection_ref = db.collection('collections_v3').document(collection_id)
@@ -441,7 +433,10 @@ def unlink_playlist(collection_id):
 
         return jsonify({
             'message': 'Playlist unlinked successfully',
-            'playlist_id': playlist_id
+            'playlist_id': playlist_id,
+            'songs_deleted': song_stats['deleted'],
+            'songs_updated': song_stats['updated'],
+            'remaining_songs': new_song_count
         }), 200
 
     except Exception as e:

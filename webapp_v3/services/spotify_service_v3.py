@@ -88,7 +88,7 @@ class SpotifyServiceV3:
                     playlist_id,
                     offset=offset,
                     limit=limit,
-                    fields='items(track(name,artists,album,duration_ms,external_urls.spotify,id)),next'
+                    fields='items(track(name,artists,album(name,images,release_date),duration_ms,external_urls.spotify,uri,id)),next'
                 )
 
                 for item in results['items']:
@@ -99,13 +99,28 @@ class SpotifyServiceV3:
                     # Extract artist names
                     artists = [artist['name'] for artist in track.get('artists', [])]
 
+                    # Get album art (use largest image)
+                    album_art_url = None
+                    if track.get('album', {}).get('images'):
+                        images = sorted(track['album']['images'], key=lambda x: x.get('height', 0) or 0, reverse=True)
+                        album_art_url = images[0]['url'] if images else None
+
+                    # Extract year from release date
+                    year = ''
+                    release_date = track.get('album', {}).get('release_date', '')
+                    if release_date:
+                        year = release_date.split('-')[0]  # YYYY-MM-DD -> YYYY
+
                     track_data = {
                         'spotify_track_id': track.get('id'),
+                        'spotify_uri': track.get('uri'),
+                        'spotify_url': track['external_urls'].get('spotify'),
                         'title': track.get('name'),
                         'artist': ', '.join(artists),
-                        'album': track['album'].get('name'),
-                        'duration_ms': track.get('duration_ms'),
-                        'spotify_url': track['external_urls'].get('spotify')
+                        'album': track['album'].get('name', ''),
+                        'album_art_url': album_art_url,
+                        'year': year,
+                        'duration_ms': track.get('duration_ms', 0)
                     }
 
                     tracks.append(track_data)

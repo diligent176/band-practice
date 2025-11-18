@@ -542,11 +542,11 @@
                             <div class="collection-meta">
                                 <span class="collection-meta-item">
                                     <i class="fa-solid fa-music"></i>
-                                    ${collection.song_count || 0}
+                                    ${collection.song_count || 0} ${(collection.song_count || 0) === 1 ? 'song' : 'songs'}
                                 </span>
                                 <span class="collection-meta-item">
                                     <i class="fa-solid fa-list"></i>
-                                    ${collection.linked_playlists?.length || 0}
+                                    ${collection.linked_playlists?.length || 0} ${(collection.linked_playlists?.length || 0) === 1 ? 'playlist' : 'playlists'}
                                 </span>
                             </div>
                             <div class="collection-actions">
@@ -769,13 +769,26 @@
                                     <div class="recent-playlist-meta text-xs text-muted">${playlist.track_count || 0} tracks</div>
                                 </div>
                             </div>
-                            <div class="recent-playlist-date text-xs text-muted">
-                                ${formatDate(playlist.last_accessed_at)}
+                            <div class="recent-playlist-actions">
+                                <button class="btn-icon btn-ghost link-playlist-btn" data-playlist-url="${escapeHtml(playlist.playlist_url)}" title="Link playlist">
+                                    <i class="fa-solid fa-link"></i>
+                                </button>
                             </div>
                         </div>
                     `}).join('');
 
-                    // Add click handlers for other playlists
+                    // Add click handlers for link buttons
+                    otherContainer.querySelectorAll('.link-playlist-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const playlistUrl = btn.dataset.playlistUrl;
+                            if (playlistUrl) {
+                                linkPlaylistFromMemory(playlistUrl);
+                            }
+                        });
+                    });
+
+                    // Add click handlers for other playlists (select on click)
                     otherContainer.querySelectorAll('.recent-playlist-item').forEach(item => {
                         item.addEventListener('click', () => {
                             const url = item.dataset.playlistUrl;
