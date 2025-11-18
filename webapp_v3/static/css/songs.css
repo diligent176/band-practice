@@ -24,6 +24,7 @@
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
   gap: 16px;
+  height: 42px;
 }
 
 .songs-header-left {

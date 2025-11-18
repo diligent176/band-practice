@@ -27,28 +27,29 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 80px;
+  height: 42px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   z-index: var(--z-elevated);
   display: flex;
   align-items: center;
-  padding: 0 var(--spacing-md);
-  gap: var(--spacing-md);
+  padding: 0 var(--spacing-sm) 0 0;
+  gap: var(--spacing-sm);
   flex-wrap: nowrap;
 }
 
 /* Album Art */
 .player-album-art-container {
   flex-shrink: 0;
+  height: 42px;
 }
 
 .player-album-art {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
+  width: 42px;
+  height: 42px;
   object-fit: cover;
   background: var(--bg-tertiary);
+  display: block;
 }
 
 /* Song Metadata */
@@ -236,9 +237,9 @@
    ============================================================================ */
 
 .player-main {
-  margin-top: 80px; /* Height of top nav */
+  margin-top: 42px; /* Height of top nav */
   display: flex;
-  height: calc(100vh - 80px);
+  height: calc(100vh - 42px);
   overflow: hidden;
 }
 

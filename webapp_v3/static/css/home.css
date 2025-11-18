@@ -22,6 +22,7 @@
   padding: 2px 8px;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
+  height: 42px;
 }
 
 .home-header-left {
@@ -71,12 +72,9 @@
 .home-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.user-email {
-  font-size: 13px;
-  color: var(--text-secondary);
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 60px;
 }
 
 /* ============================================================================

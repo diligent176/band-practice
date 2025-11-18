@@ -111,10 +111,8 @@
                         </div>
                     </div>
                 </div>
-                <span id="user-email" class="user-email">Loading...</span>
-                <button id="signout-btn" class="btn btn-ghost btn-sm">
+                <button id="signout-btn" class="btn-icon btn-ghost" title="Logout">
                     <i class="fa-solid fa-right-from-bracket"></i>
-                    Sign Out
                 </button>
             </div>
         </header>
@@ -227,6 +225,10 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Logout -->
+                    <button id="songs-logout-btn" class="btn-icon btn-ghost" title="Logout" onclick="firebase.auth().signOut()">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
                 </div>
             </header>
 
@@ -403,9 +405,9 @@
                     </div>
                 </div>
 
-                <!-- Back Button -->
-                <button id="player-back-btn" class="btn-icon btn-ghost" title="Back to Songs (ESC)">
-                    <i class="fa-solid fa-arrow-left"></i>
+                <!-- Logout -->
+                <button id="player-logout-btn" class="btn-icon btn-ghost" title="Logout" onclick="firebase.auth().signOut()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
 
@@ -775,8 +777,16 @@ END: Final chorus is acapella"></textarea>
                         console.log('Step E: Hiding auth gate, showing main app');
                         document.getElementById('auth-gate').style.display = 'none';
                         document.getElementById('main-app').style.display = 'block';
-                        const userEmailEl = document.getElementById('user-email');
-                        userEmailEl.textContent = user.email;
+
+                        // Update logout button tooltips with username
+                        const logoutButtons = [
+                            document.getElementById('signout-btn'),
+                            document.getElementById('songs-logout-btn'),
+                            document.getElementById('player-logout-btn')
+                        ];
+                        logoutButtons.forEach(btn => {
+                            if (btn) btn.title = `Logout ${user.email}`;
+                        });
 
                         // Make current user available globally
                         window.currentUser = user;
