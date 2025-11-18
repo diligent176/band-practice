@@ -1,20 +1,22 @@
-# Flask Web Application Dependencies
-# Updated: October 2025
+# Band Practice Pro v3 - Python Dependencies
+# Updated: Nov 16 2025
 
+# Web framework
 Flask==3.1.2
 gunicorn==23.0.0
-python-dotenv==1.0.1
+Werkzeug==3.1.0
 
-# Google Cloud
+# Firebase & Firestore
+firebase-admin==7.1.0
 google-cloud-firestore==2.21.0
 google-auth==2.36.0
 google-auth-oauthlib==1.2.1
 
-# Spotify & Genius
-lyricsgenius==3.0.1
-spotipy==2.24.0
+# Spotify & Genius APIs
+spotipy==2.25.1
+lyricsgenius==3.7.5
 
 # Utilities
-requests==2.32.3
-firebase-admin==6.6.0
 beautifulsoup4==4.14.2
+python-dotenv==1.0.1
+requests==2.32.3

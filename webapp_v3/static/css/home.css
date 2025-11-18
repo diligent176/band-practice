@@ -1,0 +1,713 @@
+/*
+ * Band Practice Pro v3 - HOME View (Collections) Styles
+ */
+
+/* ============================================================================
+   HOME CONTAINER & LAYOUT
+   ============================================================================ */
+.home-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+/* ============================================================================
+   HEADER - FUCK THE PADDING! ULTRA TIGHT!
+   ============================================================================ */
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+}
+
+.home-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-title {
+  font-size: 22px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  background: linear-gradient(135deg,
+    #E53935 0%,
+    #FDD835 35%,
+    #43A047 70%,
+    #E53935 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: reggae-flow 8s ease-in-out infinite;
+}
+
+@keyframes reggae-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.home-title i {
+  font-size: 24px;
+  /* Icon gets gradient too via parent */
+}
+
+.home-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-email {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   MAIN CONTENT - Tighter spacing
+   ============================================================================ */
+.home-content {
+  flex: 1;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.collections-section {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin: 0;
+}
+
+.section-title i {
+  color: var(--accent-primary);
+  font-size: 14px;
+}
+
+/* ============================================================================
+   COLLECTIONS GRID
+   ============================================================================ */
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+
+/* ============================================================================
+   COLLECTION CARD - Uses .card and .card-clickable from base.css
+   ============================================================================ */
+.collection-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Keyboard selection state */
+.collection-card.keyboard-selected {
+  background: rgba(20, 20, 20, 0.9);
+  border-color: rgba(45, 122, 74, 0.8);
+  box-shadow: 0 0 25px rgba(45, 122, 74, 0.35),
+              0 0 0 2px rgba(45, 122, 74, 0.5);
+}
+
+/* Collection Artwork */
+.collection-artwork-container {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.collection-artwork {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.collection-card:hover .collection-artwork {
+  transform: scale(1.05);
+}
+
+.collection-artwork-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(45, 122, 74, 0.15) 0%, rgba(45, 122, 74, 0.05) 100%);
+}
+
+.collection-artwork-placeholder i {
+  font-size: 48px;
+  color: rgba(45, 122, 74, 0.4);
+  transition: all 0.3s ease;
+}
+
+.collection-card:hover .collection-artwork-placeholder i {
+  font-size: 54px;
+  color: rgba(45, 122, 74, 0.6);
+}
+
+/* Collection Content */
+.collection-content {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 8px 6px 8px;
+  gap: 4px;
+}
+
+.collection-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+}
+
+.collection-title-row {
+  display: block;
+}
+
+.collection-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+  padding: 0;
+}
+
+.collection-description-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.collection-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.collection-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.collection-card:hover .collection-actions {
+  opacity: 1;
+}
+
+.collection-actions .btn-icon {
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  font-size: 13px;
+}
+
+.collection-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(45, 122, 74, 0.15);
+  color: var(--accent-primary);
+  border: 1px solid rgba(45, 122, 74, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+}
+
+.collection-card:hover .collection-badge {
+  background: rgba(45, 122, 74, 0.25);
+  border-color: rgba(45, 122, 74, 0.5);
+  box-shadow: 0 0 8px rgba(45, 122, 74, 0.2);
+}
+
+.collection-badge-public {
+  background: rgba(30, 107, 168, 0.15);
+  color: var(--info);
+  border-color: rgba(30, 107, 168, 0.3);
+}
+
+.collection-card:hover .collection-badge-public {
+  background: rgba(30, 107, 168, 0.25);
+  border-color: rgba(30, 107, 168, 0.5);
+  box-shadow: 0 0 8px rgba(30, 107, 168, 0.2);
+}
+
+.collection-badge-private {
+  background: rgba(128, 128, 128, 0.1);
+  color: var(--text-muted);
+  border-color: rgba(128, 128, 128, 0.2);
+  padding: 3px 6px;
+}
+
+.collection-badge-private i {
+  font-size: 9px;
+}
+
+.collection-card:hover .collection-badge-private {
+  background: rgba(128, 128, 128, 0.15);
+  border-color: rgba(128, 128, 128, 0.35);
+  box-shadow: 0 0 8px rgba(128, 128, 128, 0.15);
+}
+
+.collection-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  flex: 1;
+  min-width: 0;
+}
+
+.collection-meta-and-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.collection-meta {
+  display: flex;
+  gap: 12px;
+}
+
+.collection-meta-item {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.collection-meta-item i {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   DIALOG ENHANCEMENTS
+   ============================================================================ */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   LOADING OVERLAY
+   ============================================================================ */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-text {
+  margin-top: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ============================================================================
+   TOAST NOTIFICATIONS
+   ============================================================================ */
+.toast-container {
+  position: fixed;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.toast {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  min-width: 300px;
+  opacity: 0;
+  transform: translateX(100px);
+  transition: all 0.3s ease;
+}
+
+.toast-show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-success {
+  border-color: var(--success);
+  background: rgba(29, 185, 84, 0.1);
+}
+
+.toast-error {
+  border-color: var(--error);
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.toast-info {
+  border-color: var(--info);
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.toast-warning {
+  border-color: var(--warning);
+  background: rgba(255, 152, 0, 0.1);
+}
+
+/* ============================================================================
+   LINK PLAYLIST DIALOG - Recent Playlists
+   ============================================================================ */
+.recent-playlists-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;  /* Tighter spacing */
+}
+
+.recent-playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;  /* Tighter padding */
+  background: rgba(20, 20, 20, 0.4);
+  border: 1px solid rgba(51, 51, 51, 0.4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recent-playlist-item:hover {
+  background: rgba(20, 20, 20, 0.7);
+  border-color: rgba(45, 122, 74, 0.4);
+  box-shadow: 0 0 12px rgba(45, 122, 74, 0.15);
+}
+
+/* Keyboard selection state for playlist items */
+.recent-playlist-item.keyboard-selected {
+  background: rgba(20, 20, 20, 0.9);
+  border-color: rgba(45, 122, 74, 0.8);
+  box-shadow: 0 0 25px rgba(45, 122, 74, 0.35),
+              0 0 0 2px rgba(45, 122, 74, 0.5);
+}
+
+/* Playlist Artwork in Dialog */
+.playlist-artwork {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.playlist-artwork-placeholder {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(45, 122, 74, 0.15) 0%, rgba(45, 122, 74, 0.05) 100%);
+  border-radius: 4px;
+}
+
+.playlist-artwork-placeholder i {
+  font-size: 24px;
+  color: rgba(45, 122, 74, 0.6);
+}
+
+.recent-playlist-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-playlist-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-playlist-name {
+  font-size: 13px;  /* Smaller font */
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.recent-playlist-meta {
+  font-size: 11px;  /* Smaller font */
+  margin-top: 1px;
+  line-height: 1.2;
+}
+
+.recent-playlist-date {
+  flex-shrink: 0;
+  font-size: 11px;  /* Smaller font */
+}
+
+.recent-playlist-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* ============================================================================
+   HELP CARD (v2 style - hover card in top nav)
+   ============================================================================ */
+.keyboard-shortcuts-help {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 34px;
+  width: 34px;
+}
+
+.keyboard-shortcuts-help:hover {
+  background: var(--bg-tertiary);
+  border-color: rgba(45, 122, 74, 0.4);
+}
+
+.keyboard-shortcuts-help i {
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.help-card {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(45, 122, 74, 0.3);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  min-width: 520px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.help-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(45, 122, 74, 0.15);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(45, 122, 74, 0.2);
+}
+
+.help-card-header i {
+  font-size: 16px;
+  color: var(--accent-primary);
+}
+
+.help-toggle-hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.help-card-content {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
+.help-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.help-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.help-section:not(:first-child) {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(45, 122, 74, 0.15);
+}
+
+.help-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+  margin-top: 0;
+  padding-left: 8px;
+}
+
+.help-item {
+  display: grid;
+  grid-template-columns: 100px auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.help-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.help-keys {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.help-keys kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+  box-shadow: 0 2px 0 var(--border-color), 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.help-icon {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 16px;
+  text-align: center;
+}
+
+.help-item span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+@media (max-width: 768px) {
+  .home-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+  }
+
+  .home-header-right {
+    justify-content: space-between;
+  }
+
+  .home-content {
+    padding: var(--spacing-lg);
+  }
+
+  .collections-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+}
