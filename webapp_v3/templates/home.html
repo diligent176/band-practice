@@ -553,9 +553,16 @@
                                 <button class="btn-icon btn-ghost collection-link-playlist-btn" data-collection-id="${collection.id}" title="Link Spotify playlist" aria-label="Link Spotify playlist">
                                     <i class="fa-brands fa-spotify"></i>
                                 </button>
+                                ${collection.is_personal ? `
+                                <button class="btn-icon btn-ghost" disabled title="Cannot edit Personal Collection" aria-label="Cannot edit Personal Collection" style="opacity: 0.5; cursor: not-allowed; position: relative;">
+                                    <i class="fa-solid fa-gear"></i>
+                                    <i class="fa-solid fa-slash" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2em;"></i>
+                                </button>
+                                ` : `
                                 <button class="btn-icon btn-ghost collection-edit-btn" data-collection-id="${collection.id}" title="Edit collection" aria-label="Edit collection">
                                     <i class="fa-solid fa-gear"></i>
                                 </button>
+                                `}
                                 ${!collection.is_personal ? `
                                 <button class="btn-icon btn-ghost collection-delete-btn" data-collection-id="${collection.id}" title="Delete collection" aria-label="Delete collection">
                                     <i class="fa-solid fa-trash"></i>
