@@ -57,6 +57,12 @@ def index():
     logger.info('Index page accessed')
     return render_template('home.html')
 
+@app.route('/songs')
+def songs():
+    """Songs view - shows all songs in a collection"""
+    logger.info('Songs page accessed')
+    return render_template('songs.html')
+
 # ============================================================================
 # API ROUTES - v3 Endpoints
 # ============================================================================
@@ -247,6 +253,57 @@ def collection(collection_id):
         return jsonify({'error': str(e)}), 400
     except Exception as e:
         logger.error(f"Collection endpoint error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v3/collections/<collection_id>/songs', methods=['GET'])
+def get_collection_songs(collection_id):
+    """Get all songs in a collection, sorted by playlist order"""
+    try:
+        user_info = AuthService.require_auth(request)
+        if not user_info:
+            return jsonify({'error': 'Unauthorized'}), 401
+
+        # Initialize services
+        from services.songs_service_v3 import SongsService
+        collections_service = CollectionsService()
+        songs_service = SongsService()
+
+        # Verify user has access to this collection
+        collection_data = collections_service.get_collection(collection_id, user_info['uid'])
+
+        if not collection_data:
+            return jsonify({'error': 'Collection not found or not authorized'}), 404
+
+        # Get songs in this collection (unsorted from DB)
+        songs = songs_service.get_songs_in_collection(collection_id)
+
+        # Sort songs by collection's playlist order
+        linked_playlists = collection_data.get('linked_playlists', [])
+        playlist_order = {p['playlist_id']: idx for idx, p in enumerate(linked_playlists)}
+
+        def sort_key(song):
+            playlist_ids = song.get('source_playlist_ids', [])
+            playlist_positions = song.get('playlist_positions', {})
+
+            if not playlist_ids:
+                return (999999, 999999)
+
+            # Get first playlist and its order in collection
+            first_playlist = playlist_ids[0]
+            collection_order = playlist_order.get(first_playlist, 999999)
+            position_in_playlist = playlist_positions.get(first_playlist, 999999)
+
+            return (collection_order, position_in_playlist)
+
+        songs.sort(key=sort_key)
+
+        return jsonify({
+            'songs': songs,
+            'collection': collection_data
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error getting collection songs: {e}")
         return jsonify({'error': str(e)}), 500
 
 # ============================================================================

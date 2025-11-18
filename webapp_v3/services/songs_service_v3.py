@@ -388,7 +388,8 @@ class SongsService:
 
     def get_songs_in_collection(self, collection_id: str) -> List[Dict]:
         """
-        Get all songs in a collection, grouped by playlist.
+        Get all songs in a collection (unsorted).
+        Sorting is done by the API endpoint based on collection's linked_playlists order.
 
         Args:
             collection_id: Collection ID
@@ -398,9 +399,7 @@ class SongsService:
         """
         try:
             query = (self.db.collection(self.songs_collection)
-                    .where('collection_id', '==', collection_id)
-                    .order_by('artist')
-                    .order_by('title'))
+                    .where('collection_id', '==', collection_id))
 
             docs = list(query.stream())
             songs = []

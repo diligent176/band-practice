@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/songs.css') }}">
 </head>
 <body>
     <!-- Firebase Auth Gate -->
@@ -38,8 +39,11 @@
         </div>
     </div>
 
-    <!-- Main App - Collections View (shown after auth) -->
+    <!-- Main App - SPA with Multiple Views (shown after auth) -->
     <div id="main-app" class="home-container" style="display: none;">
+
+        <!-- COLLECTIONS VIEW -->
+        <div id="collections-view" class="view active">
         <!-- Header -->
         <header class="home-header">
             <div class="home-header-left">
@@ -62,14 +66,19 @@
                                 <div class="help-section">
                                     <div class="help-section-title">Navigation</div>
                                     <div class="help-item">
-                                        <div class="help-keys"><kbd>↑</kbd><kbd>↓</kbd></div>
-                                        <i class="fa-solid fa-arrows-up-down help-icon"></i>
-                                        <span>Navigate</span>
+                                        <div class="help-keys"><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></div>
+                                        <i class="fa-solid fa-grid help-icon"></i>
+                                        <span>Navigate grid</span>
                                     </div>
                                     <div class="help-item">
                                         <div class="help-keys"><kbd>Home</kbd><kbd>End</kbd></div>
                                         <i class="fa-solid fa-arrow-down-1-9 help-icon"></i>
                                         <span>First/Last</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Enter</kbd></div>
+                                        <i class="fa-solid fa-folder-open help-icon"></i>
+                                        <span>Open</span>
                                     </div>
                                 </div>
                             </div>
@@ -142,8 +151,101 @@
                 </div>
             </section>
         </main>
+        </div>
+        <!-- End Collections View -->
+
+        <!-- SONGS VIEW -->
+        <div id="songs-view" class="view">
+            <!-- Songs Header -->
+            <header class="songs-header">
+                <div class="songs-header-left">
+                    <button id="songs-back-btn" class="btn-icon btn-ghost" title="Back to Collections (ESC)">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div class="collection-info">
+                        <h1 class="collection-name" id="songs-collection-name">Loading...</h1>
+                        <div class="song-count" id="songs-count">0 songs</div>
+                    </div>
+                </div>
+                <div class="songs-header-right">
+                    <!-- Sort indicator -->
+                    <div class="sort-indicator" id="sort-indicator" title="Sort mode (ALT+T to toggle)">
+                        <i class="fa-solid fa-arrow-down-a-z"></i>
+                        <span id="sort-mode-text">By Title</span>
+                    </div>
+                    <!-- Search bar -->
+                    <div class="search-bar">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="song-search" class="search-input" placeholder="Type to filter songs..." autocomplete="off">
+                    </div>
+                    <!-- Help toggle -->
+                    <div class="keyboard-shortcuts-help" id="songs-help-toggle" title="Keyboard Shortcuts">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <div class="help-card" id="songs-help-card">
+                            <div class="help-card-header">
+                                <i class="fa-solid fa-keyboard"></i>
+                                <span>Keyboard Shortcuts</span>
+                                <span class="help-toggle-hint">Press / to toggle</span>
+                            </div>
+                            <div class="help-card-content">
+                                <div class="help-column">
+                                    <div class="help-section">
+                                        <div class="help-section-title">Navigation</div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>↑</kbd><kbd>↓</kbd></div>
+                                            <i class="fa-solid fa-arrows-up-down help-icon"></i>
+                                            <span>Navigate songs</span>
+                                        </div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>PgUp</kbd><kbd>PgDn</kbd></div>
+                                            <i class="fa-solid fa-file-lines help-icon"></i>
+                                            <span>Page through</span>
+                                        </div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>Home</kbd><kbd>End</kbd></div>
+                                            <i class="fa-solid fa-arrow-down-1-9 help-icon"></i>
+                                            <span>First/Last</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="help-column">
+                                    <div class="help-section">
+                                        <div class="help-section-title">Actions</div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>Enter</kbd></div>
+                                            <i class="fa-solid fa-play help-icon"></i>
+                                            <span>Open song</span>
+                                        </div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>ALT</kbd><kbd>T</kbd></div>
+                                            <i class="fa-solid fa-arrow-down-a-z help-icon"></i>
+                                            <span>Toggle sort</span>
+                                        </div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>ESC</kbd></div>
+                                            <i class="fa-solid fa-arrow-left help-icon"></i>
+                                            <span>Back</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Songs List -->
+            <main class="songs-content">
+                <div id="songs-list" class="songs-list">
+                    <!-- Songs will be loaded here -->
+                    <div class="loading-spinner"></div>
+                </div>
+            </main>
+        </div>
+        <!-- End Songs View -->
 
     </div>
+    <!-- End Main App -->
 
     <!-- New Collection Dialog -->
     <div id="new-collection-dialog" class="dialog-overlay hidden">
@@ -288,6 +390,7 @@
 
     <!-- Common utilities -->
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/viewManager.js') }}"></script>
 
     <script>
         // Always use Firebase Auth (both local and production)
@@ -415,6 +518,9 @@
 
                         // Make current user available globally
                         window.currentUser = user;
+
+                        // Initialize ViewManager for SPA navigation
+                        ViewManager.init();
 
                         // Load collections
                         loadCollections();
@@ -615,9 +721,8 @@
         }
 
         function openCollection(collectionId) {
-            console.log('Opening collection:', collectionId);
-            // TODO: Navigate to SONGS view (Phase 5)
-            BPP.showToast('Opening collection... (Songs view not implemented yet)', 'info');
+            // Use ViewManager for instant view switching (no page load!)
+            ViewManager.openCollection(collectionId);
         }
 
         async function editCollection(collectionId) {
@@ -1324,6 +1429,22 @@
         let selectedCollectionIndex = -1;
         let collectionElements = [];
 
+        function getGridColumns() {
+            // Calculate number of columns in the grid
+            if (collectionElements.length === 0) return 1;
+
+            const firstCard = collectionElements[0];
+            const container = firstCard.parentElement;
+            const containerWidth = container.offsetWidth;
+            const gap = parseInt(getComputedStyle(container).gap) || 8;
+
+            // Get the computed grid-template-columns
+            const gridCols = getComputedStyle(container).gridTemplateColumns;
+            const colCount = gridCols.split(' ').length;
+
+            return Math.max(1, colCount);
+        }
+
         function updateCollectionFocus() {
             // Remove previous focus
             collectionElements.forEach(el => el.classList.remove('keyboard-selected'));
@@ -1341,6 +1462,9 @@
         }
 
         document.addEventListener('keydown', (e) => {
+            // Don't handle if not in collections view
+            const inCollectionsView = ViewManager.currentView === 'collections';
+
             // Don't handle if dialog is open or user is typing
             const dialogOpen = !document.getElementById('new-collection-dialog').classList.contains('hidden') ||
                               !document.getElementById('edit-collection-dialog').classList.contains('hidden') ||
@@ -1349,13 +1473,13 @@
             const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
 
             // Special case: / or ? key toggles help even if typing (but not in dialogs)
-            if ((e.key === '/' || e.key === '?') && !dialogOpen) {
+            if ((e.key === '/' || e.key === '?') && !dialogOpen && inCollectionsView) {
                 e.preventDefault();
                 toggleHelpCard();
                 return;
             }
 
-            if (dialogOpen || isTyping) return;
+            if (!inCollectionsView || dialogOpen || isTyping) return;
 
             switch(e.key) {
 
@@ -1407,24 +1531,71 @@
                     }
                     break;
 
-                case 'ArrowDown':
                 case 'ArrowRight':
-                    // Navigate down/right through collections
+                    // Navigate right in grid
                     e.preventDefault();
                     refreshCollectionElements();
                     if (collectionElements.length > 0) {
-                        selectedCollectionIndex = Math.min(selectedCollectionIndex + 1, collectionElements.length - 1);
+                        const cols = getGridColumns();
+                        const currentRow = Math.floor(selectedCollectionIndex / cols);
+                        const currentCol = selectedCollectionIndex % cols;
+                        const isLastInRow = currentCol === cols - 1 || selectedCollectionIndex === collectionElements.length - 1;
+
+                        if (!isLastInRow) {
+                            selectedCollectionIndex = Math.min(selectedCollectionIndex + 1, collectionElements.length - 1);
+                        }
+                        updateCollectionFocus();
+                    }
+                    break;
+
+                case 'ArrowLeft':
+                    // Navigate left in grid
+                    e.preventDefault();
+                    refreshCollectionElements();
+                    if (collectionElements.length > 0) {
+                        const cols = getGridColumns();
+                        const currentCol = selectedCollectionIndex % cols;
+                        const isFirstInRow = currentCol === 0;
+
+                        if (!isFirstInRow) {
+                            selectedCollectionIndex = Math.max(selectedCollectionIndex - 1, 0);
+                        }
+                        updateCollectionFocus();
+                    }
+                    break;
+
+                case 'ArrowDown':
+                    // Navigate down in grid (move down one row)
+                    e.preventDefault();
+                    refreshCollectionElements();
+                    if (collectionElements.length > 0) {
+                        const cols = getGridColumns();
+                        const newIndex = selectedCollectionIndex + cols;
+
+                        if (newIndex < collectionElements.length) {
+                            selectedCollectionIndex = newIndex;
+                        } else {
+                            // Jump to last item if we'd go past the end
+                            selectedCollectionIndex = collectionElements.length - 1;
+                        }
                         updateCollectionFocus();
                     }
                     break;
 
                 case 'ArrowUp':
-                case 'ArrowLeft':
-                    // Navigate up/left through collections
+                    // Navigate up in grid (move up one row)
                     e.preventDefault();
                     refreshCollectionElements();
                     if (collectionElements.length > 0) {
-                        selectedCollectionIndex = Math.max(selectedCollectionIndex - 1, 0);
+                        const cols = getGridColumns();
+                        const newIndex = selectedCollectionIndex - cols;
+
+                        if (newIndex >= 0) {
+                            selectedCollectionIndex = newIndex;
+                        } else {
+                            // Jump to first item if we'd go before the start
+                            selectedCollectionIndex = 0;
+                        }
                         updateCollectionFocus();
                     }
                     break;

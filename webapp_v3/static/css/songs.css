@@ -1,0 +1,531 @@
+/*
+ * Band Practice Pro v3 - SONGS View Styles
+ * Tight, grid-based layout with beautiful artwork for each song
+ */
+
+/* ============================================================================
+   SONGS CONTAINER & LAYOUT
+   ============================================================================ */
+.songs-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+/* ============================================================================
+   HEADER - ULTRA TIGHT!
+   ============================================================================ */
+.songs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  gap: 16px;
+}
+
+.songs-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.collection-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.collection-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song-count {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.songs-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Sort Indicator */
+.sort-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(45, 122, 74, 0.1);
+  border: 1px solid rgba(45, 122, 74, 0.3);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--accent-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sort-indicator:hover {
+  background: rgba(45, 122, 74, 0.2);
+  border-color: rgba(45, 122, 74, 0.5);
+  box-shadow: 0 0 10px rgba(45, 122, 74, 0.2);
+}
+
+.sort-indicator i {
+  font-size: 12px;
+}
+
+#sort-mode-text {
+  font-weight: 500;
+}
+
+/* Search Bar */
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar i {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 280px;
+  padding: 6px 12px 6px 32px;
+  font-size: 13px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(45, 122, 74, 0.1);
+  background: var(--bg-secondary);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   HELP CARD (from home.css - hover card)
+   ============================================================================ */
+.keyboard-shortcuts-help {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 34px;
+  width: 34px;
+}
+
+.keyboard-shortcuts-help:hover {
+  background: var(--bg-tertiary);
+  border-color: rgba(45, 122, 74, 0.4);
+}
+
+.keyboard-shortcuts-help i {
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.help-card {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(45, 122, 74, 0.3);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  min-width: 520px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.help-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(45, 122, 74, 0.15);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(45, 122, 74, 0.2);
+}
+
+.help-card-header i {
+  font-size: 16px;
+  color: var(--accent-primary);
+}
+
+.help-toggle-hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.help-card-content {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
+.help-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.help-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.help-section:not(:first-child) {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(45, 122, 74, 0.15);
+}
+
+.help-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+  margin-top: 0;
+  padding-left: 8px;
+}
+
+.help-item {
+  display: grid;
+  grid-template-columns: 100px auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.help-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.help-keys {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.help-keys kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+  box-shadow: 0 2px 0 var(--border-color), 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.help-icon {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 16px;
+  text-align: center;
+}
+
+.help-item span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   MAIN CONTENT - Songs Grid
+   ============================================================================ */
+.songs-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.songs-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+/* Empty state */
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin-top: 60px;
+}
+
+/* ============================================================================
+   PLAYLIST BADGE (shown on first song of each playlist when sorted by playlist)
+   ============================================================================ */
+.playlist-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(45, 122, 74, 0.4);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  box-shadow: 0 0 8px rgba(45, 122, 74, 0.2);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.playlist-badge i {
+  font-size: 11px;
+  flex-shrink: 0;
+  color: rgba(30, 215, 96, 0.8);
+}
+
+.playlist-badge-name {
+  font-weight: 600;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 1;
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   SONG ITEM - Tight Card with Beautiful Artwork
+   ============================================================================ */
+.song-item {
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 20, 20, 0.4);
+  border: 1px solid rgba(51, 51, 51, 0.4);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.song-item:hover {
+  background: rgba(20, 20, 20, 0.7);
+  border-color: rgba(45, 122, 74, 0.4);
+  box-shadow: 0 0 12px rgba(45, 122, 74, 0.15);
+}
+
+.song-item.selected {
+  background: rgba(20, 20, 20, 0.9);
+  border-color: rgba(45, 122, 74, 0.8);
+  box-shadow: 0 0 20px rgba(45, 122, 74, 0.3),
+              0 0 0 2px rgba(45, 122, 74, 0.4);
+}
+
+/* Song Artwork */
+.song-art-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+
+.song-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.song-item:hover .song-art {
+  transform: scale(1.05);
+}
+
+.song-art-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(45, 122, 74, 0.1) 0%, rgba(45, 122, 74, 0.05) 100%);
+}
+
+.song-art-placeholder i {
+  font-size: 40px;
+  color: rgba(45, 122, 74, 0.4);
+}
+
+/* Lyrics status indicator */
+.lyrics-status {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  color: var(--warning);
+}
+
+.song-item.has-lyrics .lyrics-status {
+  display: none;
+}
+
+/* Song Info */
+.song-info {
+  padding: 8px 8px 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.song-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.song-artist {
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+/* Song Metadata */
+.song-meta {
+  padding: 0 8px 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.song-bpm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.song-bpm i {
+  font-size: 9px;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+@media (max-width: 1200px) {
+  .songs-list {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .songs-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .songs-header-left {
+    gap: 8px;
+  }
+
+  .songs-header-right {
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .songs-list {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .song-title {
+    font-size: 12px;
+  }
+
+  .song-artist {
+    font-size: 10px;
+  }
+}
