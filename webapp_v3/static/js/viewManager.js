@@ -8,12 +8,13 @@ const ViewManager = {
     views: {
         collections: null,
         songs: null,
-        player: null  // For Phase 6+
+        player: null
     },
 
     // App state
     state: {
         currentCollection: null,
+        currentSong: null,
         allSongs: [],
         filteredSongs: [],
         selectedSongIndex: -1,
@@ -24,6 +25,7 @@ const ViewManager = {
         // Cache view elements
         this.views.collections = document.getElementById('collections-view');
         this.views.songs = document.getElementById('songs-view');
+        this.views.player = document.getElementById('player-view');
 
         // Set up event listeners
         this.setupEventListeners();
@@ -336,10 +338,16 @@ const ViewManager = {
         if (index < 0 || index >= this.state.filteredSongs.length) return;
 
         const song = this.state.filteredSongs[index];
+        this.state.currentSong = song;
         console.log('🎵 Opening song:', song.title);
 
-        // TODO: Navigate to PLAYER view (Phase 6-7)
-        BPP.showToast(`Opening "${song.title}"... (Player coming in Phase 6)`, 'info');
+        // Load player view
+        if (window.PlayerManager) {
+            PlayerManager.loadSong(song);
+            this.showView('player');
+        } else {
+            BPP.showToast('Player not initialized', 'error');
+        }
     },
 
     updateSelection(index) {
@@ -426,6 +434,9 @@ const ViewManager = {
         if (viewName === 'songs') {
             this.currentKeyboardHandler = (e) => this.handleSongsKeyboard(e);
             document.addEventListener('keydown', this.currentKeyboardHandler);
+        } else if (viewName === 'player') {
+            this.currentKeyboardHandler = (e) => this.handlePlayerKeyboard(e);
+            document.addEventListener('keydown', this.currentKeyboardHandler);
         }
     },
 
@@ -507,6 +518,83 @@ const ViewManager = {
         } else if (!isTyping && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {
             // Any alphanumeric key focuses search (only if not already typing)
             document.getElementById('song-search').focus();
+        }
+    },
+
+    handlePlayerKeyboard(e) {
+        const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+
+        // NEVER block these (work even when typing in dialogs)
+        if (e.altKey && e.key === 'Enter') {
+            e.preventDefault();
+            this.toggleFullscreen();
+            return;
+        }
+        if (e.altKey && e.key === 'ArrowUp') {
+            e.preventDefault();
+            PlayerManager.adjustFontSize(0.1);
+            return;
+        }
+        if (e.altKey && e.key === 'ArrowDown') {
+            e.preventDefault();
+            PlayerManager.adjustFontSize(-0.1);
+            return;
+        }
+
+        // / or ? - Toggle help card (even when typing)
+        if (e.key === '/' || e.key === '?') {
+            e.preventDefault();
+            PlayerManager.togglePlayerHelpCard();
+            return;
+        }
+
+        // . (period) - BPM tap (even in tap dialog)
+        if (e.key === '.') {
+            const tapDialog = document.getElementById('bpm-tap-dialog');
+            if (tapDialog && !tapDialog.classList.contains('hidden')) {
+                e.preventDefault();
+                PlayerManager.handleTap();
+                return;
+            }
+            // If dialog not open, open it
+            if (!isTyping) {
+                e.preventDefault();
+                PlayerManager.openBpmTapTrainer();
+                return;
+            }
+        }
+
+        // Don't handle other keys if typing
+        if (isTyping) return;
+
+        // Handle all other shortcuts
+        const handlers = {
+            'x': () => this.showView('collections'),
+            's': () => this.showView('songs'),
+            'b': () => PlayerManager.previousSong(),
+            'f': () => PlayerManager.nextSong(),
+            ' ': () => PlayerManager.togglePlayback(),
+            't': () => PlayerManager.restartTrack(),
+            'm': () => PlayerManager.toggleMute(),
+            'arrowleft': () => PlayerManager.skipBackward(5),
+            'arrowright': () => PlayerManager.skipForward(5),
+            'c': () => PlayerManager.toggleColumns(),
+            'e': () => PlayerManager.editLyrics(),
+            'n': () => PlayerManager.editNotes(),
+            'i': () => PlayerManager.toggleBpmIndicator(),
+            'escape': () => this.showView('songs')
+        };
+
+        BPP.handleKeyboard(e, handlers);
+    },
+
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                BPP.showToast('Fullscreen not supported', 'error');
+            });
+        } else {
+            document.exitFullscreen();
         }
     },
 

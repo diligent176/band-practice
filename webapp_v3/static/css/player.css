@@ -1,0 +1,548 @@
+/*
+ * Band Practice Pro v3 - Player View CSS
+ * Styles for the PLAYER view (lyrics + notes + playback controls)
+ */
+
+/* ============================================================================
+   PLAYER VIEW LAYOUT
+   ============================================================================ */
+
+#player-view {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#player-view.active {
+  display: flex;
+}
+
+/* ============================================================================
+   PLAYER TOP NAV (Fixed)
+   ============================================================================ */
+
+.player-top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: var(--z-elevated);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-md);
+  gap: var(--spacing-md);
+  flex-wrap: nowrap;
+}
+
+/* Album Art */
+.player-album-art-container {
+  flex-shrink: 0;
+}
+
+.player-album-art {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--bg-tertiary);
+}
+
+/* Song Metadata */
+.player-song-info {
+  flex-shrink: 1;
+  min-width: 180px;
+  max-width: 300px;
+}
+
+.player-song-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-artist {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* BPM Display & Flasher */
+.player-bpm-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.player-bpm-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.bpm-flasher {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--accent-primary);
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.bpm-flasher:hover {
+  background: var(--bg-tertiary);
+  color: var(--accent-hover);
+}
+
+/* BPM Pulse Animation */
+@keyframes bpm-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+
+.bpm-flasher.active {
+  animation: bpm-pulse 0.15s ease-in-out;
+}
+
+/* Playback Controls */
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.btn-player {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.btn-player:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.btn-play-large {
+  width: 44px;
+  height: 44px;
+  background: var(--accent-primary);
+  color: white;
+}
+
+.btn-play-large:hover {
+  background: var(--accent-hover);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Progress Bar */
+.player-progress-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-grow: 1;
+  min-width: 180px;
+}
+
+.player-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+}
+
+.player-progress-bar {
+  flex-grow: 1;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-progress-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: var(--radius-full);
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.player-progress-bar:hover .player-progress-fill {
+  background: var(--accent-hover);
+}
+
+/* View Controls */
+.player-view-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+/* Help Toggle (reuse from songs.css) */
+.keyboard-shortcuts-help {
+  position: relative;
+  flex-shrink: 0;
+}
+
+#player-help-toggle {
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+  padding: var(--spacing-xs);
+}
+
+#player-help-toggle:hover {
+  color: var(--accent-primary);
+}
+
+/* Back Button */
+#player-back-btn {
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   PLAYER MAIN CONTENT
+   ============================================================================ */
+
+.player-main {
+  margin-top: 80px; /* Height of top nav */
+  display: flex;
+  height: calc(100vh - 80px);
+  overflow: hidden;
+}
+
+/* ============================================================================
+   LYRICS PANEL (70%)
+   ============================================================================ */
+
+.player-lyrics-panel {
+  flex: 0 0 70%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  background: var(--bg-primary);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+/* Lyrics Columns (1/2/3) */
+.lyrics-columns-1 {
+  column-count: 1;
+  column-gap: 0;
+}
+
+.lyrics-columns-2 {
+  column-count: 2;
+  column-gap: var(--spacing-2xl);
+}
+
+.lyrics-columns-3 {
+  column-count: 3;
+  column-gap: var(--spacing-lg);
+}
+
+/* Lyric Lines */
+.lyric-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  padding: 2px 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.line-number {
+  flex-shrink: 0;
+  width: 32px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.line-text {
+  flex-grow: 1;
+  color: var(--text-primary);
+}
+
+/* Section Headers */
+.lyric-line.section-header .line-text {
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Highlighted Lines (when note is selected) */
+.lyric-line.highlighted {
+  background: rgba(45, 122, 74, 0.15);
+  border-left: 3px solid var(--accent-primary);
+  padding-left: var(--spacing-sm);
+  margin-left: -3px;
+}
+
+/* Note Indicator Dot (on lines with notes) */
+.lyric-line.has-note::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+}
+
+/* Empty State */
+.player-lyrics-panel .empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   NOTES PANEL (30%)
+   ============================================================================ */
+
+.player-notes-panel {
+  flex: 0 0 30%;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+}
+
+/* Note Card */
+.note-card {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-left: 3px solid var(--accent-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.note-card:hover {
+  background: var(--bg-elevated);
+  transform: translateX(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.note-card.active {
+  border-left-width: 4px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Note Colors (cycle through 5) */
+.note-card-1 {
+  border-left-color: var(--note-color-1);
+}
+
+.note-card-2 {
+  border-left-color: var(--note-color-2);
+}
+
+.note-card-3 {
+  border-left-color: var(--note-color-3);
+}
+
+.note-card-4 {
+  border-left-color: var(--note-color-4);
+}
+
+.note-card-5 {
+  border-left-color: var(--note-color-5);
+}
+
+/* Note Header */
+.note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+}
+
+.note-line-range {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Note Content */
+.note-content {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Add Note Button */
+.player-notes-panel .btn-ghost {
+  width: 100%;
+  margin-top: var(--spacing-md);
+}
+
+/* Empty State */
+.player-notes-panel .empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   DIALOGS (Lyrics & Notes Editors)
+   ============================================================================ */
+
+.lyrics-textarea,
+.notes-textarea {
+  width: 100%;
+  min-height: 400px;
+  padding: var(--spacing-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.lyrics-textarea:focus,
+.notes-textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(45, 122, 74, 0.1);
+}
+
+/* BPM Tap Dialog */
+.bpm-display-large {
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  margin: var(--spacing-lg) 0;
+}
+
+#bpm-tap-count {
+  margin-top: var(--spacing-md);
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .player-main {
+    flex-direction: column;
+  }
+
+  .player-lyrics-panel {
+    flex: 1 1 auto;
+    max-height: 60%;
+  }
+
+  .player-notes-panel {
+    flex: 0 0 40%;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .lyrics-columns-3 {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .player-top-nav {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .player-main {
+    margin-top: 64px;
+    height: calc(100vh - 64px);
+  }
+
+  .lyrics-columns-2,
+  .lyrics-columns-3 {
+    column-count: 1;
+  }
+
+  .player-song-info {
+    min-width: 120px;
+    max-width: 200px;
+  }
+
+  .player-progress-container {
+    order: 10;
+    width: 100%;
+    flex-basis: 100%;
+  }
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .player-top-nav,
+  .player-notes-panel {
+    display: none !important;
+  }
+
+  .player-lyrics-panel {
+    flex: 1 1 100%;
+    overflow: visible;
+  }
+
+  .lyric-line {
+    break-inside: avoid;
+  }
+}

@@ -36,6 +36,13 @@
   --reggae-yellow: #FDD835;
   --reggae-green: #43A047;
 
+  /* Note Colors (cycle through 5 colors for notes) */
+  --note-color-1: #ff6b6b;
+  --note-color-2: #4ecdc4;
+  --note-color-3: #45b7d1;
+  --note-color-4: #f9ca24;
+  --note-color-5: #a29bfe;
+
   /* Spacing Scale */
   --spacing-xs: 4px;
   --spacing-sm: 8px;

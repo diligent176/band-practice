@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/songs.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/player.css') }}">
 </head>
 <body>
     <!-- Firebase Auth Gate -->
@@ -239,6 +240,194 @@
         </div>
         <!-- End Songs View -->
 
+        <!-- PLAYER VIEW -->
+        <div id="player-view" class="view">
+            <!-- Player Top Nav (Fixed) -->
+            <div class="player-top-nav">
+                <!-- Album Art -->
+                <div class="player-album-art-container">
+                    <img id="player-album-art" src="/static/favicon.svg" alt="Album Art" class="player-album-art">
+                </div>
+
+                <!-- Song Metadata -->
+                <div class="player-song-info">
+                    <div id="player-song-title" class="player-song-title">Song Title</div>
+                    <div id="player-artist" class="player-artist">Artist</div>
+                </div>
+
+                <!-- BPM Display & Flasher -->
+                <div class="player-bpm-container">
+                    <span id="player-bpm" class="player-bpm-text">BPM: --</span>
+                    <button id="bpm-flasher" class="bpm-flasher" title="Toggle BPM indicator (I)">
+                        <i class="fa-solid fa-circle"></i>
+                    </button>
+                </div>
+
+                <!-- Playback Controls -->
+                <div class="player-controls">
+                    <button id="player-prev-btn" class="btn-icon btn-player" title="Previous song (B)">
+                        <i class="fa-solid fa-backward"></i>
+                    </button>
+                    <button id="player-play-btn" class="btn-icon btn-player btn-play-large" title="Play/Pause (Space)">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                    <button id="player-next-btn" class="btn-icon btn-player" title="Next song (F)">
+                        <i class="fa-solid fa-forward"></i>
+                    </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="player-progress-container">
+                    <span id="player-current-time" class="player-time">0:00</span>
+                    <div class="player-progress-bar">
+                        <div id="player-progress-fill" class="player-progress-fill"></div>
+                    </div>
+                    <span id="player-duration" class="player-time">0:00</span>
+                </div>
+
+                <!-- View Controls -->
+                <div class="player-view-controls">
+                    <button id="player-toggle-columns" class="btn-icon btn-ghost" title="Toggle columns (C)">
+                        <i class="fa-solid fa-columns"></i>
+                    </button>
+                    <button id="player-font-decrease" class="btn-icon btn-ghost" title="Decrease font (Alt+Down)">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <button id="player-font-increase" class="btn-icon btn-ghost" title="Increase font (Alt+Up)">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+
+                <!-- Help Toggle -->
+                <div class="keyboard-shortcuts-help" id="player-help-toggle" title="Keyboard Shortcuts">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <div class="help-card" id="player-help-card">
+                        <div class="help-card-header">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span>Keyboard Shortcuts</span>
+                            <span class="help-toggle-hint">Press / or ? to toggle help</span>
+                        </div>
+                        <div class="help-card-content">
+                            <div class="help-column">
+                                <div class="help-section">
+                                    <div class="help-section-title">Navigation</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>X</kbd></div>
+                                        <i class="fa-solid fa-folder help-icon"></i>
+                                        <span>Collections</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>S</kbd></div>
+                                        <i class="fa-solid fa-music help-icon"></i>
+                                        <span>Songs</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>B</kbd></div>
+                                        <i class="fa-solid fa-backward help-icon"></i>
+                                        <span>Previous</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>F</kbd></div>
+                                        <i class="fa-solid fa-forward help-icon"></i>
+                                        <span>Next</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>ESC</kbd></div>
+                                        <i class="fa-solid fa-arrow-left help-icon"></i>
+                                        <span>Back</span>
+                                    </div>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title">Playback</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Space</kbd></div>
+                                        <i class="fa-solid fa-play help-icon"></i>
+                                        <span>Play/Pause</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>T</kbd></div>
+                                        <i class="fa-solid fa-rotate-left help-icon"></i>
+                                        <span>Restart</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>M</kbd></div>
+                                        <i class="fa-solid fa-volume-xmark help-icon"></i>
+                                        <span>Mute</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>←</kbd><kbd>→</kbd></div>
+                                        <i class="fa-solid fa-left-right help-icon"></i>
+                                        <span>Skip ±5s</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-column">
+                                <div class="help-section">
+                                    <div class="help-section-title">View</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>C</kbd></div>
+                                        <i class="fa-solid fa-columns help-icon"></i>
+                                        <span>Columns</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Alt</kbd><kbd>↑</kbd><kbd>↓</kbd></div>
+                                        <i class="fa-solid fa-text-height help-icon"></i>
+                                        <span>Font Size</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>I</kbd></div>
+                                        <i class="fa-solid fa-drum help-icon"></i>
+                                        <span>BPM Indicator</span>
+                                    </div>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title">Editing</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>E</kbd></div>
+                                        <i class="fa-solid fa-file-lines help-icon"></i>
+                                        <span>Edit Lyrics</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>N</kbd></div>
+                                        <i class="fa-solid fa-pen-to-square help-icon"></i>
+                                        <span>Edit Notes</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>.</kbd></div>
+                                        <i class="fa-solid fa-hand-pointer help-icon"></i>
+                                        <span>BPM Tap</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back Button -->
+                <button id="player-back-btn" class="btn-icon btn-ghost" title="Back to Songs (ESC)">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+
+            <!-- Player Main Content -->
+            <div class="player-main">
+                <!-- Lyrics Panel (70%) -->
+                <div class="player-lyrics-panel lyrics-columns-2" id="player-lyrics-panel">
+                    <div class="empty-state">
+                        <p>Loading lyrics...</p>
+                    </div>
+                </div>
+
+                <!-- Notes Panel (30%) -->
+                <div class="player-notes-panel" id="player-notes-panel">
+                    <div class="empty-state">
+                        <p>No notes yet. Press N to add notes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Player View -->
+
     </div>
     <!-- End Main App -->
 
@@ -377,6 +566,83 @@
         </div>
     </div>
 
+    <!-- Edit Lyrics Dialog -->
+    <div id="edit-lyrics-dialog" class="dialog-overlay hidden">
+        <div class="dialog dialog-large">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Edit Lyrics</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('edit-lyrics-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <textarea id="lyrics-editor" class="lyrics-textarea" rows="30" placeholder="Enter lyrics here..."></textarea>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('edit-lyrics-dialog')">Cancel</button>
+                <button class="btn btn-primary" onclick="PlayerManager.saveLyrics()">Save Lyrics</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Notes Dialog -->
+    <div id="edit-notes-dialog" class="dialog-overlay hidden">
+        <div class="dialog dialog-large">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Edit Practice Notes</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('edit-notes-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <div class="text-sm text-secondary mb-md">
+                    <strong>Note Format:</strong><br>
+                    <code>5: Your note here</code> (single line)<br>
+                    <code>10-15: Another note</code> (line range)<br>
+                    <code>START: Note for beginning</code><br>
+                    <code>END: Note for ending</code>
+                </div>
+                <textarea id="notes-editor" class="notes-textarea" rows="20" placeholder="Add your practice notes here...
+
+Example:
+START: Start with drum fill
+12: Heavy kick on 1 and 3
+45-48: Double time, watch for break
+END: Final chorus is acapella"></textarea>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('edit-notes-dialog')">Cancel</button>
+                <button class="btn btn-primary" onclick="PlayerManager.saveNotes()">Save Notes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BPM Tap Trainer Dialog -->
+    <div id="bpm-tap-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title"><i class="fa-solid fa-hand-pointer"></i> BPM Tap Trainer</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('bpm-tap-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <p class="text-center mb-md">Tap the <kbd>.</kbd> (period) key to the beat</p>
+                <div id="bpm-detected" class="bpm-display-large">--.-</div>
+                <p class="text-center text-sm text-muted">Tap at least 4 times for accurate detection</p>
+                <div id="bpm-tap-count" class="text-center text-sm text-secondary">Taps: 0</div>
+            </div>
+            <div class="dialog-footer">
+                <button id="bpm-tap-reset-btn" class="btn btn-secondary" onclick="PlayerManager.resetTapTrainer()">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button id="bpm-tap-save-btn" class="btn btn-primary" onclick="PlayerManager.saveBpmFromTap()" disabled>
+                    <i class="fa-solid fa-check"></i> Use This BPM
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -386,6 +652,7 @@
     <!-- Common utilities -->
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/viewManager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
 
     <script>
         // Always use Firebase Auth (both local and production)
