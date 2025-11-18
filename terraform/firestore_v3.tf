@@ -183,23 +183,6 @@ resource "google_firestore_index" "collections_v3_public" {
   }
 }
 
-# Index: Query playlists by Spotify ID
-resource "google_firestore_index" "playlists_v3_by_spotify_id" {
-  project    = var.project_id
-  database   = "(default)"
-  collection = "playlists_v3"
-
-  fields {
-    field_path = "spotify_playlist_id"
-    order      = "ASCENDING"
-  }
-
-  fields {
-    field_path = "imported_at"
-    order      = "DESCENDING"
-  }
-}
-
 # Index: Query playlist memory by user and last accessed (for recent playlists)
 resource "google_firestore_index" "playlist_memory_v3_recent" {
   project    = var.project_id
@@ -291,16 +274,13 @@ service cloud.firestore {
       allow delete: if isAuthenticated();
     }
 
-    // Playlists v3
-    match /playlists_v3/{playlistId} {
-      // Anyone can read playlists
+    // Playlist Memory v3 (user's recent playlists)
+    match /playlist_memory_v3/{playlistId} {
+      // Users can only read their own playlist history
       allow read: if isAuthenticated();
 
-      // Only authenticated users can create playlists
-      allow create: if isAuthenticated();
-
-      // Only importers can update/delete playlists
-      allow update, delete: if isOwner(resource.data.imported_by_uid) || isAdmin();
+      // Only backend can write (via service account)
+      allow create, update, delete: if false;
     }
 
     // Spotify tokens v3
