@@ -13,7 +13,7 @@
 }
 
 /* ============================================================================
-   HEADER - FUCK THE PADDING! ULTRA TIGHT!
+   HEADER - ULTRA TIGHT!
    ============================================================================ */
 .home-header {
   display: flex;
@@ -38,10 +38,10 @@
   gap: 6px;
   margin: 0;
   background: linear-gradient(135deg,
-    #E53935 0%,
-    #FDD835 35%,
-    #43A047 70%,
-    #E53935 100%);
+      #E53935 0%,
+      #FDD835 35%,
+      #43A047 70%,
+      #E53935 100%);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -53,9 +53,11 @@
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -138,7 +140,7 @@
   background: rgba(20, 20, 20, 0.9);
   border-color: rgba(45, 122, 74, 0.8);
   box-shadow: 0 0 25px rgba(45, 122, 74, 0.35),
-              0 0 0 2px rgba(45, 122, 74, 0.5);
+    0 0 0 2px rgba(45, 122, 74, 0.5);
 }
 
 /* Collection Artwork */
@@ -432,14 +434,16 @@
 .recent-playlists-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;  /* Tighter spacing */
+  gap: 6px;
+  /* Tighter spacing */
 }
 
 .recent-playlist-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;  /* Tighter padding */
+  padding: 6px 8px;
+  /* Tighter padding */
   background: rgba(20, 20, 20, 0.4);
   border: 1px solid rgba(51, 51, 51, 0.4);
   border-radius: var(--radius-md);
@@ -458,7 +462,7 @@
   background: rgba(20, 20, 20, 0.9);
   border-color: rgba(45, 122, 74, 0.8);
   box-shadow: 0 0 25px rgba(45, 122, 74, 0.35),
-              0 0 0 2px rgba(45, 122, 74, 0.5);
+    0 0 0 2px rgba(45, 122, 74, 0.5);
 }
 
 /* Playlist Artwork in Dialog */
@@ -500,7 +504,8 @@
 }
 
 .recent-playlist-name {
-  font-size: 13px;  /* Smaller font */
+  font-size: 13px;
+  /* Smaller font */
   font-weight: 500;
   color: var(--text-primary);
   overflow: hidden;
@@ -510,14 +515,16 @@
 }
 
 .recent-playlist-meta {
-  font-size: 11px;  /* Smaller font */
+  font-size: 11px;
+  /* Smaller font */
   margin-top: 1px;
   line-height: 1.2;
 }
 
 .recent-playlist-date {
   flex-shrink: 0;
-  font-size: 11px;  /* Smaller font */
+  font-size: 11px;
+  /* Smaller font */
 }
 
 .recent-playlist-actions {
