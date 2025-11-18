@@ -188,9 +188,9 @@ async function apiCall(endpoint, options = {}) {
  * Show a toast notification
  * @param {string} message - Message to display
  * @param {string} type - Type of toast (success, error, info, warning)
- * @param {number} duration - Duration in milliseconds (default: 3000)
+ * @param {number} duration - Duration in milliseconds (default: 4000)
  */
-function showToast(message, type = 'info', duration = 3000) {
+function showToast(message, type = 'info', duration = 4000) {
   // Create toast element
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
@@ -210,10 +210,11 @@ function showToast(message, type = 'info', duration = 3000) {
   // Animate in
   setTimeout(() => toast.classList.add('toast-show'), 10);
 
-  // Remove after duration
+  // Fade out and remove after duration
   setTimeout(() => {
+    toast.classList.add('toast-hide');
     toast.classList.remove('toast-show');
-    setTimeout(() => toast.remove(), 300);
+    setTimeout(() => toast.remove(), 600); // Match the CSS transition duration
   }, duration);
 }
 
@@ -238,6 +239,12 @@ function showLoading(message = 'Loading...') {
       </div>
     `;
     document.body.appendChild(overlay);
+  } else {
+    // Update the message text if overlay already exists
+    const loadingText = overlay.querySelector('.loading-text');
+    if (loadingText) {
+      loadingText.textContent = message;
+    }
   }
   overlay.classList.remove('hidden');
 }

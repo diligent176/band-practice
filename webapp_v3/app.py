@@ -57,12 +57,6 @@ def index():
     logger.info('Index page accessed')
     return render_template('home.html')
 
-@app.route('/songs')
-def songs():
-    """Songs view - shows all songs in a collection"""
-    logger.info('Songs page accessed')
-    return render_template('songs.html')
-
 # ============================================================================
 # API ROUTES - v3 Endpoints
 # ============================================================================

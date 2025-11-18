@@ -61,35 +61,42 @@ const ViewManager = {
     setupSongsHelpCard() {
         const helpToggle = document.getElementById('songs-help-toggle');
         const helpCard = document.getElementById('songs-help-card');
-        let helpCardVisible = false;
+        this.songsHelpCardVisible = false;
 
         if (!helpToggle || !helpCard) return;
 
+        // Store reference to help card
+        this.songsHelpCard = helpCard;
+
         helpToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            helpCardVisible = !helpCardVisible;
-            if (helpCardVisible) {
-                helpCard.style.opacity = '1';
-                helpCard.style.visibility = 'visible';
-                helpCard.style.transform = 'translateY(0)';
-                helpCard.style.pointerEvents = 'auto';
-            } else {
-                helpCard.style.opacity = '0';
-                helpCard.style.visibility = 'hidden';
-                helpCard.style.transform = 'translateY(-8px)';
-                helpCard.style.pointerEvents = 'none';
-            }
+            this.toggleSongsHelpCard();
         });
 
         document.addEventListener('click', (e) => {
-            if (helpCardVisible && !e.target.closest('#songs-help-toggle')) {
-                helpCardVisible = false;
-                helpCard.style.opacity = '0';
-                helpCard.style.visibility = 'hidden';
-                helpCard.style.transform = 'translateY(-8px)';
-                helpCard.style.pointerEvents = 'none';
+            if (this.songsHelpCardVisible && !e.target.closest('#songs-help-toggle')) {
+                this.toggleSongsHelpCard();
             }
         });
+    },
+
+    toggleSongsHelpCard() {
+        if (!this.songsHelpCard) return;
+
+        this.songsHelpCardVisible = !this.songsHelpCardVisible;
+        const helpCard = this.songsHelpCard;
+
+        if (this.songsHelpCardVisible) {
+            helpCard.style.opacity = '1';
+            helpCard.style.visibility = 'visible';
+            helpCard.style.transform = 'translateY(0)';
+            helpCard.style.pointerEvents = 'auto';
+        } else {
+            helpCard.style.opacity = '0';
+            helpCard.style.visibility = 'hidden';
+            helpCard.style.transform = 'translateY(-8px)';
+            helpCard.style.pointerEvents = 'none';
+        }
     },
 
     /**
@@ -426,8 +433,20 @@ const ViewManager = {
         const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
         const isSearchInput = e.target.id === 'song-search';
 
+        // / or ? - Toggle help card (takes precedence over search)
+        if (e.key === '/' || e.key === '?') {
+            e.preventDefault();
+            this.toggleSongsHelpCard();
+            return;
+        }
+
         // ESC - back to collections (even when typing)
         if (e.key === 'Escape') {
+            // If help card is open, close it first
+            if (this.songsHelpCardVisible) {
+                this.toggleSongsHelpCard();
+                return;
+            }
             // If in search, clear it first
             if (isSearchInput && e.target.value) {
                 e.target.value = '';
