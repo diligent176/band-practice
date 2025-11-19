@@ -337,17 +337,50 @@
 }
 
 /* ============================================================================
-   LYRICS PANEL (70%)
+   LYRICS PANEL (Default 80% with 3 columns, resizable)
    ============================================================================ */
 
 .player-lyrics-panel {
-  flex: 0 0 70%;
+  flex: 0 0 80%;
   overflow-y: auto;
   overflow-x: hidden;
   padding: var(--spacing-2xl) var(--spacing-xl);
   background: var(--bg-primary);
   font-size: 16px;
   line-height: 1.8;
+  position: relative;
+}
+
+/* Resize Handle - Flex item between panels */
+.player-resize-handle {
+  width: 2px;
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-resize-handle::before {
+  content: '';
+  width: 2px;
+  height: 40px;
+  background: var(--border-color);
+  border-radius: 2px;
+  transition: background 0.2s, height 0.2s;
+}
+
+.player-resize-handle:hover::before {
+  background: var(--accent-primary);
+  height: 60px;
+}
+
+.player-resize-handle:active::before {
+  background: var(--accent-primary);
+  height: 100%;
 }
 
 /* Lyrics Columns (1/2/3) */
@@ -431,11 +464,11 @@
 }
 
 /* ============================================================================
-   NOTES PANEL (30%)
+   NOTES PANEL (20% default)
    ============================================================================ */
 
 .player-notes-panel {
-  flex: 0 0 30%;
+  flex: 0 0 20%;
   overflow-y: auto;
   padding: var(--spacing-lg);
   background: var(--bg-secondary);

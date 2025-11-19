@@ -5,11 +5,14 @@
 
 const PlayerManager = {
     currentSong: null,
-    columnMode: parseInt(localStorage.getItem('v3_playerColumnMode')) || 2,
+    columnMode: parseInt(localStorage.getItem('v3_playerColumnMode')) || 3,
     fontSize: parseFloat(localStorage.getItem('v3_playerFontSize')) || 1.0,
     bpmIndicatorEnabled: localStorage.getItem('v3_bpmIndicatorEnabled') !== 'false',
     bpmInterval: null,
     helpCardVisible: false,
+    lyricsWidthPercent: parseFloat(localStorage.getItem('v3_lyricsWidthPercent')) || 80,
+    isResizing: false,
+    isInResizeMode: false,
 
     // BPM Tap Trainer
     tapTimes: [],
@@ -17,6 +20,8 @@ const PlayerManager = {
 
     init() {
         this.setupEventListeners();
+        this.setupResizer();
+        this.applyLyricsWidth();
         console.log('✅ PlayerManager initialized');
     },
 
@@ -279,6 +284,147 @@ const PlayerManager = {
 
         lyricsPanel.classList.remove('lyrics-columns-1', 'lyrics-columns-2', 'lyrics-columns-3');
         lyricsPanel.classList.add(`lyrics-columns-${this.columnMode}`);
+    },
+
+    /**
+     * Setup resizable panel splitter
+     */
+    setupResizer() {
+        const handle = document.getElementById('player-resize-handle');
+        const lyricsPanel = document.getElementById('player-lyrics-panel');
+        const notesPanel = document.getElementById('player-notes-panel');
+        const playerMain = document.querySelector('.player-main');
+        if (!handle || !lyricsPanel || !notesPanel || !playerMain) return;
+
+        // Mouse drag
+        handle.addEventListener('mousedown', (e) => {
+            this.isResizing = true;
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!this.isResizing) return;
+
+            const containerRect = playerMain.getBoundingClientRect();
+            const containerWidth = containerRect.width;
+            const mouseX = e.clientX - containerRect.left;
+
+            // Calculate percentage (10% minimum for notes, 90% maximum for lyrics)
+            let lyricsPercentage = (mouseX / containerWidth) * 100;
+            lyricsPercentage = Math.max(10, Math.min(90, lyricsPercentage));
+
+            const notesPercentage = 100 - lyricsPercentage;
+
+            // Apply flex basis
+            lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
+            notesPanel.style.flex = `0 0 ${notesPercentage}%`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!this.isResizing) return;
+
+            this.isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+
+            // Save the current split to localStorage
+            const lyricsPercentage = (lyricsPanel.getBoundingClientRect().width / playerMain.getBoundingClientRect().width) * 100;
+            localStorage.setItem('v3_lyricsWidthPercent', lyricsPercentage);
+        });
+    },
+
+    /**
+     * Set lyrics panel width percentage
+     */
+    setLyricsWidth(percent) {
+        // Constrain between 10% and 90%
+        this.lyricsWidthPercent = Math.max(10, Math.min(90, percent));
+        this.applyLyricsWidth();
+    },
+
+    /**
+     * Apply current lyrics width
+     */
+    applyLyricsWidth() {
+        const lyricsPanel = document.getElementById('player-lyrics-panel');
+        const notesPanel = document.getElementById('player-notes-panel');
+        if (!lyricsPanel || !notesPanel) return;
+
+        const notesPercentage = 100 - this.lyricsWidthPercent;
+        lyricsPanel.style.flex = `0 0 ${this.lyricsWidthPercent}%`;
+        notesPanel.style.flex = `0 0 ${notesPercentage}%`;
+    },
+
+    /**
+     * Toggle resize mode (R key)
+     */
+    toggleResizer() {
+        const handle = document.getElementById('player-resize-handle');
+        const lyricsPanel = document.getElementById('player-lyrics-panel');
+        const notesPanel = document.getElementById('player-notes-panel');
+        if (!handle || !lyricsPanel || !notesPanel) return;
+
+        this.isInResizeMode = !this.isInResizeMode;
+
+        if (this.isInResizeMode) {
+            // Entering resize mode - highlight handle
+            handle.style.background = 'var(--accent-primary)';
+            handle.style.width = '12px';
+            BPP.showToast('Resize mode: use ← → arrows, ENTER to save', 'info');
+        } else {
+            this.exitResizeMode();
+        }
+    },
+
+    /**
+     * Exit resize mode and save
+     */
+    exitResizeMode() {
+        const handle = document.getElementById('player-resize-handle');
+        if (!handle) return;
+
+        this.isInResizeMode = false;
+
+        // Reset resize handle styling
+        handle.style.background = '';
+        handle.style.width = '';
+
+        // Save the current split
+        const lyricsPanel = document.getElementById('player-lyrics-panel');
+        const playerMain = document.querySelector('.player-main');
+        if (lyricsPanel && playerMain) {
+            const lyricsPercentage = (lyricsPanel.getBoundingClientRect().width / playerMain.getBoundingClientRect().width) * 100;
+            localStorage.setItem('v3_lyricsWidthPercent', lyricsPercentage);
+        }
+    },
+
+    /**
+     * Adjust panel split by percentage delta (keyboard resize mode)
+     */
+    adjustPanelSplit(deltaPercentage) {
+        const lyricsPanel = document.getElementById('player-lyrics-panel');
+        const notesPanel = document.getElementById('player-notes-panel');
+        const playerMain = document.querySelector('.player-main');
+        if (!lyricsPanel || !notesPanel || !playerMain) return;
+
+        // Get current lyrics percentage
+        const currentLyricsWidth = lyricsPanel.getBoundingClientRect().width;
+        const containerWidth = playerMain.getBoundingClientRect().width;
+        let lyricsPercentage = (currentLyricsWidth / containerWidth) * 100;
+
+        // Adjust by delta
+        lyricsPercentage += deltaPercentage;
+
+        // Clamp to limits (10% minimum for notes, 90% maximum for lyrics)
+        lyricsPercentage = Math.max(10, Math.min(90, lyricsPercentage));
+
+        const notesPercentage = 100 - lyricsPercentage;
+
+        // Apply flex basis
+        lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
+        notesPanel.style.flex = `0 0 ${notesPercentage}%`;
     },
 
     /**
@@ -603,11 +749,11 @@ const PlayerManager = {
     },
 
     skipBackward(seconds) {
-        BPP.showToast(`Skip backward ${seconds}s (coming soon)`, 'info');
+        // Coming in Phase 8 - Spotify playback
     },
 
     skipForward(seconds) {
-        BPP.showToast(`Skip forward ${seconds}s (coming soon)`, 'info');
+        // Coming in Phase 8 - Spotify playback
     },
 
     /**
