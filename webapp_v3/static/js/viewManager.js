@@ -18,7 +18,7 @@ const ViewManager = {
         allSongs: [],
         filteredSongs: [],
         selectedSongIndex: -1,
-        sortMode: localStorage.getItem('v3_songsSortMode') || 'title'
+        sortMode: localStorage.getItem('v3_songsSortMode') || 'playlist'
     },
 
     init() {
@@ -144,6 +144,9 @@ const ViewManager = {
 
             // Update header
             document.getElementById('songs-collection-name').textContent = this.state.currentCollection.name;
+
+            // Update sort indicator to match current mode
+            this.updateSortIndicator();
 
             // Filter and render
             this.filterSongs();
