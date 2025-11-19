@@ -169,25 +169,41 @@ const PlayerManager = {
         const lyricsPanel = document.getElementById('player-lyrics-panel');
         if (!lyricsPanel) return;
 
-        const lyrics = this.currentSong.lyrics || '';
+        // Use lyrics_numbered which has proper line numbers from backend
+        const lyrics = this.currentSong.lyrics_numbered || this.currentSong.lyrics || '';
 
         if (!lyrics || lyrics.trim() === '') {
             lyricsPanel.innerHTML = '<div class="empty-state"><p>No lyrics available. Press E to add lyrics.</p></div>';
             return;
         }
 
-        // Split into lines, add line numbers
+        // Split into lines, matching v2 rendering logic exactly
         const lines = lyrics.split('\n');
-        const html = lines.map((line, index) => {
-            const lineNum = index + 1;
-            const isSection = line.trim().match(/^\[.*\]$/);
-            return `<div class="lyric-line ${isSection ? 'section-header' : ''}" data-line="${lineNum}">
-                <span class="line-number">${lineNum}</span>
-                <span class="line-text">${this.escapeHtml(line)}</span>
-            </div>`;
-        }).join('');
+        let html = '';
 
-        lyricsPanel.innerHTML = html;
+        lines.forEach(line => {
+            if (line.match(/^\*\*.*\*\*$/)) {
+                // Section header (matches **text** format produced by backend)
+                const header = line.replace(/\*\*/g, '').trim();
+                html += `<div class="lyric-line section-header">${this.escapeHtml(header)}</div>`;
+            } else if (line.match(/^\s*\d+\s+/)) {
+                // Numbered line
+                const match = line.match(/^(\s*)(\d+)(\s+)(.+)/);
+                if (match) {
+                    const lineNum = match[2].trim();
+                    const text = match[4];
+                    html += `<div class="lyric-line" data-line="${lineNum}">
+                        <span class="line-number">${lineNum}</span>${this.escapeHtml(text)}
+                    </div>`;
+                }
+            } else if (line.trim()) {
+                // Non-empty line without number
+                html += `<div class="lyric-line">${this.escapeHtml(line)}</div>`;
+            }
+            // Skip completely blank lines - don't render them
+        });
+
+        lyricsPanel.innerHTML = html || '<div class="empty-state"><p>No lyrics available</p></div>';
         this.applyColumnMode();
         this.applyFontSize();
     },
@@ -444,7 +460,15 @@ const PlayerManager = {
         const lyricsPanel = document.getElementById('player-lyrics-panel');
         if (!lyricsPanel) return;
 
-        lyricsPanel.style.fontSize = `${this.fontSize}rem`;
+        // Base font size is 13px, scale it by fontSize multiplier
+        const baseFontSize = 13;
+        const scaledFontSize = baseFontSize * this.fontSize;
+
+        // Dynamic line height like v2: calc(1.2 + (fontSize * 0.15))
+        const lineHeight = 1.2 + (this.fontSize * 0.15);
+
+        lyricsPanel.style.fontSize = `${scaledFontSize}px`;
+        lyricsPanel.style.lineHeight = lineHeight;
     },
 
     /**

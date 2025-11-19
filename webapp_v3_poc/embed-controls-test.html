@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Embed - Playback Controls Test</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .control-test {
+            background-color: #1a1a1a;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .status-box {
+            background-color: #0a0a0a;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #1db954;
+        }
+        .warning-box {
+            background-color: #2a1a0a;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #ffa500;
+        }
+        .embed-wrapper {
+            position: relative;
+            margin: 20px 0;
+        }
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .control-item {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+        .control-item.available {
+            border-color: #1db954;
+        }
+        .control-item.not-available {
+            border-color: #ff4444;
+            opacity: 0.6;
+        }
+        .control-item h4 {
+            margin-bottom: 10px;
+            color: #e0e0e0;
+        }
+        .control-item .status {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+        .available .status {
+            color: #1db954;
+        }
+        .not-available .status {
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎸 Spotify Embed Playback Controls</h1>
+            <p class="subtitle">What controls are actually available?</p>
+        </header>
+
+        <div class="poc-section">
+            <h2>🎮 Available Controls with Spotify Embed</h2>
+
+            <div class="status-box">
+                <h3>✅ What You CAN Do (Built into Embed)</h3>
+                <p>The Spotify embed player has these controls built-in:</p>
+            </div>
+
+            <div class="embed-wrapper">
+                <iframe
+                    src="https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp?utm_source=generator&theme=0"
+                    width="100%"
+                    height="352"
+                    frameBorder="0"
+                    allowfullscreen=""
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy">
+                </iframe>
+            </div>
+
+            <div class="control-grid">
+                <div class="control-item available">
+                    <h4>▶️ Play / Pause</h4>
+                    <p class="status">✅ AVAILABLE</p>
+                    <p>Click the play button in the embed</p>
+                </div>
+                <div class="control-item available">
+                    <h4>⏮️ Previous Track</h4>
+                    <p class="status">✅ AVAILABLE</p>
+                    <p>In playlist mode</p>
+                </div>
+                <div class="control-item available">
+                    <h4>⏭️ Next Track</h4>
+                    <p class="status">✅ AVAILABLE</p>
+                    <p>In playlist mode</p>
+                </div>
+                <div class="control-item available">
+                    <h4>🔊 Volume</h4>
+                    <p class="status">✅ AVAILABLE</p>
+                    <p>Hover over speaker icon</p>
+                </div>
+                <div class="control-item available">
+                    <h4>⏱️ Seek / Scrub</h4>
+                    <p class="status">✅ AVAILABLE</p>
+                    <p>Click/drag on progress bar</p>
+                </div>
+                <div class="control-item available">
+                    <h4>🔁 Repeat</h4>
+                    <p class="status">✅ AVAILABLE</p>
+                    <p>Via controls in embed</p>
+                </div>
+                <div class="control-item available">
+                    <h4>🔀 Shuffle</h4>
+                    <p class="status">✅ AVAILABLE</p>
+                    <p>Via controls in embed (playlists)</p>
+                </div>
+                <div class="control-item available">
+                    <h4>📱 Open in Spotify</h4>
+                    <p class="status">✅ AVAILABLE</p>
+                    <p>Three dots menu</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="poc-section">
+            <h2>❌ What You CANNOT Do (Without Web Playback SDK)</h2>
+
+            <div class="warning-box">
+                <h3>⚠️ Limitations of Embed Player</h3>
+                <p>These features require Web Playback SDK (Premium + user auth):</p>
+            </div>
+
+            <div class="control-grid">
+                <div class="control-item not-available">
+                    <h4>⌨️ Keyboard Shortcuts</h4>
+                    <p class="status">❌ NOT AVAILABLE</p>
+                    <p>Can't control via JavaScript/keyboard</p>
+                </div>
+                <div class="control-item not-available">
+                    <h4>🎯 Programmatic Control</h4>
+                    <p class="status">❌ NOT AVAILABLE</p>
+                    <p>Can't trigger play/pause from your code</p>
+                </div>
+                <div class="control-item not-available">
+                    <h4>⏩ Skip Forward 10s</h4>
+                    <p class="status">❌ NOT AVAILABLE</p>
+                    <p>Would need to implement via SDK</p>
+                </div>
+                <div class="control-item not-available">
+                    <h4>⏪ Skip Backward 10s</h4>
+                    <p class="status">❌ NOT AVAILABLE</p>
+                    <p>Would need to implement via SDK</p>
+                </div>
+                <div class="control-item not-available">
+                    <h4>🎵 Current Position</h4>
+                    <p class="status">❌ NOT AVAILABLE</p>
+                    <p>Can't read playback state from JS</p>
+                </div>
+                <div class="control-item not-available">
+                    <h4>🎼 Now Playing Info</h4>
+                    <p class="status">❌ NOT AVAILABLE</p>
+                    <p>Can't get current track metadata via API</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="poc-section">
+            <h2>🔧 Solution: Use Spotify Web Playback SDK</h2>
+
+            <div class="description">
+                <p><strong>Good news:</strong> You CAN get full programmatic control!</p>
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Users must have Spotify Premium</li>
+                    <li>Users authenticate via popup (user-initiated OAuth)</li>
+                    <li>Still avoids the 25-user pre-approval limit!</li>
+                </ul>
+            </div>
+
+            <div class="control-test">
+                <h3>Web Playback SDK - Full Control Available</h3>
+
+                <div class="control-grid">
+                    <div class="control-item available">
+                        <h4>⌨️ Keyboard Control</h4>
+                        <p class="status">✅ AVAILABLE</p>
+                        <p>SPACE = play/pause, etc.</p>
+                    </div>
+                    <div class="control-item available">
+                        <h4>⏩ Skip +10s</h4>
+                        <p class="status">✅ AVAILABLE</p>
+                        <p>player.seek(position + 10000)</p>
+                    </div>
+                    <div class="control-item available">
+                        <h4>⏪ Skip -10s</h4>
+                        <p class="status">✅ AVAILABLE</p>
+                        <p>player.seek(position - 10000)</p>
+                    </div>
+                    <div class="control-item available">
+                        <h4>🔄 Restart</h4>
+                        <p class="status">✅ AVAILABLE</p>
+                        <p>player.seek(0)</p>
+                    </div>
+                    <div class="control-item available">
+                        <h4>🎯 Any Position</h4>
+                        <p class="status">✅ AVAILABLE</p>
+                        <p>player.seek(milliseconds)</p>
+                    </div>
+                    <div class="control-item available">
+                        <h4>📊 Playback State</h4>
+                        <p class="status">✅ AVAILABLE</p>
+                        <p>Get position, duration, track info</p>
+                    </div>
+                </div>
+
+                <pre><code>// Example: Full playback control with SDK
+const player = new Spotify.Player({
+    name: 'Band Practice Pro',
+    getOAuthToken: cb => { cb(token); }
+});
+
+// Play/Pause
+player.togglePlay();
+
+// Skip forward 10 seconds
+player.getCurrentState().then(state => {
+    player.seek(state.position + 10000);
+});
+
+// Skip backward 10 seconds
+player.getCurrentState().then(state => {
+    player.seek(state.position - 10000);
+});
+
+// Restart track
+player.seek(0);
+
+// Keyboard shortcuts (your app code)
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') player.togglePlay();
+    if (e.code === 'ArrowRight') skipForward(10);
+    if (e.code === 'ArrowLeft') skipBackward(10);
+    if (e.code === 'KeyR') player.seek(0); // restart
+});</code></pre>
+            </div>
+        </div>
+
+        <div class="poc-section">
+            <h2>💡 Recommended Hybrid Approach for BPPv3</h2>
+
+            <div class="tech-notes">
+                <h3>Strategy: Progressive Enhancement</h3>
+
+                <p><strong>Level 1: Embed Player (Default - Everyone)</strong></p>
+                <ul>
+                    <li>✅ Works for all users (Free & Premium)</li>
+                    <li>✅ No authentication required</li>
+                    <li>✅ Mouse-based controls (play, pause, seek bar)</li>
+                    <li>⚠️ No keyboard shortcuts or programmatic control</li>
+                </ul>
+
+                <p><strong>Level 2: Web Playback SDK (Optional - Premium Users)</strong></p>
+                <ul>
+                    <li>✅ Full keyboard shortcuts</li>
+                    <li>✅ Skip ±10s programmatically</li>
+                    <li>✅ Better integration with your UI</li>
+                    <li>⚠️ Requires Spotify Premium subscription</li>
+                    <li>⚠️ User must authenticate via popup</li>
+                </ul>
+
+                <h3>User Experience Flow</h3>
+                <pre><code>// User opens song in BPPv3
+1. Song loads with Embed Player (works immediately)
+2. Banner shows: "🎧 Connect Spotify Premium for keyboard controls"
+3. If user clicks "Connect":
+   - Popup: "Login with Spotify"
+   - User authenticates (user-initiated OAuth)
+   - Web Playback SDK activates
+   - Full keyboard shortcuts now work!
+
+// Key benefit: Non-Premium users still get music!
+// Premium users get enhanced experience</code></pre>
+
+                <h3>Implementation Checklist</h3>
+                <ul>
+                    <li>✅ Always show embed player (fallback/default)</li>
+                    <li>✅ Detect if user has Premium (via SDK)</li>
+                    <li>✅ Offer "Connect Premium" upgrade button</li>
+                    <li>✅ Store user preference (use SDK vs embed)</li>
+                    <li>✅ Graceful degradation if SDK fails</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="poc-section">
+            <h2>🎯 Your Specific Needs</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature You Need</th>
+                        <th>Embed Player</th>
+                        <th>Web Playback SDK</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Play/Pause</td>
+                        <td>✅ Mouse click</td>
+                        <td>✅ Keyboard + Code</td>
+                    </tr>
+                    <tr>
+                        <td>Restart song</td>
+                        <td>✅ Click to 0:00</td>
+                        <td>✅ Keyboard + Code</td>
+                    </tr>
+                    <tr>
+                        <td>Skip forward 10s</td>
+                        <td>⚠️ Manual drag only</td>
+                        <td>✅ Keyboard + Code</td>
+                    </tr>
+                    <tr>
+                        <td>Skip backward 10s</td>
+                        <td>⚠️ Manual drag only</td>
+                        <td>✅ Keyboard + Code</td>
+                    </tr>
+                    <tr>
+                        <td>Keyboard shortcuts</td>
+                        <td>❌ Not available</td>
+                        <td>✅ Full control</td>
+                    </tr>
+                    <tr>
+                        <td>Works for all users</td>
+                        <td>✅ Yes</td>
+                        <td>⚠️ Premium only</td>
+                    </tr>
+                    <tr>
+                        <td>25-user limit</td>
+                        <td>✅ No limit</td>
+                        <td>✅ No limit*</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="note">*Web Playback SDK uses user-initiated OAuth, different from your app's user quota</p>
+        </div>
+
+        <div class="poc-section">
+            <h2>🤔 Decision Time</h2>
+
+            <div class="description">
+                <h3>Question: How many of your band members have Spotify Premium?</h3>
+
+                <p><strong>If most/all have Premium:</strong></p>
+                <ul>
+                    <li>→ Build with Web Playback SDK as primary</li>
+                    <li>→ Full keyboard control from day one</li>
+                    <li>→ Embed player as fallback for guests</li>
+                </ul>
+
+                <p><strong>If mixed Premium/Free users:</strong></p>
+                <ul>
+                    <li>→ Use Hybrid approach (recommended)</li>
+                    <li>→ Embed by default, SDK as optional upgrade</li>
+                    <li>→ Everyone can use the app, Premium users get better UX</li>
+                </ul>
+
+                <p><strong>If mostly Free users:</strong></p>
+                <ul>
+                    <li>→ Stick with Embed player only</li>
+                    <li>→ Users can still drag the seek bar for precision</li>
+                    <li>→ Consider adding keyboard shortcuts to change songs (not playback)</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>🎸 Band Practice Pro v3 - Playback Controls Analysis</p>
+        </footer>
+    </div>
+</body>
+</html>

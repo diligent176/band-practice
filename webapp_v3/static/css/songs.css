@@ -26,6 +26,7 @@
   background: var(--bg-secondary);
   gap: 16px;
   height: 42px;
+  z-index: 100;
 }
 
 .songs-header-left {

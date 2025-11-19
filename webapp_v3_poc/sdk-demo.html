@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Web Playback SDK - Full Demo</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .sdk-player {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+        .player-ui {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .track-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .album-art-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+        }
+        .track-details h2 {
+            margin-bottom: 5px;
+        }
+        .playback-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px 0;
+        }
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #1db954;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .control-btn:hover {
+            background-color: #1ed760;
+            transform: scale(1.1);
+        }
+        .control-btn.secondary {
+            background-color: #2a2a2a;
+        }
+        .control-btn.secondary:hover {
+            background-color: #3a3a3a;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #1db954;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            margin-top: 5px;
+        }
+        .keyboard-shortcuts {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+        }
+        .key {
+            background-color: #0a0a0a;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-family: monospace;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎸 Web Playback SDK - Full Control Demo</h1>
+            <p class="subtitle">This is what you get with Premium authentication</p>
+        </header>
+
+        <div class="poc-section">
+            <h2>⚡ Live SDK Player (Mockup)</h2>
+
+            <div class="description">
+                <p><strong>This demonstrates the full control you'd have with Web Playback SDK</strong></p>
+                <p>Note: This is a mockup. Real implementation requires your Spotify Client ID.</p>
+            </div>
+
+            <div class="sdk-player">
+                <div class="player-ui">
+                    <div class="track-info">
+                        <div class="album-art-large" id="album-art">
+                            <img src="https://i.scdn.co/image/ab67616d00001e02ccdddd46119a4ff53eaf1f5d"
+                                 alt="Album" style="width: 100%; border-radius: 8px;">
+                        </div>
+                        <div class="track-details">
+                            <h2 id="track-name">Mr. Brightside</h2>
+                            <p style="color: #a0a0a0;" id="artist-name">The Killers</p>
+                            <p style="color: #707070; font-size: 0.9rem;" id="album-name">Hot Fuss</p>
+                        </div>
+                    </div>
+
+                    <div class="playback-controls">
+                        <button class="control-btn secondary" onclick="skipBackward(10)" title="Skip back 10s">
+                            ⏪
+                        </button>
+                        <button class="control-btn secondary" onclick="previousTrack()" title="Previous track">
+                            ⏮️
+                        </button>
+                        <button class="control-btn" id="play-pause-btn" onclick="togglePlay()" title="Play/Pause">
+                            ▶️
+                        </button>
+                        <button class="control-btn secondary" onclick="nextTrack()" title="Next track">
+                            ⏭️
+                        </button>
+                        <button class="control-btn secondary" onclick="skipForward(10)" title="Skip forward 10s">
+                            ⏩
+                        </button>
+                        <button class="control-btn secondary" onclick="restart()" title="Restart">
+                            🔄
+                        </button>
+                    </div>
+
+                    <div>
+                        <div class="progress-bar" onclick="seekTo(event)">
+                            <div class="progress-fill" id="progress"></div>
+                        </div>
+                        <div class="time-display">
+                            <span id="current-time">0:00</span>
+                            <span id="duration">3:42</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="keyboard-shortcuts">
+                    <h3>⌨️ Keyboard Shortcuts (All Available!)</h3>
+                    <div class="shortcut-grid">
+                        <div class="shortcut-item">
+                            <span>Play/Pause</span>
+                            <span class="key">SPACE</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Skip +10s</span>
+                            <span class="key">→</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Skip -10s</span>
+                            <span class="key">←</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Restart</span>
+                            <span class="key">R</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Next Track</span>
+                            <span class="key">N</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Previous Track</span>
+                            <span class="key">P</span>
+                        </div>
+                    </div>
+                    <p class="note" style="margin-top: 15px;">
+                        Try pressing these keys! (This mockup demonstrates the concept)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="poc-section">
+            <h2>💻 Implementation Code</h2>
+
+            <div class="tech-notes">
+                <h3>1. Initialize Web Playback SDK</h3>
+                <pre><code>// Load Spotify SDK
+&lt;script src="https://sdk.scdn.co/spotify-player.js"&gt;&lt;/script&gt;
+
+window.onSpotifyWebPlaybackSDKReady = () => {
+    const token = getUserSpotifyToken(); // From OAuth popup
+
+    const player = new Spotify.Player({
+        name: 'Band Practice Pro',
+        getOAuthToken: cb => { cb(token); },
+        volume: 0.5
+    });
+
+    // Error handling
+    player.addListener('initialization_error', ({ message }) => {
+        console.error('Failed to initialize', message);
+    });
+
+    player.addListener('authentication_error', ({ message }) => {
+        console.error('Failed to authenticate', message);
+    });
+
+    player.addListener('account_error', ({ message }) => {
+        console.error('Failed to validate account', message);
+        alert('Spotify Premium required!');
+    });
+
+    player.addListener('playback_error', ({ message }) => {
+        console.error('Failed to perform playback', message);
+    });
+
+    // Ready
+    player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+
+        // Start playback
+        playTrack(device_id, 'spotify:track:3n3Ppam7vgaVa1iaRUc9Lp');
+    });
+
+    // Connect to the player!
+    player.connect();
+};</code></pre>
+
+                <h3>2. Playback Control Functions</h3>
+                <pre><code>let player; // Your Spotify.Player instance
+
+// Play/Pause
+function togglePlay() {
+    player.togglePlay().then(() => {
+        console.log('Toggled playback');
+    });
+}
+
+// Skip forward 10 seconds
+function skipForward(seconds) {
+    player.getCurrentState().then(state => {
+        if (!state) return;
+
+        const newPosition = state.position + (seconds * 1000);
+        player.seek(newPosition).then(() => {
+            console.log(`Skipped forward ${seconds}s`);
+        });
+    });
+}
+
+// Skip backward 10 seconds
+function skipBackward(seconds) {
+    player.getCurrentState().then(state => {
+        if (!state) return;
+
+        const newPosition = Math.max(0, state.position - (seconds * 1000));
+        player.seek(newPosition).then(() => {
+            console.log(`Skipped backward ${seconds}s`);
+        });
+    });
+}
+
+// Restart track
+function restart() {
+    player.seek(0).then(() => {
+        console.log('Track restarted');
+    });
+}
+
+// Next/Previous track
+function nextTrack() {
+    player.nextTrack().then(() => {
+        console.log('Next track');
+    });
+}
+
+function previousTrack() {
+    player.previousTrack().then(() => {
+        console.log('Previous track');
+    });
+}</code></pre>
+
+                <h3>3. Keyboard Shortcuts Integration</h3>
+                <pre><code>// BPPv3 keyboard shortcuts (same as v2 concept!)
+document.addEventListener('keydown', (e) => {
+    // Don't trigger if user is typing
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    switch(e.code) {
+        case 'Space':
+            e.preventDefault();
+            togglePlay();
+            break;
+
+        case 'ArrowRight':
+            e.preventDefault();
+            skipForward(10);
+            break;
+
+        case 'ArrowLeft':
+            e.preventDefault();
+            skipBackward(10);
+            break;
+
+        case 'KeyR':
+            restart();
+            break;
+
+        case 'KeyN':
+            nextTrack();
+            break;
+
+        case 'KeyP':
+            previousTrack();
+            break;
+    }
+});</code></pre>
+
+                <h3>4. User Authentication Flow</h3>
+                <pre><code>// When user clicks "Connect Spotify Premium"
+async function connectSpotifyPremium() {
+    const clientId = 'YOUR_SPOTIFY_CLIENT_ID';
+    const redirectUri = 'https://bandpractice.pro/callback';
+    const scopes = [
+        'streaming',
+        'user-read-email',
+        'user-read-private',
+        'user-read-playback-state',
+        'user-modify-playback-state'
+    ];
+
+    // Open popup for user to authenticate
+    const authUrl = `https://accounts.spotify.com/authorize?` +
+        `client_id=${clientId}&` +
+        `response_type=token&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `scope=${encodeURIComponent(scopes.join(' '))}`;
+
+    // Open in popup (better UX than redirect)
+    const popup = window.open(
+        authUrl,
+        'Spotify Login',
+        'width=500,height=700'
+    );
+
+    // Wait for callback
+    window.spotifyCallback = (token) => {
+        // Store token
+        localStorage.setItem('spotify_token', token);
+
+        // Initialize SDK
+        initializeSpotifyPlayer(token);
+
+        popup.close();
+    };
+}</code></pre>
+
+                <h3>5. Track Playback State</h3>
+                <pre><code>// Monitor playback position for UI updates
+player.addListener('player_state_changed', state => {
+    if (!state) return;
+
+    // Update UI
+    updateTrackInfo(state.track_window.current_track);
+    updateProgress(state.position, state.duration);
+    updatePlayPauseButton(state.paused);
+});
+
+function updateTrackInfo(track) {
+    document.getElementById('track-name').textContent = track.name;
+    document.getElementById('artist-name').textContent =
+        track.artists.map(a => a.name).join(', ');
+    document.getElementById('album-name').textContent = track.album.name;
+    document.getElementById('album-art').src = track.album.images[0].url;
+}
+
+function updateProgress(position, duration) {
+    const percent = (position / duration) * 100;
+    document.getElementById('progress').style.width = `${percent}%`;
+    document.getElementById('current-time').textContent =
+        formatTime(position);
+    document.getElementById('duration').textContent =
+        formatTime(duration);
+}
+
+function formatTime(ms) {
+    const seconds = Math.floor(ms / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="poc-section">
+            <h2>🎯 Bottom Line for BPPv3</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Your Requirement</th>
+                        <th>Solution</th>
+                        <th>Available?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Play/Pause</td>
+                        <td>player.togglePlay()</td>
+                        <td>✅ YES</td>
+                    </tr>
+                    <tr>
+                        <td>Restart song</td>
+                        <td>player.seek(0)</td>
+                        <td>✅ YES</td>
+                    </tr>
+                    <tr>
+                        <td>Skip forward 10s</td>
+                        <td>player.seek(position + 10000)</td>
+                        <td>✅ YES</td>
+                    </tr>
+                    <tr>
+                        <td>Skip backward 10s</td>
+                        <td>player.seek(position - 10000)</td>
+                        <td>✅ YES</td>
+                    </tr>
+                    <tr>
+                        <td>Keyboard shortcuts</td>
+                        <td>document.addEventListener('keydown')</td>
+                        <td>✅ YES</td>
+                    </tr>
+                    <tr>
+                        <td>No 25-user limit</td>
+                        <td>User-initiated OAuth (popup)</td>
+                        <td>✅ YES</td>
+                    </tr>
+                    <tr>
+                        <td>Works without auth</td>
+                        <td>Fallback to embed player</td>
+                        <td>✅ YES</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="description" style="margin-top: 20px;">
+                <h3>✅ Verdict: ALL your playback requirements can be met!</h3>
+                <p><strong>Recommended approach:</strong></p>
+                <ol>
+                    <li>Build with Web Playback SDK as primary (full keyboard control)</li>
+                    <li>User authenticates via popup on first use (not pre-approved)</li>
+                    <li>Embed player as fallback if SDK fails or user doesn't have Premium</li>
+                    <li>Store user preference in Firestore</li>
+                </ol>
+                <p>
+                    <strong>This gives you EVERYTHING from v2 plus removes the 25-user limit!</strong>
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <p>🎸 Band Practice Pro v3 - Full Playback Control Analysis</p>
+        </footer>
+    </div>
+
+    <script>
+        // Mockup functionality for demo
+        let isPlaying = false;
+        let currentPosition = 0;
+        let duration = 222000; // 3:42 in ms
+        let progressInterval;
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById('play-pause-btn');
+            btn.textContent = isPlaying ? '⏸️' : '▶️';
+
+            if (isPlaying) {
+                startProgress();
+            } else {
+                stopProgress();
+            }
+
+            console.log(isPlaying ? 'Playing' : 'Paused');
+        }
+
+        function startProgress() {
+            progressInterval = setInterval(() => {
+                currentPosition += 100;
+                if (currentPosition >= duration) {
+                    currentPosition = 0;
+                    isPlaying = false;
+                    document.getElementById('play-pause-btn').textContent = '▶️';
+                    stopProgress();
+                }
+                updateProgressUI();
+            }, 100);
+        }
+
+        function stopProgress() {
+            clearInterval(progressInterval);
+        }
+
+        function updateProgressUI() {
+            const percent = (currentPosition / duration) * 100;
+            document.getElementById('progress').style.width = `${percent}%`;
+            document.getElementById('current-time').textContent = formatTime(currentPosition);
+        }
+
+        function formatTime(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function skipForward(seconds) {
+            currentPosition = Math.min(duration, currentPosition + (seconds * 1000));
+            updateProgressUI();
+            console.log(`Skipped forward ${seconds}s`);
+        }
+
+        function skipBackward(seconds) {
+            currentPosition = Math.max(0, currentPosition - (seconds * 1000));
+            updateProgressUI();
+            console.log(`Skipped backward ${seconds}s`);
+        }
+
+        function restart() {
+            currentPosition = 0;
+            updateProgressUI();
+            console.log('Restarted');
+        }
+
+        function nextTrack() {
+            console.log('Next track (would load next song from collection)');
+        }
+
+        function previousTrack() {
+            console.log('Previous track (would load previous song from collection)');
+        }
+
+        function seekTo(event) {
+            const bar = event.currentTarget;
+            const rect = bar.getBoundingClientRect();
+            const percent = (event.clientX - rect.left) / rect.width;
+            currentPosition = percent * duration;
+            updateProgressUI();
+            console.log('Seeked to', formatTime(currentPosition));
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    togglePlay();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    skipForward(10);
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    skipBackward(10);
+                    break;
+                case 'KeyR':
+                    restart();
+                    break;
+                case 'KeyN':
+                    nextTrack();
+                    break;
+                case 'KeyP':
+                    previousTrack();
+                    break;
+            }
+        });
+
+        console.log('🎸 SDK Demo loaded!');
+        console.log('Try keyboard shortcuts:');
+        console.log('  SPACE = Play/Pause');
+        console.log('  → = Skip forward 10s');
+        console.log('  ← = Skip backward 10s');
+        console.log('  R = Restart');
+        console.log('  N = Next track');
+        console.log('  P = Previous track');
+    </script>
+</body>
+</html>

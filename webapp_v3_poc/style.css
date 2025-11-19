@@ -1,0 +1,361 @@
+/* Band Practice Pro v3 POC - Dark, Classy Theme */
+
+:root {
+    /* Dark, classy color palette */
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2a2a2a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --text-muted: #707070;
+    --accent-primary: #1db954; /* Spotify green */
+    --accent-secondary: #1ed760;
+    --border-color: #333333;
+    --success: #1db954;
+    --warning: #ffa500;
+    --error: #ff4444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header */
+header {
+    text-align: center;
+    padding: 40px 0;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 40px;
+}
+
+header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+
+/* POC Sections */
+.poc-section {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.poc-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: var(--accent-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.poc-section h3 {
+    font-size: 1.3rem;
+    margin: 20px 0 15px 0;
+    color: var(--text-primary);
+}
+
+.description {
+    background-color: var(--bg-tertiary);
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 25px;
+    border-left: 4px solid var(--accent-primary);
+}
+
+.description p {
+    margin-bottom: 8px;
+}
+
+.description ul {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.description ul li {
+    margin-bottom: 5px;
+}
+
+/* Player Demos */
+.player-demo {
+    background-color: var(--bg-tertiary);
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.note {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    font-style: italic;
+}
+
+/* Input Group */
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 12px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.input-group button,
+button {
+    padding: 12px 24px;
+    background-color: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.input-group button:hover,
+button:hover:not(:disabled) {
+    background-color: var(--accent-secondary);
+}
+
+button:disabled {
+    background-color: var(--bg-tertiary);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--accent-primary);
+}
+
+/* SDK Controls */
+.sdk-status {
+    background-color: var(--bg-primary);
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--warning);
+}
+
+.sdk-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#sdk-now-playing {
+    min-height: 60px;
+    background-color: var(--bg-primary);
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 15px;
+}
+
+/* Hybrid Player */
+.hybrid-player {
+    background-color: var(--bg-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.song-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.album-art {
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+}
+
+.song-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.song-artist {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.player-options {
+    display: flex;
+    gap: 10px;
+}
+
+/* Technical Notes */
+.tech-notes {
+    background-color: var(--bg-tertiary);
+    padding: 20px;
+    border-radius: 6px;
+}
+
+.tech-notes h3 {
+    color: var(--accent-secondary);
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
+.tech-notes h3:first-child {
+    margin-top: 0;
+}
+
+pre {
+    background-color: var(--bg-primary);
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+    border-left: 4px solid var(--accent-primary);
+}
+
+code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+/* Comparison Table */
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comparison-table th {
+    background-color: var(--bg-tertiary);
+    color: var(--accent-secondary);
+    font-weight: 600;
+}
+
+.comparison-table tr:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.comparison-table td:first-child {
+    font-weight: 600;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 40px 0 20px 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: 40px;
+    color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .player-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .player-options {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .sdk-controls {
+        flex-direction: column;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .comparison-table {
+        font-size: 0.8rem;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+        padding: 8px 4px;
+    }
+}
+
+/* Dynamic player container */
+#dynamic-player {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+#dynamic-player iframe {
+    width: 100%;
+}

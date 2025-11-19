@@ -344,10 +344,10 @@
   flex: 0 0 80%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--spacing-2xl) var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-md);
   background: var(--bg-primary);
-  font-size: 16px;
-  line-height: 1.8;
+  font-size: 13px;
+  line-height: 1.2;
   position: relative;
 }
 
@@ -399,40 +399,39 @@
   column-gap: var(--spacing-lg);
 }
 
-/* Lyric Lines */
+/* Lyric Lines - Tight spacing like v2 */
 .lyric-line {
-  display: flex;
-  align-items: baseline;
-  gap: var(--spacing-sm);
-  padding: 2px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+  padding: 1px 4px;
+  border-radius: 2px;
+  transition: all 0.2s;
   break-inside: avoid;
-  page-break-inside: avoid;
+  letter-spacing: -0.01em;
 }
 
 .line-number {
-  flex-shrink: 0;
-  width: 32px;
-  text-align: right;
-  font-size: 12px;
   color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  user-select: none;
+  margin-right: 12px;
+  display: inline-block;
+  min-width: 20px;
+  text-align: right;
+  font-size: 11px;
 }
 
-.line-text {
-  flex-grow: 1;
-  color: var(--text-primary);
-}
-
-/* Section Headers */
-.lyric-line.section-header .line-text {
-  font-weight: 700;
-  color: var(--accent-primary);
+/* Section Headers - Subtle orange like v2 */
+.lyric-line.section-header {
+  font-weight: 600;
+  color: rgba(255, 152, 0, 0.5);
   text-transform: uppercase;
-  font-size: 14px;
   letter-spacing: 0.5px;
-  margin-top: var(--spacing-md);
-  margin-bottom: var(--spacing-xs);
+  font-size: 9px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  padding: 2px 6px 4px 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px 3px 0 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Highlighted Lines (when note is selected) */
