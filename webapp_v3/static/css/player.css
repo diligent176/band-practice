@@ -63,7 +63,8 @@
 .player-album-art-container {
   flex-shrink: 0;
   height: 42px;
-  margin-left: 48px; /* Space for back button */
+  margin-left: 48px;
+  /* Space for back button */
 }
 
 .player-album-art {
@@ -120,7 +121,8 @@
 /* Central Player Controls Container - Fixed position from right */
 .player-center-controls {
   position: absolute;
-  right: 90px; /* Space for help+logout (80px) + padding */
+  right: 90px;
+  /* Space for help+logout (80px) + padding */
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -166,10 +168,13 @@
 
 /* BPM Pulse Animation */
 @keyframes bpm-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.3;
     transform: scale(0.8);
@@ -330,7 +335,8 @@
    ============================================================================ */
 
 .player-main {
-  margin-top: 42px; /* Height of top nav */
+  margin-top: 42px;
+  /* Height of top nav */
   display: flex;
   height: calc(100vh - 42px);
   overflow: hidden;
@@ -387,16 +393,19 @@
 .lyrics-columns-1 {
   column-count: 1;
   column-gap: 0;
+  column-rule: none;
 }
 
 .lyrics-columns-2 {
   column-count: 2;
   column-gap: var(--spacing-2xl);
+  column-rule: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .lyrics-columns-3 {
   column-count: 3;
   column-gap: var(--spacing-lg);
+  column-rule: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Lyric Lines - Tight spacing like v2 */
@@ -416,22 +425,25 @@
   display: inline-block;
   min-width: 20px;
   text-align: right;
-  font-size: 11px;
+  font-size: 0.85em;
+  /* Scale with parent font size */
+  opacity: 0.6;
 }
 
-/* Section Headers - Subtle orange like v2 */
+/* Section Headers - Styled like v2 */
 .lyric-line.section-header {
   font-weight: 600;
-  color: rgba(255, 152, 0, 0.5);
+  color: rgba(255, 152, 0, 0.8);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 9px;
-  margin-top: 8px;
-  margin-bottom: 4px;
-  padding: 2px 6px 4px 6px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 3px 3px 0 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.8px;
+  font-size: 0.75em;
+  /* Scale with parent font */
+  margin-top: 12px;
+  margin-bottom: 6px;
+  padding: 3px 8px;
+  background: rgba(255, 152, 0, 0.08);
+  border-radius: 3px;
+  border-left: 3px solid rgba(255, 152, 0, 0.4);
 }
 
 /* Highlighted Lines (when note is selected) */
@@ -658,6 +670,7 @@
    ============================================================================ */
 
 @media print {
+
   .player-top-nav,
   .player-notes-panel {
     display: none !important;

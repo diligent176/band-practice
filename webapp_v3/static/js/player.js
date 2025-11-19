@@ -182,10 +182,9 @@ const PlayerManager = {
         let html = '';
 
         lines.forEach(line => {
-            if (line.match(/^\*\*.*\*\*$/)) {
-                // Section header (matches **text** format produced by backend)
-                const header = line.replace(/\*\*/g, '').trim();
-                html += `<div class="lyric-line section-header">${this.escapeHtml(header)}</div>`;
+            if (line.match(/^\[.*\]$/)) {
+                // Section header - lines that start and end with square brackets like [Verse 1], [Chorus], etc.
+                html += `<div class="lyric-line section-header">${this.escapeHtml(line)}</div>`;
             } else if (line.match(/^\s*\d+\s+/)) {
                 // Numbered line
                 const match = line.match(/^(\s*)(\d+)(\s+)(.+)/);
