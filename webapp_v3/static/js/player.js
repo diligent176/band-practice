@@ -267,7 +267,6 @@ const PlayerManager = {
         }
 
         this.applyColumnMode();
-        BPP.showToast(`${this.columnMode} ${this.columnMode === 1 ? 'column' : 'columns'}`, 'info');
         localStorage.setItem('v3_playerColumnMode', this.columnMode);
     },
 
@@ -289,7 +288,6 @@ const PlayerManager = {
     adjustFontSize(delta) {
         this.fontSize = Math.max(0.5, Math.min(2.5, this.fontSize + delta));
         this.applyFontSize();
-        BPP.showToast(`Font: ${Math.round(this.fontSize * 100)}%`, 'info');
         localStorage.setItem('v3_playerFontSize', this.fontSize);
     },
 
@@ -425,10 +423,8 @@ const PlayerManager = {
 
         if (this.bpmIndicatorEnabled) {
             this.startBpmFlasher();
-            BPP.showToast('BPM indicator ON', 'info');
         } else {
             this.stopBpmFlasher();
-            BPP.showToast('BPM indicator OFF', 'info');
         }
 
         localStorage.setItem('v3_bpmIndicatorEnabled', this.bpmIndicatorEnabled);
@@ -573,9 +569,6 @@ const PlayerManager = {
             const prevSong = allSongs[currentIndex - 1];
             this.loadSong(prevSong);
             ViewManager.state.currentSong = prevSong;
-            BPP.showToast(`◀ ${prevSong.title}`, 'info');
-        } else {
-            BPP.showToast('Already at first song', 'info');
         }
     },
 
@@ -591,9 +584,6 @@ const PlayerManager = {
             const nextSong = allSongs[currentIndex + 1];
             this.loadSong(nextSong);
             ViewManager.state.currentSong = nextSong;
-            BPP.showToast(`${nextSong.title} ▶`, 'info');
-        } else {
-            BPP.showToast('Already at last song', 'info');
         }
     },
 
