@@ -16,6 +16,7 @@
    HEADER - ULTRA TIGHT!
    ============================================================================ */
 .home-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -70,11 +71,13 @@
 }
 
 .home-header-right {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
-  min-width: 60px;
 }
 
 /* ============================================================================

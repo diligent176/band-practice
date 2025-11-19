@@ -246,6 +246,11 @@
         <div id="player-view" class="view">
             <!-- Player Top Nav (Fixed) -->
             <div class="player-top-nav">
+                <!-- Back Button (Fixed Left) -->
+                <button id="player-back-btn" class="btn-icon btn-ghost player-back-btn" title="Back to Songs (ESC)">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+
                 <!-- Album Art -->
                 <div class="player-album-art-container">
                     <img id="player-album-art" src="/static/favicon.svg" alt="Album Art" class="player-album-art">
@@ -257,51 +262,56 @@
                     <div id="player-artist" class="player-artist">Artist</div>
                 </div>
 
-                <!-- BPM Display & Flasher -->
-                <div class="player-bpm-container">
-                    <span id="player-bpm" class="player-bpm-text">BPM: --</span>
-                    <button id="bpm-flasher" class="bpm-flasher" title="Toggle BPM indicator (I)">
-                        <i class="fa-solid fa-circle"></i>
-                    </button>
-                </div>
-
-                <!-- Playback Controls -->
-                <div class="player-controls">
-                    <button id="player-prev-btn" class="btn-icon btn-player" title="Previous song (B)">
-                        <i class="fa-solid fa-backward"></i>
-                    </button>
-                    <button id="player-play-btn" class="btn-icon btn-player btn-play-large" title="Play/Pause (Space)">
-                        <i class="fa-solid fa-play"></i>
-                    </button>
-                    <button id="player-next-btn" class="btn-icon btn-player" title="Next song (F)">
-                        <i class="fa-solid fa-forward"></i>
-                    </button>
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="player-progress-container">
-                    <span id="player-current-time" class="player-time">0:00</span>
-                    <div class="player-progress-bar">
-                        <div id="player-progress-fill" class="player-progress-fill"></div>
+                <!-- Central Player Controls Container -->
+                <div class="player-center-controls">
+                    <!-- BPM Display & Flasher -->
+                    <div class="player-bpm-container">
+                        <span id="player-bpm" class="player-bpm-text">--</span>
+                        <button id="bpm-flasher" class="bpm-flasher" title="Toggle BPM indicator (I)">
+                            <i class="fa-solid fa-circle"></i>
+                        </button>
                     </div>
-                    <span id="player-duration" class="player-time">0:00</span>
+
+                    <!-- Playback Controls -->
+                    <div class="player-controls">
+                        <button id="player-prev-btn" class="btn-icon btn-player" title="Previous song (B)">
+                            <i class="fa-solid fa-backward"></i>
+                        </button>
+                        <button id="player-play-btn" class="btn-icon btn-player btn-play-large" title="Play/Pause (Space)">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button id="player-next-btn" class="btn-icon btn-player" title="Next song (F)">
+                            <i class="fa-solid fa-forward"></i>
+                        </button>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="player-progress-container">
+                        <span id="player-current-time" class="player-time">0:00</span>
+                        <div class="player-progress-bar">
+                            <div id="player-progress-fill" class="player-progress-fill"></div>
+                        </div>
+                        <span id="player-duration" class="player-time">0:00</span>
+                    </div>
+
+                    <!-- View Controls (Columns & Font) -->
+                    <div class="player-view-options">
+                        <button id="player-toggle-columns" class="btn-icon btn-ghost" title="Toggle columns (C)">
+                            <i class="fa-solid fa-columns"></i>
+                        </button>
+                        <button id="player-font-decrease" class="btn-icon btn-ghost" title="Decrease font (Alt+Down)">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <button id="player-font-increase" class="btn-icon btn-ghost" title="Increase font (Alt+Up)">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- View Controls -->
-                <div class="player-view-controls">
-                    <button id="player-toggle-columns" class="btn-icon btn-ghost" title="Toggle columns (C)">
-                        <i class="fa-solid fa-columns"></i>
-                    </button>
-                    <button id="player-font-decrease" class="btn-icon btn-ghost" title="Decrease font (Alt+Down)">
-                        <i class="fa-solid fa-minus"></i>
-                    </button>
-                    <button id="player-font-increase" class="btn-icon btn-ghost" title="Increase font (Alt+Up)">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                </div>
-
-                <!-- Help Toggle -->
-                <div class="keyboard-shortcuts-help" id="player-help-toggle" title="Keyboard Shortcuts">
+                <!-- Help + Logout (Fixed Right) -->
+                <div class="player-top-nav-right">
+                    <!-- Help Toggle -->
+                    <div class="keyboard-shortcuts-help" id="player-help-toggle" title="Keyboard Shortcuts">
                     <i class="fa-solid fa-circle-question"></i>
                     <div class="help-card" id="player-help-card">
                         <div class="help-card-header">
@@ -403,12 +413,13 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    </div>
 
-                <!-- Logout -->
-                <button id="player-logout-btn" class="btn-icon btn-ghost" title="Logout" onclick="firebase.auth().signOut()">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
+                    <!-- Logout -->
+                    <button id="player-logout-btn" class="btn-icon btn-ghost" title="Logout" onclick="firebase.auth().signOut()">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Player Main Content -->

@@ -17,10 +17,11 @@
    HEADER - ULTRA TIGHT!
    ============================================================================ */
 .songs-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
+  padding: 6px 48px 6px 48px; /* Leave space for back button on left, help+logout on right */
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
   gap: 16px;
@@ -35,11 +36,22 @@
   min-width: 0;
 }
 
+/* Back Button (Fixed Left) */
+#songs-back-btn {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
 .collection-info {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: baseline;
+  gap: 8px;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .collection-name {
@@ -53,14 +65,26 @@
 }
 
 .song-count {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Single line display: Collection Name (song count) */
+.collection-name::after {
+  content: ' ';
+  color: var(--text-muted);
 }
 
 .songs-header-right {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* Sort Indicator */
