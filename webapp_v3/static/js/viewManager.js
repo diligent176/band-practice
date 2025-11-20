@@ -544,11 +544,19 @@ const ViewManager = {
             return;
         }
 
-        // / or ? - Toggle help card (even when typing)
+        // / or ? - Toggle help card (but not when editing notes/lyrics)
         if (e.key === '/' || e.key === '?') {
-            e.preventDefault();
-            PlayerManager.togglePlayerHelpCard();
-            return;
+            // Don't intercept if editing notes or lyrics
+            const notesDialog = document.getElementById('edit-notes-dialog');
+            const lyricsDialog = document.getElementById('edit-lyrics-dialog');
+            const editingNotes = notesDialog && !notesDialog.classList.contains('hidden');
+            const editingLyrics = lyricsDialog && !lyricsDialog.classList.contains('hidden');
+
+            if (!editingNotes && !editingLyrics) {
+                e.preventDefault();
+                PlayerManager.togglePlayerHelpCard();
+                return;
+            }
         }
 
         // . (period) - BPM tap (even in tap dialog)
@@ -582,6 +590,20 @@ const ViewManager = {
             return;
         }
 
+        // ESC - Close help card first, then go back to songs view
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            // Check if help card is visible using PlayerManager's state variable
+            if (PlayerManager.helpCardVisible) {
+                // Help card is open - close it
+                PlayerManager.togglePlayerHelpCard();
+            } else {
+                // Help card is closed - go back to songs view
+                this.showView('songs');
+            }
+            return;
+        }
+
         // Handle all other shortcuts
         const handlers = {
             'x': () => this.showView('collections'),
@@ -596,8 +618,7 @@ const ViewManager = {
             'c': () => PlayerManager.toggleColumns(),
             'e': () => PlayerManager.editLyrics(),
             'n': () => PlayerManager.editNotes(),
-            'i': () => PlayerManager.toggleBpmIndicator(),
-            'escape': () => this.showView('songs')
+            'i': () => PlayerManager.toggleBpmIndicator()
         };
 
         BPP.handleKeyboard(e, handlers);
