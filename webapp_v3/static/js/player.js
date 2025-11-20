@@ -280,10 +280,8 @@ const PlayerManager = {
         const calloutContent = document.getElementById('note-callout-content');
         if (!callout || !calloutContent) return;
 
-        // Handle free-form notes (no line reference)
+        // Handle free-form notes (no line reference) - silently skip
         if (note.line_start === null || note.line_start === undefined) {
-            // Show toast instead of callout for free-form notes
-            BPP.showToast(note.content, 'info');
             return;
         }
 
@@ -293,15 +291,21 @@ const PlayerManager = {
         // Get the first highlighted line to position callout
         const firstLine = document.querySelector(`.lyric-line[data-line="${note.line_start}"]`);
         if (!firstLine) {
-            // Line not found - show toast instead
-            BPP.showToast(`Line ${note.line_start} not found: ${note.content}`, 'info');
+            // Line not found - silently skip
             return;
         }
 
-        // Format note content
-        const lineRange = note.line_end && note.line_end !== note.line_start
-            ? `Lines ${note.line_start}-${note.line_end}`
-            : `Line ${note.line_start}`;
+        // Format note content - show START/END tag if present
+        let lineRange;
+        if (note.tag === 'START') {
+            lineRange = 'START';
+        } else if (note.tag === 'END') {
+            lineRange = 'END';
+        } else if (note.line_end && note.line_end !== note.line_start) {
+            lineRange = `Lines ${note.line_start}-${note.line_end}`;
+        } else {
+            lineRange = `Line ${note.line_start}`;
+        }
 
         calloutContent.innerHTML = `
             <div style="font-weight: 600; color: var(--accent-primary); margin-bottom: 8px;">
@@ -523,6 +527,13 @@ const PlayerManager = {
                 return n.content;
             }
 
+            // Check if this is a START/END tag (stored as special marker)
+            if (n.tag === 'START') {
+                return `START: ${n.content}`;
+            } else if (n.tag === 'END') {
+                return `END: ${n.content}`;
+            }
+
             // Line-based notes - format with line number(s)
             const range = n.line_end && n.line_end !== n.line_start
                 ? `${n.line_start}-${n.line_end}`
@@ -666,8 +677,8 @@ const PlayerManager = {
      * @returns {Array} - Array of note objects
      *
      * Accepts formats:
-     * - START: note text
-     * - END: note text
+     * - START: note text (tag preserved, points to first line)
+     * - END: note text (tag preserved, points to last line)
      * - 13: note text
      * - 13-16: note text
      * - 13 - 19: note text (with spaces)
@@ -709,14 +720,16 @@ const PlayerManager = {
             if (match) {
                 // Matched a line-based note
                 const [_, range, content] = match;
-                let line_start, line_end;
+                let line_start, line_end, tag;
 
                 if (range.toUpperCase() === 'START') {
                     line_start = firstLineNum;
                     line_end = firstLineNum;
+                    tag = 'START'; // Keep tag for round-trip conversion
                 } else if (range.toUpperCase() === 'END') {
                     line_start = lastLineNum;
                     line_end = lastLineNum;
+                    tag = 'END'; // Keep tag for round-trip conversion
                 } else if (range.includes('-')) {
                     // Handle "13-16" or "13 - 16" (with or without spaces)
                     const parts = range.split('-').map(s => s.trim()).map(Number);
@@ -727,7 +740,7 @@ const PlayerManager = {
                     line_start = line_end = Number(range);
                 }
 
-                return { line_start, line_end, content };
+                return tag ? { line_start, line_end, content, tag } : { line_start, line_end, content };
             } else {
                 // Free-form note (no line reference) - preserve as-is
                 // Store with null line numbers so it won't be highlighted, but will be saved
