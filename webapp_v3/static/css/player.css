@@ -707,15 +707,18 @@
 .notes-editor-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 2px 8px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   height: 42px;
   flex-shrink: 0;
+  position: relative;
 }
 
 .notes-editor-title {
+  position: absolute;
+  left: 8px;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -728,15 +731,29 @@
   color: var(--accent-primary);
 }
 
-.notes-editor-shortcuts {
+.notes-editor-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: 12px;
+}
+
+.notes-editor-actions .btn i {
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+.notes-editor-hints {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .shortcut-hint {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.7;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -746,8 +763,9 @@
   background: var(--bg-tertiary);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
-  font-size: 11px;
+  font-size: 10px;
   border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
 }
 
 /* Split View Content */

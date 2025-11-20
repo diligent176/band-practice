@@ -586,15 +586,17 @@
                     <i class="fa-solid fa-music"></i>
                     <span>Edit Lyrics</span>
                 </div>
-                <div class="notes-editor-shortcuts">
-                    <button class="btn btn-secondary btn-sm" onclick="BPP.hideDialog('edit-lyrics-dialog')" style="margin-right: 8px;">
+                <div class="notes-editor-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="PlayerManager.cancelLyricsEdit()">
                         <i class="fa-solid fa-times"></i> Cancel
                     </button>
-                    <button class="btn btn-primary btn-sm" onclick="PlayerManager.saveLyrics()" style="margin-right: 16px;">
+                    <button class="btn btn-primary btn-sm" onclick="PlayerManager.saveLyrics()">
                         <i class="fa-solid fa-save"></i> Save
                     </button>
-                    <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
+                </div>
+                <div class="notes-editor-hints">
                     <span class="shortcut-hint"><kbd>ESC</kbd> Cancel</span>
+                    <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
                 </div>
             </div>
 
@@ -642,15 +644,17 @@ Some people call me Maurice
                     <i class="fa-solid fa-note-sticky"></i>
                     <span>Edit Practice Notes</span>
                 </div>
-                <div class="notes-editor-shortcuts">
-                    <button class="btn btn-secondary btn-sm" onclick="BPP.hideDialog('edit-notes-dialog')" style="margin-right: 8px;">
+                <div class="notes-editor-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="PlayerManager.cancelNotesEdit()">
                         <i class="fa-solid fa-times"></i> Cancel
                     </button>
-                    <button class="btn btn-primary btn-sm" onclick="PlayerManager.saveNotes()" style="margin-right: 16px;">
+                    <button class="btn btn-primary btn-sm" onclick="PlayerManager.saveNotes()">
                         <i class="fa-solid fa-save"></i> Save
                     </button>
-                    <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
+                </div>
+                <div class="notes-editor-hints">
                     <span class="shortcut-hint"><kbd>ESC</kbd> Cancel</span>
+                    <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
                 </div>
             </div>
 
