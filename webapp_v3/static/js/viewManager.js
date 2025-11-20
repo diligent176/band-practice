@@ -570,28 +570,16 @@ const ViewManager = {
         // Don't handle other keys if typing
         if (isTyping) return;
 
-        // Arrow keys in resize mode - adjust panel split
-        if (PlayerManager.isInResizeMode) {
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                PlayerManager.adjustPanelSplit(-2); // Decrease lyrics width by 2%
-                return;
-            }
-            if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                PlayerManager.adjustPanelSplit(2); // Increase lyrics width by 2%
-                return;
-            }
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                PlayerManager.exitResizeMode();
-                return;
-            }
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                PlayerManager.exitResizeMode();
-                return;
-            }
+        // Arrow keys for note navigation
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            PlayerManager.navigateToNote(-1); // Previous note
+            return;
+        }
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            PlayerManager.navigateToNote(1); // Next note
+            return;
         }
 
         // Handle all other shortcuts
@@ -606,7 +594,6 @@ const ViewManager = {
             'arrowleft': () => PlayerManager.skipBackward(5),
             'arrowright': () => PlayerManager.skipForward(5),
             'c': () => PlayerManager.toggleColumns(),
-            'r': () => PlayerManager.toggleResizer(),
             'e': () => PlayerManager.editLyrics(),
             'n': () => PlayerManager.editNotes(),
             'i': () => PlayerManager.toggleBpmIndicator(),

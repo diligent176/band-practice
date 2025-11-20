@@ -424,21 +424,16 @@
 
             <!-- Player Main Content -->
             <div class="player-main">
-                <!-- Lyrics Panel (80% default) -->
+                <!-- Lyrics Panel (100% width - notes shown as callouts) -->
                 <div class="player-lyrics-panel lyrics-columns-3" id="player-lyrics-panel">
                     <div class="empty-state">
                         <p>Loading lyrics...</p>
                     </div>
                 </div>
 
-                <!-- Resize Handle -->
-                <div class="player-resize-handle" id="player-resize-handle"></div>
-
-                <!-- Notes Panel (20% default) -->
-                <div class="player-notes-panel" id="player-notes-panel">
-                    <div class="empty-state">
-                        <p>No notes yet. Press N to add notes.</p>
-                    </div>
+                <!-- Note Callout (positioned absolutely, shown when navigating notes) -->
+                <div class="note-callout hidden" id="note-callout">
+                    <div class="note-callout-content" id="note-callout-content"></div>
                 </div>
             </div>
         </div>
@@ -601,34 +596,59 @@
         </div>
     </div>
 
-    <!-- Edit Notes Dialog -->
+    <!-- Edit Notes Dialog - Full Screen Split View -->
     <div id="edit-notes-dialog" class="dialog-overlay hidden">
-        <div class="dialog dialog-large">
-            <div class="dialog-header">
-                <h3 class="dialog-title">Edit Practice Notes</h3>
-                <button class="dialog-close" onclick="BPP.hideDialog('edit-notes-dialog')">
-                    <i class="fa-solid fa-times"></i>
-                </button>
-            </div>
-            <div class="dialog-body">
-                <div class="text-sm text-secondary mb-md">
-                    <strong>Note Format:</strong><br>
-                    <code>5: Your note here</code> (single line)<br>
-                    <code>10-15: Another note</code> (line range)<br>
-                    <code>START: Note for beginning</code><br>
-                    <code>END: Note for ending</code>
+        <div class="notes-editor-fullscreen">
+            <!-- Header -->
+            <div class="notes-editor-header">
+                <div class="notes-editor-title">
+                    <i class="fa-solid fa-note-sticky"></i>
+                    <span>Edit Practice Notes</span>
                 </div>
-                <textarea id="notes-editor" class="notes-textarea" rows="20" placeholder="Add your practice notes here...
+                <div class="notes-editor-shortcuts">
+                    <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
+                    <span class="shortcut-hint"><kbd>ESC</kbd> Cancel</span>
+                </div>
+            </div>
+
+            <!-- Split View Content -->
+            <div class="notes-editor-content">
+                <!-- Left Panel: Numbered Lyrics -->
+                <div class="notes-editor-lyrics">
+                    <div class="notes-editor-panel-header">
+                        <i class="fa-solid fa-music"></i> Numbered Lyrics
+                    </div>
+                    <div class="notes-editor-lyrics-content" id="notes-editor-lyrics-display">
+                        <!-- Lyrics will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Right Panel: Notes Editor -->
+                <div class="notes-editor-panel">
+                    <div class="notes-editor-panel-header">
+                        <i class="fa-solid fa-edit"></i> Practice Notes
+                    </div>
+                    <div class="notes-editor-instructions">
+                        <div class="notes-editor-instructions-title">Note Format:</div>
+                        <div class="notes-editor-format-examples">
+                            <code>5: Your note</code>
+                            <span class="format-desc">Single line</span>
+                            <code>10-15: Your note</code>
+                            <span class="format-desc">Line range</span>
+                            <code>START: Your note</code>
+                            <span class="format-desc">Song beginning</span>
+                            <code>END: Your note</code>
+                            <span class="format-desc">Song ending</span>
+                        </div>
+                    </div>
+                    <textarea id="notes-editor" class="notes-textarea" placeholder="Add your practice notes here...
 
 Example:
 START: Start with drum fill
 12: Heavy kick on 1 and 3
 45-48: Double time, watch for break
 END: Final chorus is acapella"></textarea>
-            </div>
-            <div class="dialog-footer">
-                <button class="btn btn-secondary" onclick="BPP.hideDialog('edit-notes-dialog')">Cancel</button>
-                <button class="btn btn-primary" onclick="PlayerManager.saveNotes()">Save Notes</button>
+                </div>
             </div>
         </div>
     </div>

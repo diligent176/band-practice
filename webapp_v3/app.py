@@ -513,12 +513,78 @@ def unlink_playlist(collection_id):
         logger.error(f"Error unlinking playlist: {e}")
         return jsonify({'error': str(e)}), 500
 
-# Songs endpoints (to be implemented in Phase 4+)
+# Songs endpoints
 @app.route('/api/v3/songs/<song_id>', methods=['GET', 'PUT'])
+@require_auth
 def song(song_id):
     """Get or update a song"""
-    # TODO: Implement in Phase 5+
-    return jsonify({'error': 'Not implemented yet'}), 501
+    try:
+        user_id = request.user_id
+        from firebase_admin import firestore
+        from services.collections_service_v3 import CollectionsService
+
+        db = firestore.client()
+        song_ref = db.collection('songs_v3').document(song_id)
+        song_doc = song_ref.get()
+
+        if not song_doc.exists:
+            return jsonify({'error': 'Song not found'}), 404
+
+        song_data = song_doc.to_dict()
+        collection_id = song_data.get('collection_id')
+
+        # Verify user has access to the collection
+        collections_service = CollectionsService()
+        collection = collections_service.get_collection(collection_id, user_id)
+
+        if not collection:
+            return jsonify({'error': 'Collection not found or access denied'}), 403
+
+        if request.method == 'GET':
+            # Return song data
+            song_data['id'] = song_id
+            return jsonify(song_data)
+
+        elif request.method == 'PUT':
+            # Update song
+            data = request.get_json()
+
+            # Build update dict with allowed fields
+            update_data = {}
+            allowed_fields = ['lyrics', 'custom_lyrics', 'notes', 'bpm']
+
+            for field in allowed_fields:
+                if field in data:
+                    update_data[field] = data[field]
+
+            # Special handling for lyrics - renumber if updated
+            if 'lyrics' in update_data:
+                from services.lyrics_service_v3 import LyricsServiceV3
+                lyrics_service = LyricsServiceV3()
+
+                # Renumber lyrics
+                numbered_lyrics = lyrics_service.renumber_lyrics(update_data['lyrics'])
+                update_data['lyrics_numbered'] = numbered_lyrics
+
+                # Mark as custom if explicitly set
+                if data.get('custom_lyrics'):
+                    update_data['custom_lyrics'] = True
+
+            if update_data:
+                song_ref.update(update_data)
+
+                app.logger.info(f"Updated song {song_id} by user {user_id}: {list(update_data.keys())}")
+
+                # Return updated song
+                updated_song = song_ref.get().to_dict()
+                updated_song['id'] = song_id
+                return jsonify(updated_song)
+            else:
+                return jsonify({'error': 'No valid fields to update'}), 400
+
+    except Exception as e:
+        app.logger.error(f"Error in song endpoint: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/v3/songs/<song_id>/fetch-lyrics', methods=['POST'])
 @require_auth

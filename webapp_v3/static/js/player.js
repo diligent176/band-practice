@@ -10,9 +10,11 @@ const PlayerManager = {
     bpmIndicatorEnabled: localStorage.getItem('v3_bpmIndicatorEnabled') !== 'false',
     bpmInterval: null,
     helpCardVisible: false,
-    lyricsWidthPercent: parseFloat(localStorage.getItem('v3_lyricsWidthPercent')) || 80,
-    isResizing: false,
-    isInResizeMode: false,
+
+    // Note navigation (callout-based system)
+    notes: [],
+    currentNoteIndex: -1,
+    noteCalloutTimeout: null,
 
     // BPM Tap Trainer
     tapTimes: [],
@@ -20,8 +22,6 @@ const PlayerManager = {
 
     init() {
         this.setupEventListeners();
-        this.setupResizer();
-        this.applyLyricsWidth();
         console.log('✅ PlayerManager initialized');
     },
 
@@ -208,45 +208,15 @@ const PlayerManager = {
     },
 
     /**
-     * Render notes in notes panel
+     * Load notes for navigation (notes shown as callouts only)
      */
     renderNotes() {
-        const notesPanel = document.getElementById('player-notes-panel');
-        if (!notesPanel) return;
+        // Store notes in state for navigation
+        this.notes = this.currentSong.notes || [];
+        this.currentNoteIndex = -1;
 
-        const notes = this.currentSong.notes || [];
-
-        if (notes.length === 0) {
-            notesPanel.innerHTML = '<div class="empty-state"><p>No notes yet.<br>Press <kbd>N</kbd> to add notes.</p></div>';
-            return;
-        }
-
-        const html = notes.map((note, index) => {
-            const colorClass = `note-card-${(index % 5) + 1}`;
-            const lineRange = note.line_end && note.line_end !== note.line_start
-                ? `Lines ${note.line_start}-${note.line_end}`
-                : `Line ${note.line_start}`;
-
-            return `<div class="note-card ${colorClass}" data-note-index="${index}" data-line-start="${note.line_start}" data-line-end="${note.line_end || note.line_start}">
-                <div class="note-header">
-                    <span class="note-line-range">${lineRange}</span>
-                </div>
-                <div class="note-content">${this.escapeHtml(note.content)}</div>
-            </div>`;
-        }).join('');
-
-        notesPanel.innerHTML = html + `<button class="btn btn-ghost" onclick="PlayerManager.editNotes()">
-            <i class="fa-solid fa-plus"></i> Add Note
-        </button>`;
-
-        // Add click handlers to notes
-        notesPanel.querySelectorAll('.note-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const lineStart = parseInt(card.dataset.lineStart);
-                const lineEnd = parseInt(card.dataset.lineEnd);
-                this.highlightLyricLines(lineStart, lineEnd);
-            });
-        });
+        // Hide any visible callout from previous song
+        this.hideNoteCallout();
     },
 
     /**
@@ -271,6 +241,126 @@ const PlayerManager = {
                 }
             }
         }
+    },
+
+    /**
+     * Navigate to note by direction (arrow key navigation)
+     * @param {number} direction - 1 for next, -1 for previous
+     */
+    navigateToNote(direction) {
+        if (this.notes.length === 0) {
+            BPP.showToast('No notes for this song', 'info');
+            return;
+        }
+
+        // Update index (wrap around)
+        this.currentNoteIndex += direction;
+
+        if (this.currentNoteIndex >= this.notes.length) {
+            this.currentNoteIndex = 0; // Wrap to start
+        } else if (this.currentNoteIndex < 0) {
+            this.currentNoteIndex = this.notes.length - 1; // Wrap to end
+        }
+
+        // Show the note callout
+        this.showNoteCallout();
+
+        // Reset fade timer
+        this.resetNoteCalloutTimer();
+    },
+
+    /**
+     * Show note callout for current note
+     */
+    showNoteCallout() {
+        const note = this.notes[this.currentNoteIndex];
+        if (!note) return;
+
+        const callout = document.getElementById('note-callout');
+        const calloutContent = document.getElementById('note-callout-content');
+        if (!callout || !calloutContent) return;
+
+        // Highlight the lyric lines
+        this.highlightLyricLines(note.line_start, note.line_end || note.line_start);
+
+        // Get the first highlighted line to position callout
+        const firstLine = document.querySelector(`.lyric-line[data-line="${note.line_start}"]`);
+        if (!firstLine) return;
+
+        // Format note content
+        const lineRange = note.line_end && note.line_end !== note.line_start
+            ? `Lines ${note.line_start}-${note.line_end}`
+            : `Line ${note.line_start}`;
+
+        calloutContent.innerHTML = `
+            <div style="font-weight: 600; color: var(--accent-primary); margin-bottom: 8px;">
+                ${this.escapeHtml(lineRange)} (${this.currentNoteIndex + 1}/${this.notes.length})
+            </div>
+            <div>${this.escapeHtml(note.content)}</div>
+        `;
+
+        // Position callout ABOVE the first highlighted line to avoid covering it
+        const lineRect = firstLine.getBoundingClientRect();
+        const lyricsPanel = document.getElementById('player-lyrics-panel');
+        const panelRect = lyricsPanel.getBoundingClientRect();
+
+        // Position relative to lyrics panel - ABOVE the line with some spacing
+        callout.style.left = `${lineRect.left - panelRect.left}px`;
+
+        // Calculate position above the line
+        // We need to measure callout height first, so show it briefly to get dimensions
+        callout.style.visibility = 'hidden';
+        callout.classList.remove('hidden');
+        const calloutHeight = callout.offsetHeight;
+        callout.classList.add('hidden');
+        callout.style.visibility = '';
+
+        // Position above the line with 10px gap
+        callout.style.top = `${lineRect.top - panelRect.top - calloutHeight - 10}px`;
+
+        // Show callout with fade-in animation
+        callout.classList.remove('hidden');
+        setTimeout(() => callout.classList.add('visible'), 10);
+    },
+
+    /**
+     * Hide note callout
+     */
+    hideNoteCallout() {
+        const callout = document.getElementById('note-callout');
+        if (!callout) return;
+
+        // Fade out
+        callout.classList.remove('visible');
+        setTimeout(() => {
+            callout.classList.add('hidden');
+        }, 300); // Match CSS transition duration
+
+        // Remove lyric highlights
+        document.querySelectorAll('.lyric-line.highlighted').forEach(el => {
+            el.classList.remove('highlighted');
+        });
+
+        // Clear timer
+        if (this.noteCalloutTimeout) {
+            clearTimeout(this.noteCalloutTimeout);
+            this.noteCalloutTimeout = null;
+        }
+    },
+
+    /**
+     * Reset auto-fade timer (5 seconds)
+     */
+    resetNoteCalloutTimer() {
+        // Clear existing timer
+        if (this.noteCalloutTimeout) {
+            clearTimeout(this.noteCalloutTimeout);
+        }
+
+        // Set new 5-second timer
+        this.noteCalloutTimeout = setTimeout(() => {
+            this.hideNoteCallout();
+        }, 5000);
     },
 
     /**
@@ -299,147 +389,6 @@ const PlayerManager = {
 
         lyricsPanel.classList.remove('lyrics-columns-1', 'lyrics-columns-2', 'lyrics-columns-3');
         lyricsPanel.classList.add(`lyrics-columns-${this.columnMode}`);
-    },
-
-    /**
-     * Setup resizable panel splitter
-     */
-    setupResizer() {
-        const handle = document.getElementById('player-resize-handle');
-        const lyricsPanel = document.getElementById('player-lyrics-panel');
-        const notesPanel = document.getElementById('player-notes-panel');
-        const playerMain = document.querySelector('.player-main');
-        if (!handle || !lyricsPanel || !notesPanel || !playerMain) return;
-
-        // Mouse drag
-        handle.addEventListener('mousedown', (e) => {
-            this.isResizing = true;
-            document.body.style.cursor = 'col-resize';
-            document.body.style.userSelect = 'none';
-            e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!this.isResizing) return;
-
-            const containerRect = playerMain.getBoundingClientRect();
-            const containerWidth = containerRect.width;
-            const mouseX = e.clientX - containerRect.left;
-
-            // Calculate percentage (10% minimum for notes, 90% maximum for lyrics)
-            let lyricsPercentage = (mouseX / containerWidth) * 100;
-            lyricsPercentage = Math.max(10, Math.min(90, lyricsPercentage));
-
-            const notesPercentage = 100 - lyricsPercentage;
-
-            // Apply flex basis
-            lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
-            notesPanel.style.flex = `0 0 ${notesPercentage}%`;
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (!this.isResizing) return;
-
-            this.isResizing = false;
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
-
-            // Save the current split to localStorage
-            const lyricsPercentage = (lyricsPanel.getBoundingClientRect().width / playerMain.getBoundingClientRect().width) * 100;
-            localStorage.setItem('v3_lyricsWidthPercent', lyricsPercentage);
-        });
-    },
-
-    /**
-     * Set lyrics panel width percentage
-     */
-    setLyricsWidth(percent) {
-        // Constrain between 10% and 90%
-        this.lyricsWidthPercent = Math.max(10, Math.min(90, percent));
-        this.applyLyricsWidth();
-    },
-
-    /**
-     * Apply current lyrics width
-     */
-    applyLyricsWidth() {
-        const lyricsPanel = document.getElementById('player-lyrics-panel');
-        const notesPanel = document.getElementById('player-notes-panel');
-        if (!lyricsPanel || !notesPanel) return;
-
-        const notesPercentage = 100 - this.lyricsWidthPercent;
-        lyricsPanel.style.flex = `0 0 ${this.lyricsWidthPercent}%`;
-        notesPanel.style.flex = `0 0 ${notesPercentage}%`;
-    },
-
-    /**
-     * Toggle resize mode (R key)
-     */
-    toggleResizer() {
-        const handle = document.getElementById('player-resize-handle');
-        const lyricsPanel = document.getElementById('player-lyrics-panel');
-        const notesPanel = document.getElementById('player-notes-panel');
-        if (!handle || !lyricsPanel || !notesPanel) return;
-
-        this.isInResizeMode = !this.isInResizeMode;
-
-        if (this.isInResizeMode) {
-            // Entering resize mode - highlight handle
-            handle.style.background = 'var(--accent-primary)';
-            handle.style.width = '12px';
-            BPP.showToast('Resize mode: use ← → arrows, ENTER to save', 'info');
-        } else {
-            this.exitResizeMode();
-        }
-    },
-
-    /**
-     * Exit resize mode and save
-     */
-    exitResizeMode() {
-        const handle = document.getElementById('player-resize-handle');
-        if (!handle) return;
-
-        this.isInResizeMode = false;
-
-        // Reset resize handle styling
-        handle.style.background = '';
-        handle.style.width = '';
-
-        // Save the current split
-        const lyricsPanel = document.getElementById('player-lyrics-panel');
-        const playerMain = document.querySelector('.player-main');
-        if (lyricsPanel && playerMain) {
-            const lyricsPercentage = (lyricsPanel.getBoundingClientRect().width / playerMain.getBoundingClientRect().width) * 100;
-            localStorage.setItem('v3_lyricsWidthPercent', lyricsPercentage);
-        }
-    },
-
-    /**
-     * Adjust panel split by percentage delta (keyboard resize mode)
-     */
-    adjustPanelSplit(deltaPercentage) {
-        const lyricsPanel = document.getElementById('player-lyrics-panel');
-        const notesPanel = document.getElementById('player-notes-panel');
-        const playerMain = document.querySelector('.player-main');
-        if (!lyricsPanel || !notesPanel || !playerMain) return;
-
-        // Get current lyrics percentage
-        const currentLyricsWidth = lyricsPanel.getBoundingClientRect().width;
-        const containerWidth = playerMain.getBoundingClientRect().width;
-        let lyricsPercentage = (currentLyricsWidth / containerWidth) * 100;
-
-        // Adjust by delta
-        lyricsPercentage += deltaPercentage;
-
-        // Clamp to limits (10% minimum for notes, 90% maximum for lyrics)
-        lyricsPercentage = Math.max(10, Math.min(90, lyricsPercentage));
-
-        const notesPercentage = 100 - lyricsPercentage;
-
-        // Apply flex basis
-        lyricsPanel.style.flex = `0 0 ${lyricsPercentage}%`;
-        notesPanel.style.flex = `0 0 ${notesPercentage}%`;
     },
 
     /**
@@ -513,8 +462,10 @@ const PlayerManager = {
      */
     editNotes() {
         const editor = document.getElementById('notes-editor');
-        if (!editor) return;
+        const lyricsDisplay = document.getElementById('notes-editor-lyrics-display');
+        if (!editor || !lyricsDisplay) return;
 
+        // Populate notes editor with existing notes
         const notes = this.currentSong.notes || [];
         const text = notes.map(n => {
             const range = n.line_end && n.line_end !== n.line_start
@@ -524,8 +475,95 @@ const PlayerManager = {
         }).join('\n');
 
         editor.value = text;
+
+        // Render numbered lyrics in left panel (reuse rendering logic)
+        const lyrics = this.currentSong.lyrics_numbered || this.currentSong.lyrics || '';
+
+        if (!lyrics || lyrics.trim() === '') {
+            lyricsDisplay.innerHTML = '<div class="empty-state"><p>No lyrics available</p></div>';
+        } else {
+            const lines = lyrics.split('\n');
+            let html = '';
+
+            lines.forEach(line => {
+                if (line.match(/^\[.*\]$/)) {
+                    // Section header
+                    html += `<div class="lyric-line section-header">${this.escapeHtml(line)}</div>`;
+                } else if (line.match(/^\s*\d+\s+/)) {
+                    // Numbered line
+                    const match = line.match(/^(\s*)(\d+)(\s+)(.+)/);
+                    if (match) {
+                        const lineNum = match[2].trim();
+                        const text = match[4];
+                        html += `<div class="lyric-line">
+                            <span class="line-number">${lineNum}</span>${this.escapeHtml(text)}
+                        </div>`;
+                    }
+                } else if (line.trim()) {
+                    // Non-empty line without number
+                    html += `<div class="lyric-line">${this.escapeHtml(line)}</div>`;
+                }
+            });
+
+            lyricsDisplay.innerHTML = html || '<div class="empty-state"><p>No lyrics available</p></div>';
+        }
+
+        // Show dialog and focus editor
         BPP.showDialog('edit-notes-dialog');
-        editor.focus();
+
+        // Setup keyboard shortcuts for this dialog
+        this.setupNotesEditorKeyboard();
+
+        // Focus the textarea
+        setTimeout(() => editor.focus(), 100);
+    },
+
+    /**
+     * Setup keyboard shortcuts for notes editor
+     */
+    setupNotesEditorKeyboard() {
+        const editor = document.getElementById('notes-editor');
+        if (!editor) return;
+
+        // Remove existing listener if any
+        if (this.notesEditorKeyboardHandler) {
+            editor.removeEventListener('keydown', this.notesEditorKeyboardHandler);
+        }
+
+        // Create new handler
+        this.notesEditorKeyboardHandler = (e) => {
+            // Ctrl+Enter or Cmd+Enter = Save
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                this.saveNotes();
+                return;
+            }
+
+            // ESC = Cancel
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.cancelNotesEdit();
+                return;
+            }
+        };
+
+        // Attach listener
+        editor.addEventListener('keydown', this.notesEditorKeyboardHandler);
+    },
+
+    /**
+     * Cancel notes editing
+     */
+    cancelNotesEdit() {
+        const editor = document.getElementById('notes-editor');
+
+        // Clean up keyboard listener
+        if (this.notesEditorKeyboardHandler && editor) {
+            editor.removeEventListener('keydown', this.notesEditorKeyboardHandler);
+            this.notesEditorKeyboardHandler = null;
+        }
+
+        BPP.hideDialog('edit-notes-dialog');
     },
 
     /**
@@ -546,6 +584,13 @@ const PlayerManager = {
 
             this.currentSong.notes = notes;
             this.renderNotes();
+
+            // Clean up keyboard listener
+            if (this.notesEditorKeyboardHandler) {
+                editor.removeEventListener('keydown', this.notesEditorKeyboardHandler);
+                this.notesEditorKeyboardHandler = null;
+            }
+
             BPP.hideDialog('edit-notes-dialog');
             BPP.showToast('Notes updated!', 'success');
         } catch (error) {
