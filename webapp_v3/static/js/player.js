@@ -184,7 +184,9 @@ const PlayerManager = {
         lines.forEach(line => {
             if (line.match(/^\[.*\]$/)) {
                 // Section header - lines that start and end with square brackets like [Verse 1], [Chorus], etc.
-                html += `<div class="lyric-line section-header">${this.escapeHtml(line)}</div>`;
+                // Strip the brackets for display
+                const headerText = line.slice(1, -1); // Remove first and last character
+                html += `<div class="lyric-line section-header">${this.escapeHtml(headerText)}</div>`;
             } else if (line.match(/^\s*\d+\s+/)) {
                 // Numbered line
                 const match = line.match(/^(\s*)(\d+)(\s+)(.+)/);
@@ -253,14 +255,36 @@ const PlayerManager = {
             return;
         }
 
-        // Update index (wrap around)
-        this.currentNoteIndex += direction;
+        // Filter to only numbered notes (skip free-form notes)
+        const numberedNotes = this.notes
+            .map((note, idx) => ({ note, idx }))
+            .filter(({ note }) => note.line_start !== null && note.line_start !== undefined);
 
-        if (this.currentNoteIndex >= this.notes.length) {
-            this.currentNoteIndex = 0; // Wrap to start
-        } else if (this.currentNoteIndex < 0) {
-            this.currentNoteIndex = this.notes.length - 1; // Wrap to end
+        if (numberedNotes.length === 0) {
+            BPP.showToast('No line-based notes for this song', 'info');
+            return;
         }
+
+        // Find current position in numbered notes array
+        let currentPos = numberedNotes.findIndex(({ idx }) => idx === this.currentNoteIndex);
+
+        // If not found (first navigation or on free-form note), start from beginning or end
+        if (currentPos === -1) {
+            currentPos = direction > 0 ? -1 : numberedNotes.length;
+        }
+
+        // Move to next/previous numbered note
+        currentPos += direction;
+
+        // Wrap around
+        if (currentPos >= numberedNotes.length) {
+            currentPos = 0;
+        } else if (currentPos < 0) {
+            currentPos = numberedNotes.length - 1;
+        }
+
+        // Set the actual note index
+        this.currentNoteIndex = numberedNotes[currentPos].idx;
 
         // Show the note callout
         this.showNoteCallout();
@@ -279,11 +303,23 @@ const PlayerManager = {
             return;
         }
 
-        // Handle -1 as last note
+        // Filter to only numbered notes (skip free-form notes)
+        const numberedNotes = this.notes
+            .map((note, idx) => ({ note, idx }))
+            .filter(({ note }) => note.line_start !== null && note.line_start !== undefined);
+
+        if (numberedNotes.length === 0) {
+            BPP.showToast('No line-based notes for this song', 'info');
+            return;
+        }
+
+        // Jump to first or last numbered note
         if (index === -1) {
-            this.currentNoteIndex = this.notes.length - 1;
+            // Last numbered note
+            this.currentNoteIndex = numberedNotes[numberedNotes.length - 1].idx;
         } else {
-            this.currentNoteIndex = Math.max(0, Math.min(index, this.notes.length - 1));
+            // First numbered note
+            this.currentNoteIndex = numberedNotes[0].idx;
         }
 
         // Show the note callout
@@ -578,8 +614,9 @@ const PlayerManager = {
 
             lines.forEach(line => {
                 if (line.match(/^\[.*\]$/)) {
-                    // Section header
-                    html += `<div class="lyric-line section-header">${this.escapeHtml(line)}</div>`;
+                    // Section header - strip the brackets for display
+                    const headerText = line.slice(1, -1);
+                    html += `<div class="lyric-line section-header">${this.escapeHtml(headerText)}</div>`;
                 } else if (line.match(/^\s*\d+\s+/)) {
                     // Numbered line
                     const match = line.match(/^(\s*)(\d+)(\s+)(.+)/);
