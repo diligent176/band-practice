@@ -630,7 +630,7 @@ const ViewManager = {
             'arrowleft': () => PlayerManager.skipBackward(5),
             'arrowright': () => PlayerManager.skipForward(5),
             'c': () => PlayerManager.toggleColumns(),
-            'e': () => PlayerManager.editLyrics(),
+            'l': () => PlayerManager.editLyrics(),
             'n': () => PlayerManager.editNotes(),
             'i': () => PlayerManager.toggleBpmIndicator()
         };

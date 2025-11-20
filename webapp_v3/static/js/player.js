@@ -539,10 +539,22 @@ const PlayerManager = {
     editLyrics() {
         const editor = document.getElementById('lyrics-editor');
         const notesDisplay = document.getElementById('lyrics-editor-notes-display');
-        if (!editor || !notesDisplay) return;
+        const lineNumbers = document.getElementById('lyrics-line-numbers');
+        if (!editor || !notesDisplay || !lineNumbers) return;
 
-        // Populate lyrics editor
+        // Populate lyrics editor with RAW lyrics (no numbers)
         editor.value = this.currentSong.lyrics || '';
+
+        // Update line numbers initially
+        this.updateLyricsLineNumbers();
+
+        // Update line numbers when user types
+        editor.addEventListener('input', () => this.updateLyricsLineNumbers());
+
+        // Sync scroll
+        editor.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = editor.scrollTop;
+        });
 
         // Render notes in right panel
         const notes = this.currentSong.notes || [];
@@ -591,6 +603,42 @@ const PlayerManager = {
     },
 
     /**
+     * Update line numbers for lyrics editor (matches v2 behavior)
+     * Only numbers lyric lines - skips [section headers] and blank lines
+     */
+    updateLyricsLineNumbers() {
+        const editor = document.getElementById('lyrics-editor');
+        const lineNumbers = document.getElementById('lyrics-line-numbers');
+        if (!editor || !lineNumbers) return;
+
+        const lines = editor.value.split('\n');
+        let lineNumbersText = '';
+        let lineNum = 1;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmed = line.trim();
+
+            // Check if line is a section header like [Verse 1], [Chorus], etc.
+            const isHeader = /^\[.*\]$/.test(trimmed);
+
+            // Check if line is blank
+            const isBlank = trimmed === '';
+
+            if (isHeader || isBlank) {
+                // Don't number headers or blank lines - just add empty line
+                lineNumbersText += '\n';
+            } else {
+                // Number regular lyric lines
+                lineNumbersText += lineNum + '\n';
+                lineNum++;
+            }
+        }
+
+        lineNumbers.textContent = lineNumbersText;
+    },
+
+    /**
      * Setup keyboard shortcuts for lyrics editor
      */
     setupLyricsEditorKeyboard() {
@@ -615,6 +663,48 @@ const PlayerManager = {
             if (e.key === 'Escape') {
                 e.preventDefault();
                 this.cancelLyricsEdit();
+                return;
+            }
+
+            // ALT+T = Tighten lyrics
+            if (e.altKey && e.key === 't') {
+                e.preventDefault();
+                this.tightenLyrics();
+                return;
+            }
+
+            // ALT+V = Insert [Verse]
+            if (e.altKey && e.key === 'v') {
+                e.preventDefault();
+                this.insertSectionHeader('Verse');
+                return;
+            }
+
+            // ALT+C = Insert [Chorus]
+            if (e.altKey && e.key === 'c') {
+                e.preventDefault();
+                this.insertSectionHeader('Chorus');
+                return;
+            }
+
+            // ALT+B = Insert [Bridge]
+            if (e.altKey && e.key === 'b') {
+                e.preventDefault();
+                this.insertSectionHeader('Bridge');
+                return;
+            }
+
+            // ALT+I = Insert [Intro]
+            if (e.altKey && e.key === 'i') {
+                e.preventDefault();
+                this.insertSectionHeader('Intro');
+                return;
+            }
+
+            // ALT+O = Insert [Outro]
+            if (e.altKey && e.key === 'o') {
+                e.preventDefault();
+                this.insertSectionHeader('Outro');
                 return;
             }
         };
@@ -680,6 +770,80 @@ const PlayerManager = {
             BPP.showToast('Failed to save lyrics to server', 'error');
             // Could reload song here to restore server state, but leaving local changes for now
         }
+    },
+
+    /**
+     * Insert section header at cursor position
+     */
+    insertSectionHeader(section) {
+        const editor = document.getElementById('lyrics-editor');
+        if (!editor) return;
+
+        const cursorPos = editor.selectionStart;
+        const text = editor.value;
+        const before = text.substring(0, cursorPos);
+        const after = text.substring(cursorPos);
+
+        // Insert [Section] with trailing newline
+        const insertion = `[${section}]\n`;
+        editor.value = before + insertion + after;
+
+        // Move cursor after insertion
+        editor.selectionStart = editor.selectionEnd = cursorPos + insertion.length;
+        editor.focus();
+
+        // Update line numbers
+        this.updateLyricsLineNumbers();
+    },
+
+    /**
+     * Tighten lyrics - remove blank lines after headers, add space before headers
+     */
+    tightenLyrics() {
+        const editor = document.getElementById('lyrics-editor');
+        if (!editor) return;
+
+        const lines = editor.value.split('\n');
+        const result = [];
+        let prevWasHeader = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const isHeader = line.match(/^\[.*\]$/);
+            const isBlank = line.trim() === '';
+
+            // Skip blank lines after headers
+            if (isBlank && prevWasHeader) {
+                continue;
+            }
+
+            // Add blank line before header (unless first line or already preceded by blank)
+            if (isHeader && result.length > 0) {
+                const lastLine = result[result.length - 1];
+                if (lastLine.trim() !== '') {
+                    result.push('');
+                }
+            }
+
+            // Skip multiple consecutive blank lines
+            if (isBlank && result.length > 0 && result[result.length - 1].trim() === '') {
+                continue;
+            }
+
+            result.push(line);
+            prevWasHeader = isHeader;
+        }
+
+        // Remove trailing blank lines
+        while (result.length > 0 && result[result.length - 1].trim() === '') {
+            result.pop();
+        }
+
+        editor.value = result.join('\n');
+        editor.focus();
+
+        // Update line numbers
+        this.updateLyricsLineNumbers();
     },
 
     /**

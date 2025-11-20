@@ -395,7 +395,7 @@
                                 <div class="help-section">
                                     <div class="help-section-title">Editing</div>
                                     <div class="help-item">
-                                        <div class="help-keys"><kbd>E</kbd></div>
+                                        <div class="help-keys"><kbd>L</kbd></div>
                                         <i class="fa-solid fa-file-lines help-icon"></i>
                                         <span>Edit Lyrics</span>
                                     </div>
@@ -600,21 +600,24 @@
 
             <!-- Split View Content -->
             <div class="notes-editor-content">
-                <!-- Left Panel: Editable Lyrics -->
+                <!-- Left Panel: Editable Lyrics with Line Numbers -->
                 <div class="notes-editor-panel">
                     <div class="notes-editor-panel-header">
                         <i class="fa-solid fa-edit"></i> Edit Lyrics
                     </div>
-                    <textarea id="lyrics-editor" class="notes-textarea" placeholder="Enter lyrics here...
+                    <div class="lyrics-editor-wrapper">
+                        <div class="lyrics-line-numbers" id="lyrics-line-numbers"></div>
+                        <textarea id="lyrics-editor" class="lyrics-textarea-with-numbers" placeholder="Enter lyrics here...
 
 Example:
 [Intro]
-1  Some people call me the space cowboy
-2  Yeah, some call me the gangster of love
+Some people call me the space cowboy
+Yeah, some call me the gangster of love
 
 [Verse 1]
-5  Some people call me Maurice
-6  'Cause I speak of the pompatus of love"></textarea>
+Some people call me Maurice
+'Cause I speak of the pompatus of love"></textarea>
+                    </div>
                 </div>
 
                 <!-- Right Panel: Read-Only Notes -->
