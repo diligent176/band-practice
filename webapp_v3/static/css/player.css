@@ -384,17 +384,25 @@
   display: none;
 }
 
-/* Callout arrow/pointer - points DOWN to the highlighted line */
+/* Callout arrow/pointer - points LEFT (to the line on the left) by default */
 .note-callout::before {
   content: '';
   position: absolute;
-  left: 20px;
-  bottom: -10px;
+  left: -10px;
+  top: 20px;
   width: 0;
   height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid var(--accent-primary);
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 10px solid var(--accent-primary);
+}
+
+/* Arrow on right side - points RIGHT (when callout is on left of line) */
+.note-callout.arrow-right::before {
+  left: auto;
+  right: -10px;
+  border-right: none;
+  border-left: 10px solid var(--accent-primary);
 }
 
 .note-callout-content {

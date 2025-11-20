@@ -299,24 +299,63 @@ const PlayerManager = {
             <div>${this.escapeHtml(note.content)}</div>
         `;
 
-        // Position callout ABOVE the first highlighted line to avoid covering it
+        // Position callout BESIDE the highlighted lines (right side by default, left if would overflow)
         const lineRect = firstLine.getBoundingClientRect();
         const lyricsPanel = document.getElementById('player-lyrics-panel');
         const panelRect = lyricsPanel.getBoundingClientRect();
 
-        // Position relative to lyrics panel - ABOVE the line with some spacing
-        callout.style.left = `${lineRect.left - panelRect.left}px`;
-
-        // Calculate position above the line
-        // We need to measure callout height first, so show it briefly to get dimensions
+        // Measure callout dimensions first
         callout.style.visibility = 'hidden';
         callout.classList.remove('hidden');
+        const calloutWidth = callout.offsetWidth;
         const calloutHeight = callout.offsetHeight;
         callout.classList.add('hidden');
         callout.style.visibility = '';
 
-        // Position above the line with 10px gap
-        callout.style.top = `${lineRect.top - panelRect.top - calloutHeight - 10}px`;
+        // Determine if we should position on left or right
+        const spaceOnRight = panelRect.right - lineRect.right;
+        const spaceOnLeft = lineRect.left - panelRect.left;
+        const gap = 15; // Gap between line and callout
+
+        let leftPosition, topPosition;
+        let arrowOnLeft = true; // Arrow points to the line from the left side of callout
+
+        if (spaceOnRight >= calloutWidth + gap) {
+            // Position on RIGHT side (default)
+            leftPosition = lineRect.right - panelRect.left + gap;
+            arrowOnLeft = true;
+            callout.classList.remove('arrow-right');
+            callout.classList.add('arrow-left');
+        } else if (spaceOnLeft >= calloutWidth + gap) {
+            // Position on LEFT side (not enough room on right)
+            leftPosition = lineRect.left - panelRect.left - calloutWidth - gap;
+            arrowOnLeft = false;
+            callout.classList.remove('arrow-left');
+            callout.classList.add('arrow-right');
+        } else {
+            // Not enough room on either side - position on right anyway and let it overflow
+            leftPosition = lineRect.right - panelRect.left + gap;
+            arrowOnLeft = true;
+            callout.classList.remove('arrow-right');
+            callout.classList.add('arrow-left');
+        }
+
+        // Vertical position: align with the first line, but ensure it doesn't go off top/bottom
+        topPosition = lineRect.top - panelRect.top;
+
+        // Adjust if would go off the top
+        if (topPosition < 0) {
+            topPosition = 10;
+        }
+
+        // Adjust if would go off the bottom
+        const maxTop = panelRect.height - calloutHeight - 10;
+        if (topPosition > maxTop) {
+            topPosition = maxTop;
+        }
+
+        callout.style.left = `${leftPosition}px`;
+        callout.style.top = `${topPosition}px`;
 
         // Show callout with fade-in animation
         callout.classList.remove('hidden');
