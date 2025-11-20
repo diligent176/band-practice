@@ -280,12 +280,23 @@ const PlayerManager = {
         const calloutContent = document.getElementById('note-callout-content');
         if (!callout || !calloutContent) return;
 
+        // Handle free-form notes (no line reference)
+        if (note.line_start === null || note.line_start === undefined) {
+            // Show toast instead of callout for free-form notes
+            BPP.showToast(note.content, 'info');
+            return;
+        }
+
         // Highlight the lyric lines
         this.highlightLyricLines(note.line_start, note.line_end || note.line_start);
 
         // Get the first highlighted line to position callout
         const firstLine = document.querySelector(`.lyric-line[data-line="${note.line_start}"]`);
-        if (!firstLine) return;
+        if (!firstLine) {
+            // Line not found - show toast instead
+            BPP.showToast(`Line ${note.line_start} not found: ${note.content}`, 'info');
+            return;
+        }
 
         // Format note content
         const lineRange = note.line_end && note.line_end !== note.line_start
@@ -507,6 +518,12 @@ const PlayerManager = {
         // Populate notes editor with existing notes
         const notes = this.currentSong.notes || [];
         const text = notes.map(n => {
+            // Free-form notes (no line reference) - return content as-is
+            if (n.line_start === null || n.line_start === undefined) {
+                return n.content;
+            }
+
+            // Line-based notes - format with line number(s)
             const range = n.line_end && n.line_end !== n.line_start
                 ? `${n.line_start}-${n.line_end}`
                 : n.line_start;
@@ -615,26 +632,31 @@ const PlayerManager = {
         const text = editor.value;
         const notes = this.parseNotes(text);
 
+        // Update UI immediately for instant feedback
+        this.currentSong.notes = notes;
+        this.renderNotes();
+
+        // Clean up keyboard listener
+        if (this.notesEditorKeyboardHandler) {
+            editor.removeEventListener('keydown', this.notesEditorKeyboardHandler);
+            this.notesEditorKeyboardHandler = null;
+        }
+
+        // Hide dialog immediately
+        BPP.hideDialog('edit-notes-dialog');
+        BPP.showToast('Notes updated!', 'success');
+
+        // Save to server in background
         try {
             await BPP.apiCall(`/api/v3/songs/${this.currentSong.id}`, {
                 method: 'PUT',
                 body: JSON.stringify({ notes })
             });
-
-            this.currentSong.notes = notes;
-            this.renderNotes();
-
-            // Clean up keyboard listener
-            if (this.notesEditorKeyboardHandler) {
-                editor.removeEventListener('keydown', this.notesEditorKeyboardHandler);
-                this.notesEditorKeyboardHandler = null;
-            }
-
-            BPP.hideDialog('edit-notes-dialog');
-            BPP.showToast('Notes updated!', 'success');
         } catch (error) {
             console.error('Failed to save notes:', error);
-            BPP.showToast('Failed to save notes', 'error');
+            // Revert optimistic update on error
+            BPP.showToast('Failed to save notes to server', 'error');
+            // Could reload song here to restore server state, but leaving local changes for now
         }
     },
 
@@ -642,30 +664,76 @@ const PlayerManager = {
      * Parse notes from text format
      * @param {string} text - Notes in text format
      * @returns {Array} - Array of note objects
+     *
+     * Accepts formats:
+     * - START: note text
+     * - END: note text
+     * - 13: note text
+     * - 13-16: note text
+     * - 13 - 19: note text (with spaces)
+     * - Any other text (preserved as free-form note without line reference)
      */
     parseNotes(text) {
         const lines = text.split('\n').filter(l => l.trim());
-        return lines.map(line => {
-            const match = line.match(/^(\d+|\d+-\d+|START|END):\s*(.+)$/);
-            if (!match) return null;
 
-            const [_, range, content] = match;
-            let line_start, line_end;
+        // Find actual first and last line numbers from lyrics
+        let firstLineNum = 1;
+        let lastLineNum = 9999;
 
-            if (range === 'START') {
-                line_start = 1;
-                line_end = 1;
-            } else if (range === 'END') {
-                line_start = 9999;
-                line_end = 9999;
-            } else if (range.includes('-')) {
-                [line_start, line_end] = range.split('-').map(Number);
-            } else {
-                line_start = line_end = Number(range);
+        if (this.currentSong && this.currentSong.lyrics_numbered) {
+            const lyricsLines = this.currentSong.lyrics_numbered.split('\n');
+
+            // Find first numbered line
+            for (const line of lyricsLines) {
+                const match = line.match(/^\s*(\d+)\s+/);
+                if (match) {
+                    firstLineNum = parseInt(match[1]);
+                    break;
+                }
             }
 
-            return { line_start, line_end, content };
-        }).filter(Boolean);
+            // Find last numbered line
+            for (let i = lyricsLines.length - 1; i >= 0; i--) {
+                const match = lyricsLines[i].match(/^\s*(\d+)\s+/);
+                if (match) {
+                    lastLineNum = parseInt(match[1]);
+                    break;
+                }
+            }
+        }
+
+        return lines.map(line => {
+            // Try to match line-based note formats (with flexible spacing around dash)
+            const match = line.match(/^(START|END|\d+(?:\s*-\s*\d+)?):\s*(.+)$/i);
+
+            if (match) {
+                // Matched a line-based note
+                const [_, range, content] = match;
+                let line_start, line_end;
+
+                if (range.toUpperCase() === 'START') {
+                    line_start = firstLineNum;
+                    line_end = firstLineNum;
+                } else if (range.toUpperCase() === 'END') {
+                    line_start = lastLineNum;
+                    line_end = lastLineNum;
+                } else if (range.includes('-')) {
+                    // Handle "13-16" or "13 - 16" (with or without spaces)
+                    const parts = range.split('-').map(s => s.trim()).map(Number);
+                    line_start = parts[0];
+                    line_end = parts[1] || parts[0];
+                } else {
+                    // Single line number
+                    line_start = line_end = Number(range);
+                }
+
+                return { line_start, line_end, content };
+            } else {
+                // Free-form note (no line reference) - preserve as-is
+                // Store with null line numbers so it won't be highlighted, but will be saved
+                return { line_start: null, line_end: null, content: line };
+            }
+        });
     },
 
     /**
