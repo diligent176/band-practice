@@ -577,21 +577,55 @@
         </div>
     </div>
 
-    <!-- Edit Lyrics Dialog -->
+    <!-- Edit Lyrics Dialog - Full Screen Split View -->
     <div id="edit-lyrics-dialog" class="dialog-overlay hidden">
-        <div class="dialog dialog-large">
-            <div class="dialog-header">
-                <h3 class="dialog-title">Edit Lyrics</h3>
-                <button class="dialog-close" onclick="BPP.hideDialog('edit-lyrics-dialog')">
-                    <i class="fa-solid fa-times"></i>
-                </button>
+        <div class="notes-editor-fullscreen">
+            <!-- Header -->
+            <div class="notes-editor-header">
+                <div class="notes-editor-title">
+                    <i class="fa-solid fa-music"></i>
+                    <span>Edit Lyrics</span>
+                </div>
+                <div class="notes-editor-shortcuts">
+                    <button class="btn btn-secondary btn-sm" onclick="BPP.hideDialog('edit-lyrics-dialog')" style="margin-right: 8px;">
+                        <i class="fa-solid fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="PlayerManager.saveLyrics()" style="margin-right: 16px;">
+                        <i class="fa-solid fa-save"></i> Save
+                    </button>
+                    <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
+                    <span class="shortcut-hint"><kbd>ESC</kbd> Cancel</span>
+                </div>
             </div>
-            <div class="dialog-body">
-                <textarea id="lyrics-editor" class="lyrics-textarea" rows="30" placeholder="Enter lyrics here..."></textarea>
-            </div>
-            <div class="dialog-footer">
-                <button class="btn btn-secondary" onclick="BPP.hideDialog('edit-lyrics-dialog')">Cancel</button>
-                <button class="btn btn-primary" onclick="PlayerManager.saveLyrics()">Save Lyrics</button>
+
+            <!-- Split View Content -->
+            <div class="notes-editor-content">
+                <!-- Left Panel: Editable Lyrics -->
+                <div class="notes-editor-panel">
+                    <div class="notes-editor-panel-header">
+                        <i class="fa-solid fa-edit"></i> Edit Lyrics
+                    </div>
+                    <textarea id="lyrics-editor" class="notes-textarea" placeholder="Enter lyrics here...
+
+Example:
+[Intro]
+1  Some people call me the space cowboy
+2  Yeah, some call me the gangster of love
+
+[Verse 1]
+5  Some people call me Maurice
+6  'Cause I speak of the pompatus of love"></textarea>
+                </div>
+
+                <!-- Right Panel: Read-Only Notes -->
+                <div class="notes-editor-lyrics">
+                    <div class="notes-editor-panel-header">
+                        <i class="fa-solid fa-note-sticky"></i> Practice Notes
+                    </div>
+                    <div class="notes-editor-lyrics-content" id="lyrics-editor-notes-display">
+                        <!-- Notes will be rendered here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -606,6 +640,12 @@
                     <span>Edit Practice Notes</span>
                 </div>
                 <div class="notes-editor-shortcuts">
+                    <button class="btn btn-secondary btn-sm" onclick="BPP.hideDialog('edit-notes-dialog')" style="margin-right: 8px;">
+                        <i class="fa-solid fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="PlayerManager.saveNotes()" style="margin-right: 16px;">
+                        <i class="fa-solid fa-save"></i> Save
+                    </button>
                     <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
                     <span class="shortcut-hint"><kbd>ESC</kbd> Cancel</span>
                 </div>

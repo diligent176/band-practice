@@ -538,11 +538,104 @@ const PlayerManager = {
      */
     editLyrics() {
         const editor = document.getElementById('lyrics-editor');
+        const notesDisplay = document.getElementById('lyrics-editor-notes-display');
+        if (!editor || !notesDisplay) return;
+
+        // Populate lyrics editor
+        editor.value = this.currentSong.lyrics || '';
+
+        // Render notes in right panel
+        const notes = this.currentSong.notes || [];
+        if (notes.length === 0) {
+            notesDisplay.innerHTML = '<div class="empty-state"><p>No notes for this song</p></div>';
+        } else {
+            let html = '';
+            notes.forEach(note => {
+                // Free-form notes (no line reference)
+                if (note.line_start === null || note.line_start === undefined) {
+                    html += `<div class="note-display free-form-note">
+                        <div class="note-content">${this.escapeHtml(note.content)}</div>
+                    </div>`;
+                    return;
+                }
+
+                // START/END tags
+                let lineRef = '';
+                if (note.tag === 'START') {
+                    lineRef = '<span class="note-line-ref start-tag">START</span>';
+                } else if (note.tag === 'END') {
+                    lineRef = '<span class="note-line-ref end-tag">END</span>';
+                } else {
+                    // Regular line-based notes
+                    const range = note.line_end && note.line_end !== note.line_start
+                        ? `${note.line_start}-${note.line_end}`
+                        : note.line_start;
+                    lineRef = `<span class="note-line-ref">Line ${range}</span>`;
+                }
+
+                html += `<div class="note-display">
+                    ${lineRef}
+                    <div class="note-content">${this.escapeHtml(note.content)}</div>
+                </div>`;
+            });
+
+            notesDisplay.innerHTML = html;
+        }
+
+        // Show dialog and setup keyboard shortcuts
+        BPP.showDialog('edit-lyrics-dialog');
+        this.setupLyricsEditorKeyboard();
+
+        // Focus the textarea
+        setTimeout(() => editor.focus(), 100);
+    },
+
+    /**
+     * Setup keyboard shortcuts for lyrics editor
+     */
+    setupLyricsEditorKeyboard() {
+        const editor = document.getElementById('lyrics-editor');
         if (!editor) return;
 
-        editor.value = this.currentSong.lyrics || '';
-        BPP.showDialog('edit-lyrics-dialog');
-        editor.focus();
+        // Remove existing listener if any
+        if (this.lyricsEditorKeyboardHandler) {
+            editor.removeEventListener('keydown', this.lyricsEditorKeyboardHandler);
+        }
+
+        // Create new handler
+        this.lyricsEditorKeyboardHandler = (e) => {
+            // Ctrl+Enter or Cmd+Enter = Save
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                this.saveLyrics();
+                return;
+            }
+
+            // ESC = Cancel
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.cancelLyricsEdit();
+                return;
+            }
+        };
+
+        // Attach listener
+        editor.addEventListener('keydown', this.lyricsEditorKeyboardHandler);
+    },
+
+    /**
+     * Cancel lyrics editing
+     */
+    cancelLyricsEdit() {
+        const editor = document.getElementById('lyrics-editor');
+
+        // Clean up keyboard listener
+        if (this.lyricsEditorKeyboardHandler && editor) {
+            editor.removeEventListener('keydown', this.lyricsEditorKeyboardHandler);
+            this.lyricsEditorKeyboardHandler = null;
+        }
+
+        BPP.hideDialog('edit-lyrics-dialog');
     },
 
     /**
@@ -553,6 +646,12 @@ const PlayerManager = {
         if (!editor) return;
 
         const newLyrics = editor.value;
+
+        // Clean up keyboard listener
+        if (this.lyricsEditorKeyboardHandler) {
+            editor.removeEventListener('keydown', this.lyricsEditorKeyboardHandler);
+            this.lyricsEditorKeyboardHandler = null;
+        }
 
         try {
             await BPP.apiCall(`/api/v3/songs/${this.currentSong.id}`, {

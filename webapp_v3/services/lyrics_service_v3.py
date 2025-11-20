@@ -162,6 +162,19 @@ class LyricsServiceV3:
 
         return '\n'.join(formatted_lines)
 
+    def renumber_lyrics(self, lyrics: str) -> str:
+        """
+        Public method to renumber lyrics (wraps _add_line_numbers)
+        Used when user manually edits lyrics
+
+        Args:
+            lyrics: Raw lyrics text
+
+        Returns:
+            Lyrics with line numbers added
+        """
+        return self._add_line_numbers(lyrics)
+
     def fetch_lyrics(self, title: str, artist: str) -> Dict[str, str]:
         """
         Fetch lyrics from Genius using official API + scraping
