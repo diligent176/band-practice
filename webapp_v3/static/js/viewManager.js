@@ -590,6 +590,20 @@ const ViewManager = {
             return;
         }
 
+        // HOME key - Jump to first note
+        if (e.key === 'Home') {
+            e.preventDefault();
+            PlayerManager.jumpToNote(0); // First note
+            return;
+        }
+
+        // END key - Jump to last note
+        if (e.key === 'End') {
+            e.preventDefault();
+            PlayerManager.jumpToNote(-1); // Last note (-1 means last)
+            return;
+        }
+
         // ESC - Close help card first, then go back to songs view
         if (e.key === 'Escape') {
             e.preventDefault();

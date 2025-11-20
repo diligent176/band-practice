@@ -270,6 +270,30 @@ const PlayerManager = {
     },
 
     /**
+     * Jump to specific note by index (HOME/END key navigation)
+     * @param {number} index - Note index (0 for first, -1 for last)
+     */
+    jumpToNote(index) {
+        if (this.notes.length === 0) {
+            BPP.showToast('No notes for this song', 'info');
+            return;
+        }
+
+        // Handle -1 as last note
+        if (index === -1) {
+            this.currentNoteIndex = this.notes.length - 1;
+        } else {
+            this.currentNoteIndex = Math.max(0, Math.min(index, this.notes.length - 1));
+        }
+
+        // Show the note callout
+        this.showNoteCallout();
+
+        // Reset fade timer
+        this.resetNoteCalloutTimer();
+    },
+
+    /**
      * Show note callout for current note
      */
     showNoteCallout() {
