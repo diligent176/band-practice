@@ -647,26 +647,38 @@ const PlayerManager = {
 
         const newLyrics = editor.value;
 
+        // Update UI immediately for instant feedback (optimistic update)
+        this.currentSong.lyrics = newLyrics;
+        this.currentSong.custom_lyrics = true;
+        this.renderLyrics();
+
         // Clean up keyboard listener
         if (this.lyricsEditorKeyboardHandler) {
             editor.removeEventListener('keydown', this.lyricsEditorKeyboardHandler);
             this.lyricsEditorKeyboardHandler = null;
         }
 
+        // Hide dialog immediately
+        BPP.hideDialog('edit-lyrics-dialog');
+        BPP.showToast('Lyrics updated!', 'success');
+
+        // Save to server in background
         try {
-            await BPP.apiCall(`/api/v3/songs/${this.currentSong.id}`, {
+            const response = await BPP.apiCall(`/api/v3/songs/${this.currentSong.id}`, {
                 method: 'PUT',
                 body: JSON.stringify({ lyrics: newLyrics, custom_lyrics: true })
             });
 
-            this.currentSong.lyrics = newLyrics;
-            this.currentSong.custom_lyrics = true;
-            this.renderLyrics();
-            BPP.hideDialog('edit-lyrics-dialog');
-            BPP.showToast('Lyrics updated!', 'success');
+            // Update with numbered lyrics from server
+            if (response.lyrics_numbered) {
+                this.currentSong.lyrics_numbered = response.lyrics_numbered;
+                this.renderLyrics(); // Re-render with numbered lyrics
+            }
         } catch (error) {
             console.error('Failed to save lyrics:', error);
-            BPP.showToast('Failed to save lyrics', 'error');
+            // Revert optimistic update on error
+            BPP.showToast('Failed to save lyrics to server', 'error');
+            // Could reload song here to restore server state, but leaving local changes for now
         }
     },
 
