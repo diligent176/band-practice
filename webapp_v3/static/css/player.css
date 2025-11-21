@@ -131,58 +131,93 @@
   z-index: 5;
 }
 
-/* BPM Display & Flasher */
-.player-bpm-container {
-  display: flex;
+/* BPM Indicator Block - Drum icon with animated background */
+.bpm-indicator-block {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.player-bpm-text {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.bpm-flasher {
-  width: 20px;
-  height: 20px;
-  border: none;
-  background: transparent;
-  color: var(--accent-primary);
+  gap: 5px;
+  padding: 4px 10px;
+  margin-right: 12px;
+  border-radius: 6px;
+  background: rgba(45, 122, 74, 0.12);
+  border: 1px solid rgba(45, 122, 74, 0.25);
+  font-size: 13px;
+  color: var(--text-primary);
   cursor: pointer;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: all 0.2s ease;
-  font-size: 10px;
+  flex-shrink: 0;
+  user-select: none;
 }
 
-.bpm-flasher:hover {
-  background: rgba(45, 122, 74, 0.15);
-  color: var(--accent-hover);
+.bpm-indicator-block:hover {
+  background: rgba(45, 122, 74, 0.18);
+  border-color: rgba(45, 122, 74, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(45, 122, 74, 0.2);
 }
 
-/* BPM Pulse Animation */
-@keyframes bpm-pulse {
+.bpm-indicator-block i {
+  font-size: 14px;
+  color: rgba(45, 122, 74, 0.9);
+}
 
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
+.player-bpm-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* Pulsing animation for metronome */
+.bpm-indicator-block.animating {
+  animation-name: bpm-block-pulse;
+  animation-timing-function: steps(1, jump-none);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  will-change: background, border-color;
+}
+
+@keyframes bpm-block-pulse {
+  0% {
+    background: rgba(45, 122, 74, 0.3);
+    border-color: rgba(45, 122, 74, 0.6);
+    box-shadow: 0 0 12px rgba(45, 122, 74, 0.4);
   }
 
   50% {
-    opacity: 0.3;
-    transform: scale(0.8);
+    background: rgba(45, 122, 74, 0.3);
+    border-color: rgba(45, 122, 74, 0.6);
+    box-shadow: 0 0 12px rgba(45, 122, 74, 0.4);
+  }
+
+  51% {
+    background: rgba(45, 122, 74, 0.12);
+    border-color: rgba(45, 122, 74, 0.25);
+    box-shadow: none;
+  }
+
+  100% {
+    background: rgba(45, 122, 74, 0.12);
+    border-color: rgba(45, 122, 74, 0.25);
+    box-shadow: none;
   }
 }
 
-.bpm-flasher.active {
-  animation: bpm-pulse 0.15s ease-in-out;
+/* Disabled state */
+.bpm-indicator-block.disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.bpm-indicator-block.disabled:hover {
+  transform: none;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Playback Controls - Compact & Classy */

@@ -81,8 +81,8 @@ const PlayerManager = {
             this.adjustFontSize(-0.1);
         });
 
-        // BPM flasher toggle
-        document.getElementById('bpm-flasher')?.addEventListener('click', () => {
+        // BPM indicator block toggle
+        document.getElementById('bpm-indicator-block')?.addEventListener('click', () => {
             this.toggleBpmIndicator();
         });
 
@@ -172,7 +172,8 @@ const PlayerManager = {
         const albumArt = document.getElementById('player-album-art');
         const songTitle = document.getElementById('player-song-title');
         const artist = document.getElementById('player-artist');
-        const bpm = document.getElementById('player-bpm');
+        const bpmValue = document.getElementById('player-bpm');
+        const bpmBlock = document.getElementById('bpm-indicator-block');
 
         if (albumArt) {
             albumArt.src = this.currentSong.album_art_url || '/static/favicon.svg';
@@ -187,11 +188,24 @@ const PlayerManager = {
             artist.textContent = this.currentSong.artist || 'Unknown Artist';
         }
 
-        if (bpm) {
-            if (this.currentSong.bpm && this.currentSong.bpm !== 'N/A') {
-                bpm.textContent = `BPM: ${this.currentSong.bpm}`;
+        // Update BPM display with 1 decimal place
+        if (bpmValue) {
+            if (this.currentSong.bpm && this.currentSong.bpm !== 'N/A' && this.currentSong.bpm !== 'NOT_FOUND') {
+                const bpmNum = parseFloat(this.currentSong.bpm);
+                bpmValue.textContent = bpmNum.toFixed(1);
             } else {
-                bpm.textContent = 'BPM: --';
+                bpmValue.textContent = '--';
+            }
+        }
+
+        // Update BPM indicator block state
+        if (bpmBlock) {
+            if (!this.currentSong.bpm || this.currentSong.bpm === 'N/A' || this.currentSong.bpm === 'NOT_FOUND') {
+                bpmBlock.classList.add('disabled');
+                bpmBlock.style.cursor = 'default';
+            } else {
+                bpmBlock.classList.remove('disabled');
+                bpmBlock.style.cursor = 'pointer';
             }
         }
     },
@@ -1250,35 +1264,39 @@ const PlayerManager = {
     },
 
     /**
-     * Start BPM flasher animation
+     * Start BPM metronome animation (CSS-based for smooth performance)
      */
     startBpmFlasher() {
-        if (!this.currentSong || !this.currentSong.bpm || this.currentSong.bpm === 'N/A') {
+        if (!this.bpmIndicatorEnabled) return;
+        if (!this.currentSong || !this.currentSong.bpm || this.currentSong.bpm === 'N/A' || this.currentSong.bpm === 'NOT_FOUND') {
             return;
         }
 
         const bpm = parseFloat(this.currentSong.bpm);
         if (isNaN(bpm) || bpm <= 0) return;
 
-        const interval = (60 / bpm) * 1000; // ms per beat
-        const flasher = document.getElementById('bpm-flasher');
-        if (!flasher) return;
+        const bpmBlock = document.getElementById('bpm-indicator-block');
+        if (!bpmBlock) return;
 
-        this.stopBpmFlasher(); // Stop existing interval
+        // Calculate beat duration (60 seconds / BPM = seconds per beat)
+        // Double it for on/off cycle
+        const beatDuration = 60 / bpm;
+        const animationDuration = beatDuration * 2;
 
-        this.bpmInterval = setInterval(() => {
-            flasher.classList.add('active');
-            setTimeout(() => flasher.classList.remove('active'), 150);
-        }, interval);
+        // Set animation duration and start
+        bpmBlock.style.animationDuration = `${animationDuration}s`;
+        bpmBlock.classList.add('animating');
+
+        console.log(`🥁 BPM metronome started: ${bpm.toFixed(1)} BPM (${animationDuration.toFixed(2)}s cycle)`);
     },
 
     /**
-     * Stop BPM flasher animation
+     * Stop BPM metronome animation
      */
     stopBpmFlasher() {
-        if (this.bpmInterval) {
-            clearInterval(this.bpmInterval);
-            this.bpmInterval = null;
+        const bpmBlock = document.getElementById('bpm-indicator-block');
+        if (bpmBlock) {
+            bpmBlock.classList.remove('animating');
         }
     },
 
