@@ -479,7 +479,8 @@ const SpotifyPlayer = {
             clearInterval(this.stateUpdateInterval);
         }
 
-        // Poll player state every 500ms for smooth progress updates
+        // Poll player state every 1000ms (1 second) for progress updates
+        // Reduced from 500ms to minimize CPU usage and DOM manipulation
         this.stateUpdateInterval = setInterval(async () => {
             if (!this.player || !this.isReady) return;
 
@@ -493,7 +494,7 @@ const SpotifyPlayer = {
                 // Update UI
                 window.PlayerManager.updateProgress(state.position, state.duration);
             }
-        }, 500);
+        }, 1000);
     },
 
     stopStatePolling() {
