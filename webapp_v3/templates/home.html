@@ -290,6 +290,7 @@
                         </button>
                         <button id="player-play-btn" class="btn-icon btn-player btn-play-large" title="Play/Pause (Space)">
                             <i class="fa-solid fa-play"></i>
+                            <span id="player-play-text" style="display: none; margin-left: 8px; font-size: 14px;">Play in Spotify</span>
                         </button>
                         <button id="player-next-btn" class="btn-icon btn-player" title="Next song (F)">
                             <i class="fa-solid fa-forward"></i>
@@ -435,23 +436,6 @@
 
             <!-- Player Main Content -->
             <div class="player-main">
-                <!-- Spotify Connection Prompt (shown when not connected) -->
-                <div id="spotify-connect-prompt" class="spotify-connect-prompt hidden">
-                    <div class="spotify-connect-card">
-                        <i class="fa-brands fa-spotify" style="font-size: 48px; color: #1DB954; margin-bottom: 16px;"></i>
-                        <h3 style="margin: 0 0 8px 0;">Connect Spotify to Play Music</h3>
-                        <p style="margin: 0 0 16px 0; color: rgba(255, 255, 255, 0.7);">
-                            Band Practice Pro uses Spotify Web Playback to play music directly in your browser.
-                        </p>
-                        <p style="margin: 0 0 24px 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">
-                            <strong>Spotify Premium required</strong>
-                        </p>
-                        <button class="btn btn-primary" onclick="SpotifyPlayer.connectSpotify()" style="background: #1DB954; padding: 12px 24px;">
-                            <i class="fa-brands fa-spotify"></i> Connect Spotify
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Lyrics Panel (100% width - notes shown as callouts) -->
                 <div class="player-lyrics-panel lyrics-columns-3" id="player-lyrics-panel">
                     <div class="empty-state">

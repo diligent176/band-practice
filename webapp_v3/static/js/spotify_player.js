@@ -31,15 +31,25 @@ const SpotifyPlayer = {
     async init() {
         console.log('🎵 Initializing Spotify Player...');
 
-        // Check if user has connected Spotify
+        // Check if user has connected Spotify (optional - not required)
         const hasToken = await this.checkSpotifyConnection();
 
         if (hasToken) {
-            // Load SDK and initialize player
-            await this.loadSDK();
+            // Check premium status
+            await this.checkPremiumStatus();
+            
+            if (this.isPremium) {
+                // Load SDK for premium users only
+                await this.loadSDK();
+                console.log('✅ Premium user - embedded player enabled');
+            } else {
+                console.log('ℹ️ Non-premium user - external Spotify links enabled');
+                this.setupNonPremiumMode();
+            }
         } else {
-            // Show connection prompt
-            this.showConnectPrompt();
+            // No Spotify connected - use external links mode
+            console.log('ℹ️ Spotify not connected - external Spotify links enabled');
+            this.setupNonPremiumMode();
         }
     },
 
@@ -74,11 +84,48 @@ const SpotifyPlayer = {
         }
     },
 
-    showConnectPrompt() {
-        // Check if user has a Spotify URI in current song
-        if (PlayerManager.currentSong?.spotify_uri) {
-            BPP.showToast('Connect Spotify to play music', 'info');
+    async checkPremiumStatus() {
+        if (!this.accessToken) return false;
+        
+        try {
+            console.log('🔍 Checking Spotify Premium status...');
+            const response = await fetch('https://api.spotify.com/v1/me', {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                const profile = await response.json();
+                console.log('📋 Spotify account:', profile.email, '- Product:', profile.product);
+                this.isPremium = profile.product === 'premium';
+                return this.isPremium;
+            } else {
+                console.warn('Could not fetch Spotify profile');
+                return false;
+            }
+        } catch (error) {
+            console.warn('Error checking premium status:', error);
+            return false;
         }
+    },
+
+    setupNonPremiumMode() {
+        // Configure UI for non-premium (external Spotify links)
+        const playBtn = document.getElementById('player-play-btn');
+        const playText = document.getElementById('player-play-text');
+        
+        if (playBtn) {
+            playBtn.title = 'Play in Spotify (opens new window) - Upgrade to Premium for embedded playback';
+            playBtn.style.width = 'auto';
+            playBtn.style.padding = '0 20px';
+        }
+        
+        if (playText) {
+            playText.style.display = 'inline';
+        }
+        
+        console.log('✅ Non-premium mode configured');
     },
 
     async connectSpotify() {
@@ -102,14 +149,13 @@ const SpotifyPlayer = {
 
                     this.isPremium = event.data.isPremium;
 
-                    if (!this.isPremium) {
-                        BPP.showToast('Spotify Premium required for playback', 'warning');
-                        return;
+                    if (this.isPremium) {
+                        BPP.showToast('Spotify Premium connected!', 'success');
+                    } else {
+                        BPP.showToast('Spotify connected (external links mode)', 'info');
                     }
 
-                    BPP.showToast('Spotify connected!', 'success');
-
-                    // Wait a moment for token to be saved in backend, then reload SDK
+                    // Reload to setup appropriate mode
                     setTimeout(async () => {
                         await this.init();
                     }, 500);
@@ -454,22 +500,42 @@ const SpotifyPlayer = {
         }
     },
 
-    // Fallback for non-Premium users or when SDK fails
+    // Open Spotify track in external window (for non-Premium users)
     openInSpotifyApp(spotifyUri) {
-        if (!spotifyUri) return;
+        if (!spotifyUri) {
+            BPP.showToast('No Spotify track available', 'warning');
+            return;
+        }
 
-        console.log('🔗 Opening in Spotify app:', spotifyUri);
+        console.log('🔗 Opening in Spotify:', spotifyUri);
 
-        // Extract track ID from URI (spotify:track:xxx)
-        const trackId = spotifyUri.split(':')[2];
-
-        // Try native app first
-        window.location.href = spotifyUri;
-
-        // Fallback to web player after 1 second
+        // Try to open in Spotify desktop app using hidden iframe
+        // This won't navigate away or open a new tab
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = spotifyUri; // spotify:track:xxx
+        document.body.appendChild(iframe);
+        
+        // Clean up iframe after a moment
         setTimeout(() => {
-            window.open(`https://open.spotify.com/track/${trackId}`, '_blank');
+            document.body.removeChild(iframe);
         }, 1000);
+        
+        // Extract track ID for fallback message
+        const trackId = spotifyUri.split(':')[2];
+        
+        // Show helpful message with fallback link
+        setTimeout(() => {
+            BPP.showToast('Opening in Spotify Desktop...', 'info');
+            
+            // If user doesn't have desktop app, show them how to open manually
+            setTimeout(() => {
+                if (confirm('Spotify Desktop app not installed?\n\nClick OK to open in Spotify Web Player instead.')) {
+                    // Add ?autoplay=true to attempt autoplay (may require user interaction)
+                    window.open(`https://open.spotify.com/track/${trackId}?autoplay=true`, '_blank', 'width=1000,height=800');
+                }
+            }, 2000);
+        }, 100);
     },
 
     // State polling for smooth progress updates

@@ -1610,6 +1610,13 @@ const PlayerManager = {
             return;
         }
 
+        // Non-premium mode: open in external Spotify
+        if (!window.SpotifyPlayer.isPremium) {
+            window.SpotifyPlayer.openInSpotifyApp(this.currentSong.spotify_uri);
+            return;
+        }
+
+        // Premium mode: use embedded player
         if (!window.SpotifyPlayer.isReady) {
             BPP.showToast('Spotify player not ready', 'warning');
             return;
@@ -1633,8 +1640,11 @@ const PlayerManager = {
     },
 
     async restartTrack() {
-        if (!window.SpotifyPlayer.isReady) {
-            BPP.showToast('Spotify player not ready', 'warning');
+        if (!window.SpotifyPlayer.isPremium || !window.SpotifyPlayer.isReady) {
+            // Non-premium: just re-open the track
+            if (this.currentSong?.spotify_uri) {
+                window.SpotifyPlayer.openInSpotifyApp(this.currentSong.spotify_uri);
+            }
             return;
         }
 
@@ -1643,9 +1653,8 @@ const PlayerManager = {
     },
 
     async toggleMute() {
-        if (!window.SpotifyPlayer.isReady) {
-            BPP.showToast('Spotify player not ready', 'warning');
-            return;
+        if (!window.SpotifyPlayer.isPremium || !window.SpotifyPlayer.isReady) {
+            return; // Mute not available in non-premium mode
         }
 
         // Toggle between 0 and saved volume
@@ -1662,14 +1671,14 @@ const PlayerManager = {
     savedVolume: 0.5,
 
     async skipBackward(seconds) {
-        if (!window.SpotifyPlayer.isReady) return;
+        if (!window.SpotifyPlayer.isPremium || !window.SpotifyPlayer.isReady) return;
 
         const newPosition = Math.max(0, window.SpotifyPlayer.position - (seconds * 1000));
         await window.SpotifyPlayer.seek(newPosition);
     },
 
     async skipForward(seconds) {
-        if (!window.SpotifyPlayer.isReady) return;
+        if (!window.SpotifyPlayer.isPremium || !window.SpotifyPlayer.isReady) return;
 
         const newPosition = Math.min(
             window.SpotifyPlayer.duration,
