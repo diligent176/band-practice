@@ -833,6 +833,10 @@ def fetch_song_lyrics(song_id):
         )
         
         if success:
+            # Reload song to get updated lyrics
+            song_doc = song_ref.get()
+            song_data = song_doc.to_dict()
+            
             return jsonify({
                 'message': 'Lyrics fetched successfully',
                 'song_id': song_id,
@@ -840,10 +844,23 @@ def fetch_song_lyrics(song_id):
                 'force_customized': force_customized
             }), 200
         else:
+            # Reload song to get error details
+            song_doc = song_ref.get()
+            song_data = song_doc.to_dict()
+            error_msg = song_data.get('lyrics_fetch_error', 'Unknown error')
+            
+            error_messages = {
+                'NOT_FOUND': 'Song not found on Genius',
+                'SCRAPE_FAILED': 'Failed to scrape lyrics from Genius page (possible IP block or page format change)',
+            }
+            
+            user_friendly_msg = error_messages.get(error_msg, f'Failed to fetch lyrics: {error_msg}')
+            
             return jsonify({
-                'error': 'Failed to fetch lyrics',
+                'error': user_friendly_msg,
+                'error_code': error_msg,
                 'is_customized': song_data.get('is_customized', False),
-                'hint': 'Use ?force_customized=true to overwrite customized lyrics'
+                'hint': 'Try again in a few minutes, or use Edit Lyrics (L key) to add lyrics manually'
             }), 400
             
     except Exception as e:

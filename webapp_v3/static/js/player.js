@@ -224,7 +224,7 @@ const PlayerManager = {
         const lyrics = this.currentSong.lyrics_numbered || this.currentSong.lyrics || '';
 
         if (!lyrics || lyrics.trim() === '') {
-            lyricsPanel.innerHTML = '<div class="empty-state"><p>No lyrics available. Press E to add lyrics.</p></div>';
+            lyricsPanel.innerHTML = '<div class="empty-state"><p>No lyrics available. Press L to edit lyrics.</p></div>';
             return;
         }
 
@@ -1350,6 +1350,67 @@ const PlayerManager = {
         if (bpmBlock) {
             bpmBlock.classList.remove('animating');
         }
+    },
+
+    /**
+     * Fetch lyrics from Genius (with confirmation)
+     */
+    async fetchLyricsFromGenius() {
+        if (!this.currentSong) {
+            BPP.showToast('No song loaded', 'error');
+            return;
+        }
+
+        // Show confirmation dialog
+        BPP.showDialog('fetch-lyrics-dialog');
+
+        // Setup one-time click handler for confirm button
+        const confirmBtn = document.getElementById('confirm-fetch-lyrics-btn');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+        newConfirmBtn.addEventListener('click', async () => {
+            BPP.hideDialog('fetch-lyrics-dialog');
+            
+            try {
+                BPP.showToast('Fetching lyrics from Genius...', 'info');
+
+                const response = await BPP.apiCall(
+                    `/api/v3/songs/${this.currentSong.id}/fetch-lyrics?force_customized=true`,
+                    { method: 'POST' }
+                );
+
+                if (response.message) {
+                    BPP.showToast('Lyrics fetched successfully', 'success');
+                    
+                    // Reload song to get fresh lyrics
+                    const songResponse = await BPP.apiCall(`/api/v3/songs/${this.currentSong.id}`);
+                    this.currentSong = songResponse;
+                    ViewManager.state.currentSong = songResponse;
+                    
+                    // Re-render lyrics
+                    this.renderLyrics();
+                } else {
+                    BPP.showToast(response.error || 'Failed to fetch lyrics', 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching lyrics:', error);
+                BPP.showToast('Failed to fetch lyrics', 'error');
+            }
+        });
+
+        // Setup ENTER key handler for confirmation
+        const handleEnter = (e) => {
+            if (e.key === 'Enter' && BPP.isDialogVisible('fetch-lyrics-dialog')) {
+                e.preventDefault();
+                newConfirmBtn.click();
+                document.removeEventListener('keydown', handleEnter);
+            }
+        };
+        document.addEventListener('keydown', handleEnter);
+
+        // Focus the Fetch Lyrics button
+        setTimeout(() => newConfirmBtn.focus(), 100);
     },
 
     /**

@@ -308,6 +308,12 @@ class LyricsServiceV3:
 
             song_ref.update(update_data)
             logger.info(f"Updated lyrics for song {song_id}")
+            
+            # Return True only if lyrics were actually fetched (no error)
+            if lyrics_data.get('error'):
+                logger.warning(f"Lyrics fetch had error: {lyrics_data.get('error')}")
+                return False
+            
             return True
 
         except Exception as e:

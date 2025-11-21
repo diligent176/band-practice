@@ -419,6 +419,11 @@
                                         <span>Edit Notes</span>
                                     </div>
                                     <div class="help-item">
+                                        <div class="help-keys"><kbd>G</kbd></div>
+                                        <i class="fa-solid fa-download help-icon"></i>
+                                        <span>Get Lyrics</span>
+                                    </div>
+                                    <div class="help-item">
                                         <div class="help-keys"><kbd>.</kbd></div>
                                         <i class="fa-solid fa-drum help-icon"></i>
                                         <span>Set Tempo</span>
@@ -542,6 +547,27 @@
             <div class="dialog-footer">
                 <button class="btn btn-secondary" onclick="BPP.hideDialog('delete-collection-dialog')">Cancel</button>
                 <button id="confirm-delete-btn" class="btn btn-primary" style="background: rgba(197, 48, 48, 0.7);">Delete Collection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fetch Lyrics Dialog -->
+    <div id="fetch-lyrics-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Fetch Lyrics from Genius</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('fetch-lyrics-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <p class="text-secondary">
+                    Fetch lyrics from Genius? This action overwrites any custom lyrics saved for this song.
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('fetch-lyrics-dialog')">Cancel</button>
+                <button id="confirm-fetch-lyrics-btn" class="btn btn-primary">Fetch Lyrics</button>
             </div>
         </div>
     </div>
@@ -2202,6 +2228,7 @@ END: Final chorus is acapella"></textarea>
         BPP.addEscapeHandler('new-collection-dialog');
         BPP.addEscapeHandler('edit-collection-dialog');
         BPP.addEscapeHandler('delete-collection-dialog');
+        BPP.addEscapeHandler('fetch-lyrics-dialog');
         BPP.addEscapeHandler('link-playlist-dialog');
         BPP.addEscapeHandler('request-access-dialog');
 

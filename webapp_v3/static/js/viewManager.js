@@ -693,6 +693,14 @@ const ViewManager = {
                 }
                 PlayerManager.editNotes();
             },
+            'g': () => {
+                // Check edit permissions before allowing lyrics fetch
+                if (PlayerManager.canEdit === false) {
+                    BPP.showToast('You do not have permission to edit this song', 'warning');
+                    return;
+                }
+                PlayerManager.fetchLyricsFromGenius();
+            },
             'i': () => PlayerManager.toggleBpmIndicator()
         };
 
