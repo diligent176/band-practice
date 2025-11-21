@@ -149,6 +149,19 @@
                     <!-- Shared collections will be loaded here -->
                 </div>
             </section>
+
+            <!-- Public Collections Section -->
+            <section class="collections-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fa-solid fa-globe"></i>
+                        Browse Public Collections
+                    </h2>
+                </div>
+                <div id="public-collections" class="collections-grid">
+                    <!-- Public collections will be loaded here -->
+                </div>
+            </section>
         </main>
         </div>
         <!-- End Collections View -->
@@ -592,6 +605,27 @@
         </div>
     </div>
 
+    <!-- Manage Collaboration Requests Dialog -->
+    <div id="collaboration-requests-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Collaboration Requests</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('collaboration-requests-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="collaboration-collection-id">
+                <div id="collaboration-requests-list" class="collaboration-requests-list">
+                    <!-- Requests will be rendered here -->
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('collaboration-requests-dialog')">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Lyrics Dialog - Full Screen Split View -->
     <div id="edit-lyrics-dialog" class="dialog-overlay hidden">
         <div class="notes-editor-fullscreen">
@@ -991,9 +1025,28 @@ END: Final chorus is acapella"></textarea>
                     document.getElementById('shared-collections').innerHTML = '<p class="text-muted text-center">No shared collections yet</p>';
                 }
 
+                // Load public collections
+                await loadPublicCollections();
+
             } catch (error) {
                 console.error('Error loading collections:', error);
                 BPP.showToast('Failed to load collections', 'error');
+            }
+        }
+
+        async function loadPublicCollections() {
+            try {
+                const data = await BPP.apiCall('/api/v3/collections/public');
+                const publicCollections = data.collections || [];
+
+                if (publicCollections.length > 0) {
+                    renderPublicCollections(publicCollections, 'public-collections');
+                } else {
+                    document.getElementById('public-collections').innerHTML = '<p class="text-muted text-center">No public collections available</p>';
+                }
+            } catch (error) {
+                console.error('Error loading public collections:', error);
+                document.getElementById('public-collections').innerHTML = '<p class="text-muted text-center">Failed to load public collections</p>';
             }
         }
 
@@ -1053,6 +1106,12 @@ END: Final chorus is acapella"></textarea>
                                 <button class="btn-icon btn-ghost collection-link-playlist-btn" data-collection-id="${collection.id}" title="Link Spotify playlist" aria-label="Link Spotify playlist">
                                     <i class="fa-brands fa-spotify"></i>
                                 </button>
+                                ${collection.collaboration_requests && collection.collaboration_requests.length > 0 ? `
+                                <button class="btn-icon btn-ghost collection-requests-btn" data-collection-id="${collection.id}" title="${collection.collaboration_requests.length} pending request(s)" aria-label="View collaboration requests" style="position: relative;">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    <span class="badge" style="position: absolute; top: -4px; right: -4px; background: var(--accent-primary); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${collection.collaboration_requests.length}</span>
+                                </button>
+                                ` : ''}
                                 ${collection.is_personal ? `
                                 <button class="btn-icon btn-ghost" disabled title="Cannot edit Personal Collection" aria-label="Cannot edit Personal Collection" style="opacity: 0.5; cursor: not-allowed; position: relative;">
                                     <i class="fa-solid fa-gear"></i>
@@ -1112,6 +1171,220 @@ END: Final chorus is acapella"></textarea>
                     showLinkPlaylistDialog(collectionId);
                 });
             });
+
+            // Add click handlers for collaboration requests buttons
+            container.querySelectorAll('.collection-requests-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const collectionId = btn.dataset.collectionId;
+                    showCollaborationRequests(collectionId);
+                });
+            });
+        }
+
+        function renderPublicCollections(collections, containerId) {
+            const container = document.getElementById(containerId);
+
+            if (!collections || collections.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">No public collections available</p>';
+                return;
+            }
+
+            container.innerHTML = collections.map(collection => {
+                // Get artwork from first linked playlist, or use fallback icon
+                const firstPlaylist = collection.linked_playlists?.[0];
+                const artworkUrl = firstPlaylist?.image_url;
+                const hasArtwork = artworkUrl && artworkUrl.trim() !== '';
+
+                return `
+                <div class="collection-card card card-clickable" data-collection-id="${collection.id}">
+                    <div class="collection-artwork-container">
+                        ${hasArtwork
+                            ? `<img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(collection.name)} artwork" class="collection-artwork" loading="lazy">`
+                            : `<div class="collection-artwork-placeholder">
+                                <img src="/static/favicon.svg" alt="Guitar" style="width: 80%; height: 80%; opacity: 0.6;">
+                               </div>`
+                        }
+                    </div>
+                    <div class="collection-content">
+                        <div class="collection-header">
+                            <div class="collection-title-row">
+                                <h3 class="collection-name">${escapeHtml(collection.name)}</h3>
+                            </div>
+                        </div>
+                        <div class="collection-description-row">
+                            ${collection.description ? `<p class="collection-description">${escapeHtml(collection.description)}</p>` : '<p class="collection-description"></p>'}
+                            <div class="collection-badges">
+                                <span class="collection-badge collection-badge-public"><i class="fa-solid fa-globe"></i> Public</span>
+                            </div>
+                        </div>
+                        <div class="collection-meta-and-actions">
+                            <div class="collection-meta">
+                                <span class="collection-meta-item">
+                                    <i class="fa-solid fa-music"></i>
+                                    ${collection.song_count || 0} ${(collection.song_count || 0) === 1 ? 'song' : 'songs'}
+                                </span>
+                            </div>
+                            <div class="collection-actions">
+                                ${collection.access_requested
+                                    ? `<button class="btn btn-sm btn-secondary" disabled title="Request pending">
+                                        <i class="fa-solid fa-clock"></i> Pending
+                                       </button>`
+                                    : `<button class="btn btn-sm btn-primary request-access-btn" data-collection-id="${collection.id}" title="Request collaborator access">
+                                        <i class="fa-solid fa-user-plus"></i> Request Access
+                                       </button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+
+            // Add click handlers for cards (open as read-only)
+            container.querySelectorAll('.collection-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // Don't open if clicking action buttons
+                    if (e.target.closest('.collection-actions')) {
+                        return;
+                    }
+                    const collectionId = card.dataset.collectionId;
+                    openCollection(collectionId);
+                });
+            });
+
+            // Add click handlers for request access buttons
+            container.querySelectorAll('.request-access-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const collectionId = btn.dataset.collectionId;
+                    await requestCollaborationAccess(collectionId);
+                });
+            });
+        }
+
+        async function requestCollaborationAccess(collectionId) {
+            try {
+                BPP.showLoading('Sending request...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/request-access`, {
+                    method: 'POST'
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Collaboration request sent!', 'success');
+
+                // Reload public collections to update the UI
+                await loadPublicCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error requesting collaboration:', error);
+                BPP.showToast(error.message || 'Failed to send request', 'error');
+            }
+        }
+
+        async function showCollaborationRequests(collectionId) {
+            try {
+                // Fetch collection data to get requests
+                const collection = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                const requests = collection.collaboration_requests || [];
+
+                document.getElementById('collaboration-collection-id').value = collectionId;
+
+                const requestsList = document.getElementById('collaboration-requests-list');
+
+                if (requests.length === 0) {
+                    requestsList.innerHTML = '<p class="text-muted text-center">No pending requests</p>';
+                } else {
+                    requestsList.innerHTML = requests.map(req => `
+                        <div class="collaboration-request-item" style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600;">${escapeHtml(req.user_name)}</div>
+                                    <div class="text-sm text-muted">${escapeHtml(req.user_email)}</div>
+                                    <div class="text-xs text-muted">${formatDate(req.requested_at)}</div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-sm btn-primary accept-request-btn" data-requester-uid="${req.user_uid}" title="Accept request">
+                                        <i class="fa-solid fa-check"></i> Accept
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary deny-request-btn" data-requester-uid="${req.user_uid}" title="Deny request">
+                                        <i class="fa-solid fa-times"></i> Deny
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Add click handlers for accept/deny buttons
+                    requestsList.querySelectorAll('.accept-request-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            const requesterUid = btn.dataset.requesterUid;
+                            await acceptCollaborationRequest(collectionId, requesterUid);
+                        });
+                    });
+
+                    requestsList.querySelectorAll('.deny-request-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            const requesterUid = btn.dataset.requesterUid;
+                            await denyCollaborationRequest(collectionId, requesterUid);
+                        });
+                    });
+                }
+
+                BPP.showDialog('collaboration-requests-dialog');
+
+            } catch (error) {
+                console.error('Error loading collaboration requests:', error);
+                BPP.showToast('Failed to load requests', 'error');
+            }
+        }
+
+        async function acceptCollaborationRequest(collectionId, requesterUid) {
+            try {
+                BPP.showLoading('Accepting request...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/accept-collaborator`, {
+                    method: 'POST',
+                    body: JSON.stringify({ requester_uid: requesterUid })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Collaboration request accepted!', 'success');
+
+                // Reload the requests dialog
+                await showCollaborationRequests(collectionId);
+
+                // Reload collections to update counts
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error accepting request:', error);
+                BPP.showToast('Failed to accept request', 'error');
+            }
+        }
+
+        async function denyCollaborationRequest(collectionId, requesterUid) {
+            try {
+                BPP.showLoading('Denying request...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/deny-collaborator`, {
+                    method: 'POST',
+                    body: JSON.stringify({ requester_uid: requesterUid })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Collaboration request denied', 'success');
+
+                // Reload the requests dialog
+                await showCollaborationRequests(collectionId);
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error denying request:', error);
+                BPP.showToast('Failed to deny request', 'error');
+            }
         }
 
         function openCollection(collectionId) {

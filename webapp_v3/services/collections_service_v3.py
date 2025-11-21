@@ -52,6 +52,7 @@ class CollectionsService:
                 'is_personal': True,  # Flag to identify Personal Collection
                 'is_public': False,
                 'collaborators': [],  # Personal Collection cannot be shared
+                'collaboration_requests': [],  # No requests for personal collections
                 'linked_playlists': [],  # Will store playlist references
                 'song_count': 0,
                 'created_at': datetime.utcnow(),
@@ -138,6 +139,7 @@ class CollectionsService:
                 'is_personal': False,
                 'is_public': is_public,
                 'collaborators': [],
+                'collaboration_requests': [],
                 'linked_playlists': [],
                 'song_count': 0,
                 'created_at': datetime.utcnow(),
@@ -282,4 +284,250 @@ class CollectionsService:
 
         except Exception as e:
             logger.error(f"Error getting collection: {e}")
+            raise
+
+    def get_public_collections(self, user_id: str, limit: int = 50) -> List[Dict]:
+        """
+        Get all public collections (excluding user's own collections and ones they're already collaborating on).
+
+        Args:
+            user_id: User's UID (to exclude their own collections)
+            limit: Maximum number of collections to return
+
+        Returns:
+            List of public collection dictionaries
+        """
+        try:
+            # Get public collections that are not owned by this user
+            query = (self.db.collection(self.collections)
+                    .where('is_public', '==', True)
+                    .order_by('name')
+                    .limit(limit))
+
+            docs = list(query.stream())
+            public_collections = []
+
+            for doc in docs:
+                collection_data = doc.to_dict()
+                collection_data['id'] = doc.id
+
+                # Exclude user's own collections and ones they're already collaborating on
+                if collection_data['owner_uid'] != user_id and user_id not in collection_data.get('collaborators', []):
+                    # Check if user has already requested access
+                    requests = collection_data.get('collaboration_requests', [])
+                    collection_data['access_requested'] = any(req['user_uid'] == user_id for req in requests)
+                    public_collections.append(collection_data)
+
+            logger.info(f"Retrieved {len(public_collections)} public collections for user {user_id}")
+            return public_collections
+
+        except Exception as e:
+            logger.error(f"Error getting public collections: {e}")
+            raise
+
+    def request_collaboration(self, collection_id: str, user_id: str, user_email: str, user_name: str) -> bool:
+        """
+        Request collaboration access to a public collection.
+
+        Args:
+            collection_id: Collection document ID
+            user_id: Requesting user's UID
+            user_email: Requesting user's email
+            user_name: Requesting user's display name
+
+        Returns:
+            True if request was added successfully
+        """
+        try:
+            doc_ref = self.db.collection(self.collections).document(collection_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                raise ValueError(f"Collection not found: {collection_id}")
+
+            collection_data = doc.to_dict()
+
+            # Verify collection is public
+            if not collection_data.get('is_public', False):
+                raise ValueError("Cannot request collaboration on non-public collection")
+
+            # Verify user is not the owner
+            if collection_data['owner_uid'] == user_id:
+                raise ValueError("Owner cannot request collaboration on their own collection")
+
+            # Verify user is not already a collaborator
+            if user_id in collection_data.get('collaborators', []):
+                raise ValueError("User is already a collaborator")
+
+            # Check if request already exists
+            requests = collection_data.get('collaboration_requests', [])
+            if any(req['user_uid'] == user_id for req in requests):
+                raise ValueError("Collaboration request already exists")
+
+            # Add request
+            new_request = {
+                'user_uid': user_id,
+                'user_email': user_email,
+                'user_name': user_name,
+                'requested_at': datetime.utcnow()
+            }
+
+            requests.append(new_request)
+            doc_ref.update({
+                'collaboration_requests': requests,
+                'updated_at': datetime.utcnow()
+            })
+
+            logger.info(f"User {user_id} requested collaboration on collection {collection_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error requesting collaboration: {e}")
+            raise
+
+    def accept_collaboration_request(self, collection_id: str, owner_uid: str, requester_uid: str) -> bool:
+        """
+        Accept a collaboration request (owner only).
+
+        Args:
+            collection_id: Collection document ID
+            owner_uid: Owner's UID (must match collection owner)
+            requester_uid: UID of user who requested access
+
+        Returns:
+            True if request was accepted
+        """
+        try:
+            doc_ref = self.db.collection(self.collections).document(collection_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                raise ValueError(f"Collection not found: {collection_id}")
+
+            collection_data = doc.to_dict()
+
+            # Verify user is owner
+            if collection_data['owner_uid'] != owner_uid:
+                raise PermissionError("Only owner can accept collaboration requests")
+
+            # Find and remove the request
+            requests = collection_data.get('collaboration_requests', [])
+            request_to_accept = None
+
+            for req in requests:
+                if req['user_uid'] == requester_uid:
+                    request_to_accept = req
+                    break
+
+            if not request_to_accept:
+                raise ValueError("Collaboration request not found")
+
+            # Remove from requests and add to collaborators
+            requests.remove(request_to_accept)
+            collaborators = collection_data.get('collaborators', [])
+
+            if requester_uid not in collaborators:
+                collaborators.append(requester_uid)
+
+            doc_ref.update({
+                'collaborators': collaborators,
+                'collaboration_requests': requests,
+                'updated_at': datetime.utcnow()
+            })
+
+            logger.info(f"Owner {owner_uid} accepted collaboration request from {requester_uid} for collection {collection_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error accepting collaboration request: {e}")
+            raise
+
+    def deny_collaboration_request(self, collection_id: str, owner_uid: str, requester_uid: str) -> bool:
+        """
+        Deny a collaboration request (owner only).
+
+        Args:
+            collection_id: Collection document ID
+            owner_uid: Owner's UID (must match collection owner)
+            requester_uid: UID of user who requested access
+
+        Returns:
+            True if request was denied
+        """
+        try:
+            doc_ref = self.db.collection(self.collections).document(collection_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                raise ValueError(f"Collection not found: {collection_id}")
+
+            collection_data = doc.to_dict()
+
+            # Verify user is owner
+            if collection_data['owner_uid'] != owner_uid:
+                raise PermissionError("Only owner can deny collaboration requests")
+
+            # Find and remove the request
+            requests = collection_data.get('collaboration_requests', [])
+            request_to_deny = None
+
+            for req in requests:
+                if req['user_uid'] == requester_uid:
+                    request_to_deny = req
+                    break
+
+            if not request_to_deny:
+                raise ValueError("Collaboration request not found")
+
+            # Remove from requests
+            requests.remove(request_to_deny)
+
+            doc_ref.update({
+                'collaboration_requests': requests,
+                'updated_at': datetime.utcnow()
+            })
+
+            logger.info(f"Owner {owner_uid} denied collaboration request from {requester_uid} for collection {collection_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error denying collaboration request: {e}")
+            raise
+
+    def check_user_access_level(self, collection_id: str, user_id: str) -> str:
+        """
+        Check user's access level for a collection.
+
+        Args:
+            collection_id: Collection document ID
+            user_id: User's UID
+
+        Returns:
+            'owner', 'collaborator', 'viewer', or 'none'
+        """
+        try:
+            doc_ref = self.db.collection(self.collections).document(collection_id)
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                return 'none'
+
+            collection_data = doc.to_dict()
+
+            # Check owner
+            if collection_data['owner_uid'] == user_id:
+                return 'owner'
+
+            # Check collaborator
+            if user_id in collection_data.get('collaborators', []):
+                return 'collaborator'
+
+            # Check public viewer
+            if collection_data.get('is_public', False):
+                return 'viewer'
+
+            return 'none'
+
+        except Exception as e:
+            logger.error(f"Error checking user access level: {e}")
             raise

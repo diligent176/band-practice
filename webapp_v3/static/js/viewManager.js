@@ -18,7 +18,8 @@ const ViewManager = {
         allSongs: [],
         filteredSongs: [],
         selectedSongIndex: -1,
-        sortMode: localStorage.getItem('v3_songsSortMode') || 'playlist'
+        sortMode: localStorage.getItem('v3_songsSortMode') || 'playlist',
+        collectionAccessLevel: 'none' // 'owner', 'collaborator', 'viewer', 'none'
     },
 
     init() {
@@ -148,6 +149,7 @@ const ViewManager = {
             const response = await BPP.apiCall(`/api/v3/collections/${collectionId}/songs`);
             this.state.currentCollection = response.collection;
             this.state.allSongs = response.songs || [];
+            this.state.collectionAccessLevel = response.access_level || 'none';
 
             // Update header
             document.getElementById('songs-collection-name').textContent = this.state.currentCollection.name;
@@ -568,6 +570,14 @@ const ViewManager = {
 
         // . (period) - BPM dialog (tap or open)
         if (e.key === '.') {
+            // Check edit permissions before allowing BPM edit
+            if (PlayerManager.canEdit === false) {
+                if (!isTyping) {
+                    BPP.showToast('You do not have permission to edit this song', 'warning');
+                }
+                return;
+            }
+
             const bpmDialog = document.getElementById('bpm-dialog');
             if (bpmDialog && !bpmDialog.classList.contains('hidden')) {
                 e.preventDefault();
@@ -667,8 +677,22 @@ const ViewManager = {
             'arrowleft': () => PlayerManager.skipBackward(5),
             'arrowright': () => PlayerManager.skipForward(5),
             'c': () => PlayerManager.toggleColumns(),
-            'l': () => PlayerManager.editLyrics(),
-            'n': () => PlayerManager.editNotes(),
+            'l': () => {
+                // Check edit permissions before allowing lyrics edit
+                if (PlayerManager.canEdit === false) {
+                    BPP.showToast('You do not have permission to edit this song', 'warning');
+                    return;
+                }
+                PlayerManager.editLyrics();
+            },
+            'n': () => {
+                // Check edit permissions before allowing notes edit
+                if (PlayerManager.canEdit === false) {
+                    BPP.showToast('You do not have permission to edit this song', 'warning');
+                    return;
+                }
+                PlayerManager.editNotes();
+            },
             'i': () => PlayerManager.toggleBpmIndicator()
         };
 

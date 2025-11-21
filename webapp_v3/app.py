@@ -250,6 +250,109 @@ def collection(collection_id):
         logger.error(f"Collection endpoint error: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/v3/collections/public', methods=['GET'])
+def public_collections():
+    """Get all public collections (excluding user's own and ones they're already collaborating on)"""
+    try:
+        user_info = AuthService.require_auth(request)
+        if not user_info:
+            return jsonify({'error': 'Unauthorized'}), 401
+
+        collections_service = CollectionsService()
+        public_collections = collections_service.get_public_collections(user_info['uid'])
+
+        return jsonify({'collections': public_collections}), 200
+
+    except Exception as e:
+        logger.error(f"Public collections endpoint error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v3/collections/<collection_id>/request-access', methods=['POST'])
+def request_collaboration(collection_id):
+    """Request collaboration access to a public collection"""
+    try:
+        user_info = AuthService.require_auth(request)
+        if not user_info:
+            return jsonify({'error': 'Unauthorized'}), 401
+
+        collections_service = CollectionsService()
+        collections_service.request_collaboration(
+            collection_id=collection_id,
+            user_id=user_info['uid'],
+            user_email=user_info['email'],
+            user_name=user_info.get('name', user_info['email'])
+        )
+
+        return jsonify({'success': True, 'message': 'Collaboration request sent'}), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Request collaboration endpoint error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v3/collections/<collection_id>/accept-collaborator', methods=['POST'])
+def accept_collaborator(collection_id):
+    """Accept a collaboration request (owner only)"""
+    try:
+        user_info = AuthService.require_auth(request)
+        if not user_info:
+            return jsonify({'error': 'Unauthorized'}), 401
+
+        data = request.get_json()
+        requester_uid = data.get('requester_uid')
+
+        if not requester_uid:
+            return jsonify({'error': 'requester_uid is required'}), 400
+
+        collections_service = CollectionsService()
+        collections_service.accept_collaboration_request(
+            collection_id=collection_id,
+            owner_uid=user_info['uid'],
+            requester_uid=requester_uid
+        )
+
+        return jsonify({'success': True, 'message': 'Collaboration request accepted'}), 200
+
+    except PermissionError as e:
+        return jsonify({'error': str(e)}), 403
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Accept collaborator endpoint error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v3/collections/<collection_id>/deny-collaborator', methods=['POST'])
+def deny_collaborator(collection_id):
+    """Deny a collaboration request (owner only)"""
+    try:
+        user_info = AuthService.require_auth(request)
+        if not user_info:
+            return jsonify({'error': 'Unauthorized'}), 401
+
+        data = request.get_json()
+        requester_uid = data.get('requester_uid')
+
+        if not requester_uid:
+            return jsonify({'error': 'requester_uid is required'}), 400
+
+        collections_service = CollectionsService()
+        collections_service.deny_collaboration_request(
+            collection_id=collection_id,
+            owner_uid=user_info['uid'],
+            requester_uid=requester_uid
+        )
+
+        return jsonify({'success': True, 'message': 'Collaboration request denied'}), 200
+
+    except PermissionError as e:
+        return jsonify({'error': str(e)}), 403
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Deny collaborator endpoint error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/v3/collections/<collection_id>/songs', methods=['GET'])
 def get_collection_songs(collection_id):
     """Get all songs in a collection, sorted by playlist order"""
@@ -292,9 +395,13 @@ def get_collection_songs(collection_id):
 
         songs.sort(key=sort_key)
 
+        # Get user's access level for this collection
+        access_level = collections_service.check_user_access_level(collection_id, user_info['uid'])
+
         return jsonify({
             'songs': songs,
-            'collection': collection_data
+            'collection': collection_data,
+            'access_level': access_level
         }), 200
 
     except Exception as e:
@@ -553,6 +660,12 @@ def song(song_id):
             return jsonify(song_data)
 
         elif request.method == 'PUT':
+            # Check if user has edit permissions (owner or collaborator)
+            access_level = collections_service.check_user_access_level(collection_id, user_id)
+            
+            if access_level not in ['owner', 'collaborator']:
+                return jsonify({'error': 'You do not have permission to edit this song'}), 403
+
             # Update song
             data = request.get_json()
 

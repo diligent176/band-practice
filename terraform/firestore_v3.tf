@@ -173,13 +173,13 @@ resource "google_firestore_index" "collections_v3_public" {
   collection = "collections_v3"
 
   fields {
-    field_path = "visibility"
+    field_path = "is_public"
     order      = "ASCENDING"
   }
 
   fields {
-    field_path = "updated_at"
-    order      = "DESCENDING"
+    field_path = "name"
+    order      = "ASCENDING"
   }
 }
 

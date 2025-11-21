@@ -146,6 +146,9 @@ const PlayerManager = {
         // Render notes
         this.renderNotes();
 
+        // Check access level and disable edit features if read-only
+        this.updateEditPermissions();
+
         // Start BPM flasher if enabled
         if (this.bpmIndicatorEnabled) {
             this.startBpmFlasher();
@@ -267,6 +270,58 @@ const PlayerManager = {
 
         // Hide any visible callout from previous song
         this.hideNoteCallout();
+    },
+
+    /**
+     * Update edit permissions based on user's access level
+     */
+    updateEditPermissions() {
+        // Check if user has edit permissions (owner or collaborator)
+        const accessLevel = ViewManager.state.collectionAccessLevel;
+        const canEdit = accessLevel === 'owner' || accessLevel === 'collaborator';
+
+        console.log(`🔐 Access level: ${accessLevel}, Can edit: ${canEdit}`);
+
+        // Store for use in keyboard shortcuts
+        this.canEdit = canEdit;
+
+        // Show read-only indicator if viewing without edit permissions
+        if (!canEdit && accessLevel === 'viewer') {
+            // Show a subtle indicator that this is read-only
+            const indicator = document.createElement('div');
+            indicator.id = 'read-only-indicator';
+            indicator.className = 'read-only-indicator';
+            indicator.innerHTML = `
+                <i class="fa-solid fa-eye"></i>
+                <span>View Only - No Edit Access</span>
+            `;
+            indicator.style.cssText = `
+                position: fixed;
+                top: 12px;
+                right: 80px;
+                background: rgba(255, 165, 0, 0.15);
+                border: 1px solid rgba(255, 165, 0, 0.3);
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 13px;
+                color: rgba(255, 165, 0, 0.9);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            `;
+
+            // Remove existing indicator if present
+            const existing = document.getElementById('read-only-indicator');
+            if (existing) existing.remove();
+
+            // Add to player view
+            document.getElementById('player-view').appendChild(indicator);
+        } else {
+            // Remove indicator if it exists
+            const indicator = document.getElementById('read-only-indicator');
+            if (indicator) indicator.remove();
+        }
     },
 
     /**
