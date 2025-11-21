@@ -1563,12 +1563,17 @@ const PlayerManager = {
             return;
         }
 
-        // If currently playing the same track, just toggle pause
+        // If currently playing the same track, pause it
         if (window.SpotifyPlayer.isPlaying && window.SpotifyPlayer.currentTrackUri === this.currentSong.spotify_uri) {
             await window.SpotifyPlayer.pause();
             this.updatePlayButton(false);
         }
-        // If nothing playing or different track, start playing current song
+        // If same track is paused, resume it
+        else if (!window.SpotifyPlayer.isPlaying && window.SpotifyPlayer.currentTrackUri === this.currentSong.spotify_uri) {
+            await window.SpotifyPlayer.resume();
+            this.updatePlayButton(true);
+        }
+        // Different track or nothing loaded - start playing
         else {
             await window.SpotifyPlayer.play(this.currentSong.spotify_uri);
             this.updatePlayButton(true);
