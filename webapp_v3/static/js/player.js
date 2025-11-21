@@ -447,19 +447,22 @@ const PlayerManager = {
     },
 
     /**
-     * Hide note callout
+     * Hide note callout with dramatic dissolve effect
      */
     hideNoteCallout() {
         const callout = document.getElementById('note-callout');
         if (!callout) return;
 
-        // Fade out
+        // Add dissolving class for dramatic fade-out effect
+        callout.classList.add('dissolving');
         callout.classList.remove('visible');
+
         setTimeout(() => {
             callout.classList.add('hidden');
-        }, 300); // Match CSS transition duration
+            callout.classList.remove('dissolving');
+        }, 600); // Match CSS transition duration
 
-        // Remove lyric highlights
+        // Remove lyric highlights with fade
         document.querySelectorAll('.lyric-line.highlighted').forEach(el => {
             el.classList.remove('highlighted');
         });
@@ -472,7 +475,7 @@ const PlayerManager = {
     },
 
     /**
-     * Reset auto-fade timer (5 seconds)
+     * Reset auto-fade timer (3 seconds)
      */
     resetNoteCalloutTimer() {
         // Clear existing timer
@@ -480,10 +483,10 @@ const PlayerManager = {
             clearTimeout(this.noteCalloutTimeout);
         }
 
-        // Set new 5-second timer
+        // Set new 3-second timer
         this.noteCalloutTimeout = setTimeout(() => {
             this.hideNoteCallout();
-        }, 5000);
+        }, 3000);
     },
 
     /**
