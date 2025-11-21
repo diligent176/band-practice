@@ -202,15 +202,26 @@ const ViewManager = {
     applySortMode() {
         const sortMode = this.state.sortMode;
 
-        if (sortMode === 'artist') {
-            this.state.filteredSongs.sort((a, b) => {
-                const artistCompare = (a.artist || '').localeCompare(b.artist || '');
-                return artistCompare !== 0 ? artistCompare : (a.title || '').localeCompare(b.title || '');
+        if (sortMode === 'artist' || sortMode === 'title') {
+            // For artist/title modes, deduplicate songs (show each song once)
+            const seen = new Set();
+            this.state.filteredSongs = this.state.filteredSongs.filter(song => {
+                const key = song.id;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
             });
-        } else if (sortMode === 'title') {
-            this.state.filteredSongs.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+
+            if (sortMode === 'artist') {
+                this.state.filteredSongs.sort((a, b) => {
+                    const artistCompare = (a.artist || '').localeCompare(b.artist || '');
+                    return artistCompare !== 0 ? artistCompare : (a.title || '').localeCompare(b.title || '');
+                });
+            } else {
+                this.state.filteredSongs.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+            }
         } else if (sortMode === 'playlist') {
-            // Keep natural playlist order from backend
+            // Keep natural playlist order from backend (includes duplicates for multi-playlist songs)
             // Backend already sorted by: collection's linked_playlists order, then position within each playlist
         }
     },
@@ -233,13 +244,15 @@ const ViewManager = {
 
         // Always render songs in a continuous grid
         this.state.filteredSongs.forEach((song, index) => {
+            // Use _display_playlist_id (set by backend for expanded songs) or fall back to first source playlist
+            const displayPlaylistId = song._display_playlist_id || (song.source_playlist_ids && song.source_playlist_ids[0]);
+
             const isFirstOfPlaylist = this.state.sortMode === 'playlist' &&
-                                       song.source_playlist_ids &&
-                                       song.source_playlist_ids[0] &&
-                                       !seenPlaylists.has(song.source_playlist_ids[0]);
+                                       displayPlaylistId &&
+                                       !seenPlaylists.has(displayPlaylistId);
 
             if (isFirstOfPlaylist) {
-                seenPlaylists.add(song.source_playlist_ids[0]);
+                seenPlaylists.add(displayPlaylistId);
             }
 
             html += this.renderSongItem(song, index, isFirstOfPlaylist);
@@ -266,18 +279,23 @@ const ViewManager = {
 
         // Get playlist name badge (only for first song of playlist)
         let playlistBadge = '';
-        if (isFirstOfPlaylist && this.state.currentCollection.linked_playlists) {
-            const playlistId = song.source_playlist_ids && song.source_playlist_ids[0];
-            if (playlistId) {
-                const playlist = this.state.currentCollection.linked_playlists.find(p => p.playlist_id === playlistId);
-                if (playlist) {
-                    playlistBadge = `
-                        <div class="playlist-badge">
-                            <i class="fa-brands fa-spotify"></i>
-                            <span class="playlist-badge-name">${this.escapeHtml(playlist.playlist_name)}</span>
-                        </div>
-                    `;
+        if (isFirstOfPlaylist) {
+            // Use _display_playlist_name from backend (for expanded songs) or look up from linked_playlists
+            let playlistName = song._display_playlist_name;
+            if (!playlistName && this.state.currentCollection.linked_playlists) {
+                const playlistId = song._display_playlist_id || (song.source_playlist_ids && song.source_playlist_ids[0]);
+                if (playlistId) {
+                    const playlist = this.state.currentCollection.linked_playlists.find(p => p.playlist_id === playlistId);
+                    playlistName = playlist ? playlist.playlist_name : null;
                 }
+            }
+            if (playlistName) {
+                playlistBadge = `
+                    <div class="playlist-badge">
+                        <i class="fa-brands fa-spotify"></i>
+                        <span class="playlist-badge-name">${this.escapeHtml(playlistName)}</span>
+                    </div>
+                `;
             }
         }
 
@@ -521,7 +539,7 @@ const ViewManager = {
         } else if (e.key === 'End') {
             e.preventDefault();
             this.navigateList('end');
-        } else if (e.altKey && (e.key === 't' || e.key === 'T')) {
+        } else if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
             e.preventDefault();
             this.toggleSortMode();
         } else if (!isTyping && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {

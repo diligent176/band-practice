@@ -406,22 +406,41 @@ def get_collection_songs(collection_id):
         # Sort songs by collection's playlist order
         linked_playlists = collection_data.get('linked_playlists', [])
         playlist_order = {p['playlist_id']: idx for idx, p in enumerate(linked_playlists)}
+        playlist_names = {p['playlist_id']: p.get('playlist_name', 'Unknown') for p in linked_playlists}
 
-        def sort_key(song):
+        # Expand songs: create one entry per playlist appearance (for playlist sort mode)
+        # This allows duplicates to show when a song is in multiple playlists
+        expanded_songs = []
+        for song in songs:
             playlist_ids = song.get('source_playlist_ids', [])
             playlist_positions = song.get('playlist_positions', {})
 
             if not playlist_ids:
-                return (999999, 999999)
+                # Song not linked to any playlist - include once
+                expanded_songs.append(song)
+            else:
+                # Create an entry for each playlist the song appears in
+                for pid in playlist_ids:
+                    if pid in playlist_order:  # Only include if playlist is still linked
+                        song_copy = dict(song)
+                        song_copy['_display_playlist_id'] = pid
+                        song_copy['_display_playlist_name'] = playlist_names.get(pid, 'Unknown')
+                        song_copy['_display_position'] = playlist_positions.get(pid, 999999)
+                        expanded_songs.append(song_copy)
 
-            # Get first playlist and its order in collection
-            first_playlist = playlist_ids[0]
-            collection_order = playlist_order.get(first_playlist, 999999)
-            position_in_playlist = playlist_positions.get(first_playlist, 999999)
+        def sort_key(song):
+            display_pid = song.get('_display_playlist_id')
+            if display_pid:
+                collection_order = playlist_order.get(display_pid, 999999)
+                position_in_playlist = song.get('_display_position', 999999)
+            else:
+                collection_order = 999999
+                position_in_playlist = 999999
 
             return (collection_order, position_in_playlist)
 
-        songs.sort(key=sort_key)
+        expanded_songs.sort(key=sort_key)
+        songs = expanded_songs
 
         # Get user's access level for this collection
         access_level = collections_service.check_user_access_level(collection_id, user_info['uid'])
