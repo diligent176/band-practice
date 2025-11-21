@@ -285,42 +285,39 @@ const PlayerManager = {
         // Store for use in keyboard shortcuts
         this.canEdit = canEdit;
 
+        // Remove existing indicator if present
+        const existing = document.getElementById('read-only-indicator');
+        if (existing) existing.remove();
+
         // Show read-only indicator if viewing without edit permissions
         if (!canEdit && accessLevel === 'viewer') {
-            // Show a subtle indicator that this is read-only
-            const indicator = document.createElement('div');
+            // Create compact badge
+            const indicator = document.createElement('span');
             indicator.id = 'read-only-indicator';
             indicator.className = 'read-only-indicator';
             indicator.innerHTML = `
                 <i class="fa-solid fa-eye"></i>
-                <span>View Only - No Edit Access</span>
+                <span>Read Only</span>
             `;
             indicator.style.cssText = `
-                position: fixed;
-                top: 12px;
-                right: 80px;
                 background: rgba(255, 165, 0, 0.15);
                 border: 1px solid rgba(255, 165, 0, 0.3);
-                padding: 6px 12px;
-                border-radius: 6px;
-                font-size: 13px;
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-size: 11px;
                 color: rgba(255, 165, 0, 0.9);
-                z-index: 1000;
-                display: flex;
+                display: inline-flex;
                 align-items: center;
-                gap: 6px;
+                gap: 4px;
+                margin-left: 8px;
+                white-space: nowrap;
             `;
 
-            // Remove existing indicator if present
-            const existing = document.getElementById('read-only-indicator');
-            if (existing) existing.remove();
-
-            // Add to player view
-            document.getElementById('player-view').appendChild(indicator);
-        } else {
-            // Remove indicator if it exists
-            const indicator = document.getElementById('read-only-indicator');
-            if (indicator) indicator.remove();
+            // Insert after artist name
+            const artistElement = document.getElementById('player-artist');
+            if (artistElement) {
+                artistElement.appendChild(indicator);
+            }
         }
     },
 
