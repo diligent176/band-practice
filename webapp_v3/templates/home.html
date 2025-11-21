@@ -1067,11 +1067,16 @@ END: Final chorus is acapella"></textarea>
                 return;
             }
 
+            const currentUserUid = window.currentUser?.uid;
+
             container.innerHTML = collections.map(collection => {
                 // Get artwork from first linked playlist, or use fallback icon
                 const firstPlaylist = collection.linked_playlists?.[0];
                 const artworkUrl = firstPlaylist?.image_url;
                 const hasArtwork = artworkUrl && artworkUrl.trim() !== '';
+                
+                // Check if current user is the owner
+                const isOwner = collection.owner_uid === currentUserUid;
 
                 return `
                 <div class="collection-card card card-clickable" data-collection-id="${collection.id}">
@@ -1112,9 +1117,11 @@ END: Final chorus is acapella"></textarea>
                                 </span>
                             </div>
                             <div class="collection-actions">
+                                ${isOwner ? `
                                 <button class="btn-icon btn-ghost collection-link-playlist-btn" data-collection-id="${collection.id}" title="Link Spotify playlist" aria-label="Link Spotify playlist">
                                     <i class="fa-brands fa-spotify"></i>
                                 </button>
+                                ` : ''}
                                 ${collection.collaboration_requests && collection.collaboration_requests.length > 0 ? `
                                 <button class="btn-icon btn-ghost collection-requests-btn" data-collection-id="${collection.id}" title="${collection.collaboration_requests.length} pending request(s)" aria-label="View collaboration requests" style="position: relative;">
                                     <i class="fa-solid fa-user-plus"></i>
@@ -1126,12 +1133,12 @@ END: Final chorus is acapella"></textarea>
                                     <i class="fa-solid fa-gear"></i>
                                     <i class="fa-solid fa-slash" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2em;"></i>
                                 </button>
-                                ` : `
+                                ` : isOwner ? `
                                 <button class="btn-icon btn-ghost collection-edit-btn" data-collection-id="${collection.id}" title="Edit collection" aria-label="Edit collection">
                                     <i class="fa-solid fa-gear"></i>
                                 </button>
-                                `}
-                                ${!collection.is_personal ? `
+                                ` : ''}
+                                ${!collection.is_personal && isOwner ? `
                                 <button class="btn-icon btn-ghost collection-delete-btn" data-collection-id="${collection.id}" title="Delete collection" aria-label="Delete collection">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
