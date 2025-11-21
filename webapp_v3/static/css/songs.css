@@ -282,23 +282,7 @@
   align-items: center;
 }
 
-.help-keys kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  padding: 2px 6px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--text-primary);
-  box-shadow: 0 2px 0 var(--border-color), 0 2px 4px rgba(0, 0, 0, 0.3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+/* kbd styling now in base.css - shared across all components */
 
 .help-icon {
   font-size: 11px;
