@@ -835,10 +835,22 @@
   align-items: center;
   gap: var(--spacing-sm);
   flex-shrink: 0;
+  position: relative;
 }
 
 .notes-editor-panel-header i {
   color: var(--accent-primary);
+}
+
+/* Section insert shortcuts (displayed in lyrics editor panel header) */
+.lyrics-editor-section-hints {
+  position: absolute;
+  right: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .notes-editor-lyrics-content {
