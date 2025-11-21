@@ -98,7 +98,8 @@ const SpotifyPlayer = {
             if (response.ok) {
                 const profile = await response.json();
                 console.log('📋 Spotify account:', profile.email, '- Product:', profile.product);
-                this.isPremium = profile.product === 'premium';
+                // Check for any premium variant (premium, premium-family, premium-student, premium-duo, etc.)
+                this.isPremium = profile.product && profile.product.startsWith('premium');
                 return this.isPremium;
             } else {
                 console.warn('Could not fetch Spotify profile');
