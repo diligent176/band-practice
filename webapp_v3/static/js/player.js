@@ -20,8 +20,17 @@ const PlayerManager = {
     tapTimes: [],
     detectedBpm: null,
 
+    // Editor split percentages (stored in localStorage)
+    lyricsEditorSplit: parseFloat(localStorage.getItem('v3_lyricsEditorSplit')) || 70,
+    notesEditorSplit: parseFloat(localStorage.getItem('v3_notesEditorSplit')) || 70,
+
+    // Resize state
+    resizing: false,
+    currentResizeEditor: null,
+
     init() {
         this.setupEventListeners();
+        this.setupEditorSplitters();
         console.log('✅ PlayerManager initialized');
     },
 
@@ -598,6 +607,9 @@ const PlayerManager = {
         BPP.showDialog('edit-lyrics-dialog');
         this.setupLyricsEditorKeyboard();
 
+        // Apply saved split percentage
+        this.applySavedSplit('lyrics');
+
         // Focus the textarea
         setTimeout(() => editor.focus(), 100);
     },
@@ -847,6 +859,112 @@ const PlayerManager = {
     },
 
     /**
+     * Setup resizable splitters for both editors
+     */
+    setupEditorSplitters() {
+        // Lyrics Editor splitter
+        const lyricsEditorSplitter = document.getElementById('lyrics-editor-splitter');
+        if (lyricsEditorSplitter) {
+            lyricsEditorSplitter.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.startResize('lyrics', e);
+            });
+        }
+
+        // Notes Editor splitter
+        const notesEditorSplitter = document.getElementById('notes-editor-splitter');
+        if (notesEditorSplitter) {
+            notesEditorSplitter.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.startResize('notes', e);
+            });
+        }
+
+        // Global mouse handlers for resize
+        document.addEventListener('mousemove', (e) => this.handleResize(e));
+        document.addEventListener('mouseup', () => this.stopResize());
+    },
+
+    /**
+     * Start resizing editor panels
+     */
+    startResize(editorType) {
+        this.resizing = true;
+        this.currentResizeEditor = editorType;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    },
+
+    /**
+     * Handle resize drag
+     */
+    handleResize(e) {
+        if (!this.resizing || !this.currentResizeEditor) return;
+
+        const editorType = this.currentResizeEditor;
+        const contentId = editorType === 'lyrics' ? 'lyrics-editor-content' : 'notes-editor-content';
+        const leftPanelId = editorType === 'lyrics' ? 'lyrics-editor-left-panel' : 'notes-editor-left-panel';
+
+        const container = document.getElementById(contentId);
+        const leftPanel = document.getElementById(leftPanelId);
+
+        if (!container || !leftPanel) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const mouseX = e.clientX - containerRect.left;
+        const percentage = (mouseX / containerRect.width) * 100;
+
+        // Constrain between 20% and 85%
+        const constrainedPercentage = Math.max(20, Math.min(85, percentage));
+
+        // Apply the split
+        leftPanel.style.flex = `0 0 ${constrainedPercentage}%`;
+
+        // Store in memory (will save to localStorage on mouseup)
+        if (editorType === 'lyrics') {
+            this.lyricsEditorSplit = constrainedPercentage;
+        } else {
+            this.notesEditorSplit = constrainedPercentage;
+        }
+    },
+
+    /**
+     * Stop resizing and save to localStorage
+     */
+    stopResize() {
+        if (!this.resizing) return;
+
+        this.resizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+
+        // Save to localStorage
+        if (this.currentResizeEditor === 'lyrics') {
+            localStorage.setItem('v3_lyricsEditorSplit', this.lyricsEditorSplit);
+        } else if (this.currentResizeEditor === 'notes') {
+            localStorage.setItem('v3_notesEditorSplit', this.notesEditorSplit);
+        }
+
+        this.currentResizeEditor = null;
+    },
+
+    /**
+     * Apply saved split percentage to editor
+     */
+    applySavedSplit(editorType) {
+        const contentId = editorType === 'lyrics' ? 'lyrics-editor-content' : 'notes-editor-content';
+        const leftPanelId = editorType === 'lyrics' ? 'lyrics-editor-left-panel' : 'notes-editor-left-panel';
+        const splitPercentage = editorType === 'lyrics' ? this.lyricsEditorSplit : this.notesEditorSplit;
+
+        const container = document.getElementById(contentId);
+        const leftPanel = document.getElementById(leftPanelId);
+
+        if (container && leftPanel) {
+            leftPanel.style.flex = `0 0 ${splitPercentage}%`;
+        }
+    },
+
+    /**
      * Edit notes
      */
     editNotes() {
@@ -916,6 +1034,9 @@ const PlayerManager = {
 
         // Setup keyboard shortcuts for this dialog
         this.setupNotesEditorKeyboard();
+
+        // Apply saved split percentage
+        this.applySavedSplit('notes');
 
         // Focus the textarea
         setTimeout(() => editor.focus(), 100);

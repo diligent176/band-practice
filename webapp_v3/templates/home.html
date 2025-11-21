@@ -601,9 +601,9 @@
             </div>
 
             <!-- Split View Content -->
-            <div class="notes-editor-content">
+            <div class="notes-editor-content" id="lyrics-editor-content">
                 <!-- Left Panel: Editable Lyrics with Line Numbers -->
-                <div class="notes-editor-panel">
+                <div class="notes-editor-panel" id="lyrics-editor-left-panel">
                     <div class="notes-editor-panel-header">
                         <i class="fa-solid fa-edit"></i> Edit Lyrics
                     </div>
@@ -622,8 +622,13 @@ Some people call me Maurice
                     </div>
                 </div>
 
+                <!-- Resizable Divider -->
+                <div class="editor-splitter" id="lyrics-editor-splitter">
+                    <div class="editor-splitter-handle"></div>
+                </div>
+
                 <!-- Right Panel: Read-Only Notes -->
-                <div class="notes-editor-lyrics">
+                <div class="notes-editor-lyrics" id="lyrics-editor-right-panel">
                     <div class="notes-editor-panel-header">
                         <i class="fa-solid fa-note-sticky"></i> Practice Notes
                     </div>
@@ -659,9 +664,9 @@ Some people call me Maurice
             </div>
 
             <!-- Split View Content -->
-            <div class="notes-editor-content">
+            <div class="notes-editor-content" id="notes-editor-content">
                 <!-- Left Panel: Numbered Lyrics -->
-                <div class="notes-editor-lyrics">
+                <div class="notes-editor-lyrics" id="notes-editor-left-panel">
                     <div class="notes-editor-panel-header">
                         <i class="fa-solid fa-music"></i> Numbered Lyrics
                     </div>
@@ -670,8 +675,13 @@ Some people call me Maurice
                     </div>
                 </div>
 
+                <!-- Resizable Divider -->
+                <div class="editor-splitter" id="notes-editor-splitter">
+                    <div class="editor-splitter-handle"></div>
+                </div>
+
                 <!-- Right Panel: Notes Editor -->
-                <div class="notes-editor-panel">
+                <div class="notes-editor-panel" id="notes-editor-right-panel">
                     <div class="notes-editor-panel-header">
                         <i class="fa-solid fa-edit"></i> Practice Notes
                     </div>
