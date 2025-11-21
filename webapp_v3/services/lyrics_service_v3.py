@@ -89,13 +89,17 @@ class LyricsServiceV3:
         try:
             from bs4 import BeautifulSoup
 
+            html_content = None
+
             # Try ScraperAPI first if available
             if self.use_scraper_api:
                 logger.info(f"Using ScraperAPI to fetch {url}")
                 html_content = self._scrape_with_scraperapi(url)
                 if not html_content:
-                    return None
-            else:
+                    logger.info(f"ScraperAPI failed, falling back to direct request for {url}")
+
+            # Fallback to direct request if ScraperAPI not available or failed
+            if not html_content:
                 # Fallback to direct request with browser headers
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
