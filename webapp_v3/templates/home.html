@@ -1338,21 +1338,41 @@ END: Final chorus is acapella"></textarea>
                 const requestsList = document.getElementById('collaboration-requests-list');
 
                 if (requests.length === 0) {
-                    requestsList.innerHTML = '<p class="text-muted text-center">No pending requests</p>';
-                } else {
-                    requestsList.innerHTML = requests.map(req => `
-                        <div class="collaboration-request-item" style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <div style="font-weight: 600;">${escapeHtml(req.user_name)}</div>
-                                    <div class="text-sm text-muted">${escapeHtml(req.user_email)}</div>
-                                    <div class="text-xs text-muted">${formatDate(req.requested_at)}</div>
+                    // No requests left - close the dialog
+                    BPP.hideDialog('collaboration-requests-dialog');
+                    return;
+                }
+
+                // Fetch user data for each request to get photo_url
+                const requestsWithUserData = await Promise.all(requests.map(async req => {
+                    try {
+                        const userData = await BPP.apiCall(`/api/v3/users/${req.user_uid}`);
+                        return { ...req, photo_url: userData?.photo_url };
+                    } catch (error) {
+                        console.error(`Failed to fetch user data for ${req.user_uid}:`, error);
+                        return req; // Return request without photo if fetch fails
+                    }
+                }));
+
+                requestsList.innerHTML = requestsWithUserData.map(req => `
+                        <div class="collaboration-request-item">
+                            <div class="collab-request-content">
+                                <div class="collab-user-avatar">
+                                    ${req.photo_url ? 
+                                        `<img src="${escapeHtml(req.photo_url)}" alt="${escapeHtml(req.user_name)}" class="avatar-img">` :
+                                        `<div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>`
+                                    }
                                 </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="btn btn-sm btn-primary accept-request-btn" data-requester-uid="${req.user_uid}" title="Accept request">
+                                <div class="collab-user-info">
+                                    <div class="collab-user-name">${escapeHtml(req.user_name)}</div>
+                                    <div class="collab-user-email">${escapeHtml(req.user_email)}</div>
+                                    <div class="collab-request-time">${formatDate(req.requested_at)}</div>
+                                </div>
+                                <div class="collab-actions">
+                                    <button class="btn btn-primary accept-request-btn" data-requester-uid="${req.user_uid}" title="Accept request">
                                         <i class="fa-solid fa-check"></i> Accept
                                     </button>
-                                    <button class="btn btn-sm btn-secondary deny-request-btn" data-requester-uid="${req.user_uid}" title="Deny request">
+                                    <button class="btn btn-secondary deny-request-btn" data-requester-uid="${req.user_uid}" title="Deny request">
                                         <i class="fa-solid fa-times"></i> Deny
                                     </button>
                                 </div>
@@ -1360,21 +1380,20 @@ END: Final chorus is acapella"></textarea>
                         </div>
                     `).join('');
 
-                    // Add click handlers for accept/deny buttons
-                    requestsList.querySelectorAll('.accept-request-btn').forEach(btn => {
-                        btn.addEventListener('click', async () => {
-                            const requesterUid = btn.dataset.requesterUid;
-                            await acceptCollaborationRequest(collectionId, requesterUid);
-                        });
+                // Add click handlers for accept/deny buttons
+                requestsList.querySelectorAll('.accept-request-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const requesterUid = btn.dataset.requesterUid;
+                        await acceptCollaborationRequest(collectionId, requesterUid);
                     });
+                });
 
-                    requestsList.querySelectorAll('.deny-request-btn').forEach(btn => {
-                        btn.addEventListener('click', async () => {
-                            const requesterUid = btn.dataset.requesterUid;
-                            await denyCollaborationRequest(collectionId, requesterUid);
-                        });
+                requestsList.querySelectorAll('.deny-request-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const requesterUid = btn.dataset.requesterUid;
+                        await denyCollaborationRequest(collectionId, requesterUid);
                     });
-                }
+                });
 
                 BPP.showDialog('collaboration-requests-dialog');
 
@@ -1423,6 +1442,9 @@ END: Final chorus is acapella"></textarea>
 
                 // Reload the requests dialog
                 await showCollaborationRequests(collectionId);
+
+                // Reload collections to update counts and remove badge if no more requests
+                loadCollections();
 
             } catch (error) {
                 BPP.hideLoading();

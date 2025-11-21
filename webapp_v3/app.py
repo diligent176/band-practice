@@ -146,6 +146,34 @@ def get_current_user():
         logger.error(f"Get user error: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/v3/users/<uid>', methods=['GET'])
+def get_user_by_uid(uid):
+    """Get user profile by UID (for displaying collaborator info)"""
+    try:
+        user_info = AuthService.require_auth(request)
+
+        if not user_info:
+            return jsonify({'error': 'Unauthorized'}), 401
+
+        user = UserService.get_user(uid)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Return only public fields (don't expose sensitive data)
+        public_user_data = {
+            'uid': user.get('uid'),
+            'display_name': user.get('display_name'),
+            'photo_url': user.get('photo_url'),
+            'email': user.get('email')
+        }
+
+        return jsonify(public_user_data), 200
+
+    except Exception as e:
+        logger.error(f"Get user by UID error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/v3/users/me', methods=['PUT'])
 def update_current_user():
     """Update current user profile"""
