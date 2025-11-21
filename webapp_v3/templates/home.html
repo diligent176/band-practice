@@ -455,6 +455,19 @@
                     <div class="note-callout-content" id="note-callout-content"></div>
                 </div>
             </div>
+
+            <!-- Spotify Connection Prompt Overlay -->
+            <div id="spotify-connect-prompt" class="spotify-connect-prompt hidden">
+                <div class="spotify-connect-card">
+                    <i class="fa-brands fa-spotify" style="font-size: 48px; color: #1DB954;"></i>
+                    <h3>Connect Spotify for Playback</h3>
+                    <p>Connect your Spotify Premium account to play music directly in the browser.</p>
+                    <button onclick="SpotifyPlayer.connectSpotify()" class="btn btn-primary">
+                        <i class="fa-brands fa-spotify"></i>
+                        Connect Spotify
+                    </button>
+                </div>
+            </div>
         </div>
         <!-- End Player View -->
 
