@@ -620,7 +620,7 @@ const PlayerManager = {
             const trimmed = line.trim();
 
             // Check if line is a section header like [Verse 1], [Chorus], etc.
-            const isHeader = /^\[.*\]$/.test(trimmed);
+            const isHeader = /^\[.*\]/.test(trimmed);
 
             // Check if line is blank
             const isBlank = trimmed === '';
