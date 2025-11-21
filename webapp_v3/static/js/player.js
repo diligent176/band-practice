@@ -1560,33 +1560,33 @@ const PlayerManager = {
             return;
         }
 
-        try {
-            // Save with 1 decimal precision
-            const bpmToSave = this.detectedBpm.toFixed(1);
+        // Save with 1 decimal precision
+        const bpmToSave = this.detectedBpm.toFixed(1);
 
-            await BPP.apiCall(`/api/v3/songs/${this.currentSong.id}`, {
-                method: 'PUT',
-                body: JSON.stringify({ 
-                    bpm: bpmToSave,
-                    bpm_manual: true 
-                })
-            });
+        // Optimistic update - update UI immediately
+        this.currentSong.bpm = bpmToSave;
+        this.currentSong.bpm_manual = true;
+        this.renderTopNav();
+        this.stopBpmPreview();
+        BPP.hideDialog('bpm-dialog');
+        BPP.showToast(`BPM set to ${bpmToSave}`, 'success');
 
-            this.currentSong.bpm = bpmToSave;
-            this.currentSong.bpm_manual = true;
-            this.renderTopNav();
-            this.stopBpmPreview();
-            BPP.hideDialog('bpm-dialog');
-            BPP.showToast(`BPM set to ${bpmToSave}`, 'success');
-
-            // Restart metronome with new BPM
-            if (this.bpmIndicatorEnabled) {
-                this.startBpmFlasher();
-            }
-        } catch (error) {
-            console.error('Failed to save BPM:', error);
-            BPP.showToast('Failed to save BPM', 'error');
+        // Restart metronome with new BPM
+        if (this.bpmIndicatorEnabled) {
+            this.startBpmFlasher();
         }
+
+        // Save to backend in background (no await)
+        BPP.apiCall(`/api/v3/songs/${this.currentSong.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                bpm: bpmToSave,
+                bpm_manual: true
+            })
+        }).catch(error => {
+            console.error('Failed to save BPM:', error);
+            // Optionally show a subtle error indicator, but don't block UX
+        });
     },
 
     /**
