@@ -1,0 +1,2528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Band Practice Pro v3</title>
+
+    <!-- High-quality multi-resolution favicons -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/songs.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/player.css') }}">
+</head>
+<body>
+    <!-- Firebase Auth Gate -->
+    <div id="auth-gate" style="display: none;">
+        <div class="auth-gate-container">
+            <div class="auth-gate-background"></div>
+            <div class="auth-gate-content">
+                <div class="auth-gate-logo">
+                    <img src="{{ url_for('static', filename='favicon.svg') }}" alt="Band Practice Pro" class="auth-logo-icon">
+                </div>
+                <h1 class="auth-gate-title">
+                    <span class="auth-title-gradient">Band Practice Pro</span>
+                </h1>
+                <p class="auth-gate-subtitle">Your reggae-powered practice companion</p>
+                <div class="auth-gate-divider"></div>
+                <div id="firebaseui-auth-container"></div>
+                <div id="auth-error" class="auth-error" style="display: none;"></div>
+                <p class="auth-gate-footer">Thanks to <a href="https://getsongbpm.com" target="_blank">getsongbpm.com</a> for BPM data.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App - SPA with Multiple Views (shown after auth) -->
+    <div id="main-app" class="home-container" style="display: none;">
+
+        <!-- COLLECTIONS VIEW -->
+        <div id="collections-view" class="view active">
+        <!-- Header -->
+        <header class="home-header">
+            <div class="home-header-left">
+                <h1 class="home-title">
+                    <i class="fa-solid fa-guitar"></i>
+                    Band Practice Pro
+                </h1>
+            </div>
+            <div class="home-header-right">
+                <div class="keyboard-shortcuts-help" id="help-toggle" title="Keyboard Shortcuts">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <div class="help-card" id="help-card">
+                        <div class="help-card-header">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span>Keyboard Shortcuts</span>
+                            <span class="help-toggle-hint">Press / or ? to toggle help</span>
+                        </div>
+                        <div class="help-card-content">
+                            <div class="help-column">
+                                <div class="help-section">
+                                    <div class="help-section-title">Navigation</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>↑</kbd><kbd>↓</kbd></div>
+                                        <i class="fa-solid fa-arrows-up-down help-icon"></i>
+                                        <span>Navigate grid</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Home</kbd><kbd>End</kbd></div>
+                                        <i class="fa-solid fa-arrow-down-1-9 help-icon"></i>
+                                        <span>First/Last</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Enter</kbd></div>
+                                        <i class="fa-solid fa-folder-open help-icon"></i>
+                                        <span>Open</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-column">
+                                <div class="help-section">
+                                    <div class="help-section-title">Actions</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>N</kbd></div>
+                                        <i class="fa-solid fa-plus help-icon"></i>
+                                        <span>New</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>E</kbd></div>
+                                        <i class="fa-solid fa-gear help-icon"></i>
+                                        <span>Edit</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>P</kbd></div>
+                                        <i class="fa-brands fa-spotify help-icon"></i>
+                                        <span>Playlists</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Del</kbd></div>
+                                        <i class="fa-solid fa-trash help-icon"></i>
+                                        <span>Delete</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button id="signout-btn" class="btn-icon btn-ghost" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="home-content">
+            <!-- Your Collections Section -->
+            <section class="collections-section">
+                <div class="section-header">
+                    <div class="section-header-left">
+                        <h2 class="section-title">
+                            <i class="fa-solid fa-folder"></i>
+                            Your Collections
+                        </h2>
+                        <button id="new-collection-btn" class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-plus"></i>
+                            New Collection
+                        </button>
+                    </div>
+                </div>
+                <div id="owned-collections" class="collections-grid">
+                    <!-- Collections will be loaded here -->
+                    <div class="loading-spinner"></div>
+                </div>
+            </section>
+
+            <!-- Shared Collections Section -->
+            <section class="collections-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fa-solid fa-users"></i>
+                        Shared With You
+                    </h2>
+                </div>
+                <div id="shared-collections" class="collections-grid">
+                    <!-- Shared collections will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Public Collections Section -->
+            <section class="collections-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fa-solid fa-globe"></i>
+                        Browse Public Collections
+                    </h2>
+                </div>
+                <div id="public-collections" class="collections-grid">
+                    <!-- Public collections will be loaded here -->
+                </div>
+            </section>
+        </main>
+        </div>
+        <!-- End Collections View -->
+
+        <!-- SONGS VIEW -->
+        <div id="songs-view" class="view">
+            <!-- Songs Header -->
+            <header class="songs-header">
+                <div class="songs-header-left">
+                    <button id="songs-back-btn" class="btn-icon btn-ghost" title="Back to Collections (ESC)">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div class="collection-info">
+                        <h1 class="collection-name" id="songs-collection-name">Loading...</h1>
+                        <div class="song-count" id="songs-count">0 songs</div>
+                    </div>
+                </div>
+                <div class="songs-header-right">
+                    <!-- Sort indicator -->
+                    <div class="sort-indicator" id="sort-indicator" title="Sort mode (ALT+T to toggle)">
+                        <i class="fa-solid fa-arrow-down-a-z"></i>
+                        <span id="sort-mode-text">By Title</span>
+                    </div>
+                    <!-- Search bar -->
+                    <div class="search-bar">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="song-search" class="search-input" placeholder="Type to filter songs..." autocomplete="off">
+                    </div>
+                    <!-- Help toggle -->
+                    <div class="keyboard-shortcuts-help" id="songs-help-toggle" title="Keyboard Shortcuts">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <div class="help-card" id="songs-help-card">
+                            <div class="help-card-header">
+                                <i class="fa-solid fa-keyboard"></i>
+                                <span>Keyboard Shortcuts</span>
+                                <span class="help-toggle-hint">Press / or ? to toggle help</span>
+                            </div>
+                            <div class="help-card-content">
+                                <div class="help-column">
+                                    <div class="help-section">
+                                        <div class="help-section-title">Navigation</div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>↑</kbd><kbd>↓</kbd></div>
+                                            <i class="fa-solid fa-arrows-up-down help-icon"></i>
+                                            <span>Navigate songs</span>
+                                        </div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>Home</kbd><kbd>End</kbd></div>
+                                            <i class="fa-solid fa-arrow-down-1-9 help-icon"></i>
+                                            <span>First/Last</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="help-column">
+                                    <div class="help-section">
+                                        <div class="help-section-title">Actions</div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>Enter</kbd></div>
+                                            <i class="fa-solid fa-play help-icon"></i>
+                                            <span>Open song</span>
+                                        </div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>ALT</kbd><kbd>T</kbd></div>
+                                            <i class="fa-solid fa-arrow-down-a-z help-icon"></i>
+                                            <span>Toggle sort</span>
+                                        </div>
+                                        <div class="help-item">
+                                            <div class="help-keys"><kbd>ESC</kbd></div>
+                                            <i class="fa-solid fa-arrow-left help-icon"></i>
+                                            <span>Back</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Logout -->
+                    <button id="songs-logout-btn" class="btn-icon btn-ghost" title="Logout" onclick="firebase.auth().signOut()">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Songs List -->
+            <main class="songs-content">
+                <div id="songs-list" class="songs-list">
+                    <!-- Songs will be loaded here -->
+                    <div class="loading-spinner"></div>
+                </div>
+            </main>
+        </div>
+        <!-- End Songs View -->
+
+        <!-- PLAYER VIEW -->
+        <div id="player-view" class="view">
+            <!-- Player Top Nav (Fixed) -->
+            <div class="player-top-nav">
+                <!-- Back Button (Fixed Left) -->
+                <button id="player-back-btn" class="btn-icon btn-ghost player-back-btn" title="Back to Songs (ESC)">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+
+                <!-- Album Art -->
+                <div class="player-album-art-container">
+                    <img id="player-album-art" src="/static/favicon.svg" alt="Album Art" class="player-album-art">
+                </div>
+
+                <!-- Song Metadata -->
+                <div class="player-song-info">
+                    <div id="player-song-title" class="player-song-title">Song Title</div>
+                    <div id="player-artist" class="player-artist">Artist</div>
+                </div>
+
+                <!-- Central Player Controls Container -->
+                <div class="player-center-controls">
+                    <!-- BPM Display & Flasher -->
+                    <div id="bpm-indicator-block" class="bpm-indicator-block" title="Toggle BPM metronome (I)">
+                        <i class="fa-solid fa-drum"></i>
+                        <span id="player-bpm" class="player-bpm-value">--</span>
+                    </div>
+
+                    <!-- Playback Controls -->
+                    <div class="player-controls">
+                        <button id="player-prev-btn" class="btn-icon btn-player" title="Previous song (B)">
+                            <i class="fa-solid fa-backward"></i>
+                        </button>
+                        <button id="player-play-btn" class="btn-icon btn-player btn-play-large" title="Play/Pause (Space)">
+                            <i class="fa-solid fa-play"></i>
+                            <span id="player-play-text" style="display: none; margin-left: 8px; font-size: 14px;">Play in Spotify</span>
+                        </button>
+                        <button id="player-next-btn" class="btn-icon btn-player" title="Next song (F)">
+                            <i class="fa-solid fa-forward"></i>
+                        </button>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="player-progress-container">
+                        <span id="player-current-time" class="player-time">0:00</span>
+                        <div class="player-progress-bar">
+                            <div id="player-progress-fill" class="player-progress-fill"></div>
+                        </div>
+                        <span id="player-duration" class="player-time">0:00</span>
+                    </div>
+
+                    <!-- View Controls (Columns & Font) -->
+                    <div class="player-view-options">
+                        <button id="player-toggle-columns" class="btn-icon btn-ghost" title="Toggle columns (C)">
+                            <i class="fa-solid fa-columns"></i>
+                        </button>
+                        <button id="player-font-decrease" class="btn-icon btn-ghost" title="Decrease font (Alt+Down)">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <button id="player-font-increase" class="btn-icon btn-ghost" title="Increase font (Alt+Up)">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Help + Logout (Fixed Right) -->
+                <div class="player-top-nav-right">
+                    <!-- Help Toggle -->
+                    <div class="keyboard-shortcuts-help" id="player-help-toggle" title="Keyboard Shortcuts">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <div class="help-card" id="player-help-card">
+                        <div class="help-card-header">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span>Keyboard Shortcuts</span>
+                            <span class="help-toggle-hint">Press / or ? to toggle help</span>
+                        </div>
+                        <div class="help-card-content">
+                            <div class="help-column">
+                                <div class="help-section">
+                                    <div class="help-section-title">Navigation</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>X</kbd></div>
+                                        <i class="fa-solid fa-folder help-icon"></i>
+                                        <span>Collections</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>S</kbd></div>
+                                        <i class="fa-solid fa-music help-icon"></i>
+                                        <span>Songs</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>B</kbd></div>
+                                        <i class="fa-solid fa-backward help-icon"></i>
+                                        <span>Previous</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>F</kbd></div>
+                                        <i class="fa-solid fa-forward help-icon"></i>
+                                        <span>Next</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>ESC</kbd></div>
+                                        <i class="fa-solid fa-arrow-left help-icon"></i>
+                                        <span>Back</span>
+                                    </div>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title">View</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>C</kbd></div>
+                                        <i class="fa-solid fa-columns help-icon"></i>
+                                        <span>Columns</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>I</kbd></div>
+                                        <i class="fa-solid fa-drum help-icon"></i>
+                                        <span>BPM Indicator</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Alt</kbd><kbd>↑</kbd><kbd>↓</kbd></div>
+                                        <i class="fa-solid fa-text-height help-icon"></i>
+                                        <span>Font Size</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-column">
+                                <div class="help-section">
+                                    <div class="help-section-title">Playback</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>Space</kbd></div>
+                                        <i class="fa-solid fa-play help-icon"></i>
+                                        <span>Play/Pause</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>R</kbd></div>
+                                        <i class="fa-solid fa-rotate-left help-icon"></i>
+                                        <span>Restart</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>M</kbd></div>
+                                        <i class="fa-solid fa-volume-xmark help-icon"></i>
+                                        <span>Mute</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>←</kbd><kbd>→</kbd></div>
+                                        <i class="fa-solid fa-left-right help-icon"></i>
+                                        <span>Skip ±5s</span>
+                                    </div>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title">Editing</div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>L</kbd></div>
+                                        <i class="fa-solid fa-file-lines help-icon"></i>
+                                        <span>Edit Lyrics</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>N</kbd></div>
+                                        <i class="fa-solid fa-pen-to-square help-icon"></i>
+                                        <span>Edit Notes</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>G</kbd></div>
+                                        <i class="fa-solid fa-download help-icon"></i>
+                                        <span>Get Lyrics</span>
+                                    </div>
+                                    <div class="help-item">
+                                        <div class="help-keys"><kbd>.</kbd></div>
+                                        <i class="fa-solid fa-drum help-icon"></i>
+                                        <span>Set Tempo</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Logout -->
+                    <button id="player-logout-btn" class="btn-icon btn-ghost" title="Logout" onclick="firebase.auth().signOut()">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Player Main Content -->
+            <div class="player-main">
+                <!-- Lyrics Panel (100% width - notes shown as callouts) -->
+                <div class="player-lyrics-panel lyrics-columns-3" id="player-lyrics-panel">
+                    <div class="empty-state">
+                        <p>Loading lyrics...</p>
+                    </div>
+                </div>
+
+                <!-- Note Callout (positioned absolutely, shown when navigating notes) -->
+                <div class="note-callout hidden" id="note-callout">
+                    <div class="note-callout-content" id="note-callout-content"></div>
+                </div>
+            </div>
+        </div>
+        <!-- End Player View -->
+
+    </div>
+    <!-- End Main App -->
+
+    <!-- New Collection Dialog -->
+    <div id="new-collection-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Create New Collection</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('new-collection-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <div class="mb-md">
+                    <label for="collection-name" class="text-sm text-secondary mb-sm">Collection Name</label>
+                    <input type="text" id="collection-name" class="input" placeholder="e.g. Summer Gig 2026" autofocus>
+                </div>
+                <div class="mb-md">
+                    <label for="collection-description" class="text-sm text-secondary mb-sm">Description (optional)</label>
+                    <input type="text" id="collection-description" class="input" placeholder="Brief description">
+                </div>
+                <div class="mb-md">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="collection-public">
+                        <span class="text-sm">Make this collection public</span>
+                    </label>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('new-collection-dialog')">Cancel</button>
+                <button id="create-collection-btn" class="btn btn-primary">Create Collection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Collection Dialog -->
+    <div id="edit-collection-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Edit Collection</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('edit-collection-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="edit-collection-id">
+                <div class="mb-md">
+                    <label for="edit-collection-name" class="text-sm text-secondary mb-sm">Collection Name</label>
+                    <input type="text" id="edit-collection-name" class="input" placeholder="Collection name" autofocus>
+                </div>
+                <div class="mb-md">
+                    <label for="edit-collection-description" class="text-sm text-secondary mb-sm">Description (optional)</label>
+                    <input type="text" id="edit-collection-description" class="input" placeholder="Brief description">
+                </div>
+                <div class="mb-md">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="edit-collection-public">
+                        <span class="text-sm">Make this collection public</span>
+                    </label>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('edit-collection-dialog')">Cancel</button>
+                <button id="save-collection-btn" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <div id="delete-collection-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Delete Collection</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('delete-collection-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="delete-collection-id">
+                <p class="text-secondary">
+                    Are you sure you want to delete "<span id="delete-collection-name" class="text-primary"></span>"?
+                </p>
+                <p class="text-sm text-muted">
+                    This will permanently delete the collection and all its songs. This action cannot be undone.
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('delete-collection-dialog')">Cancel</button>
+                <button id="confirm-delete-btn" class="btn btn-primary" style="background: rgba(197, 48, 48, 0.7);">Delete Collection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fetch Lyrics Dialog -->
+    <div id="fetch-lyrics-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Fetch Lyrics from Genius</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('fetch-lyrics-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <p class="text-secondary">
+                    Fetch lyrics from Genius? This action overwrites any custom lyrics saved for this song.
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('fetch-lyrics-dialog')">Cancel</button>
+                <button id="confirm-fetch-lyrics-btn" class="btn btn-primary">Fetch Lyrics</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Linked Playlists Dialog -->
+    <div id="link-playlist-dialog" class="dialog-overlay hidden">
+        <div class="dialog dialog-large">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Manage Linked Playlists</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('link-playlist-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="link-playlist-collection-id">
+
+                <!-- 1. Paste New Playlist URL (FOCUSED) -->
+                <div class="mb-md">
+                    <label for="playlist-url" class="text-sm text-secondary mb-sm">Add Spotify Playlist</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="playlist-url" class="input" placeholder="https://open.spotify.com/playlist/..." autofocus autocomplete="off" style="flex: 1;">
+                        <button id="add-playlist-btn" class="btn btn-primary" title="Add playlist">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Linked Playlists (set order) -->
+                <div id="linked-playlists-section" class="mb-md" style="display: none;">
+                    <label class="text-sm text-secondary mb-sm">
+                        Linked Playlists
+                        <span style="margin-left: 8px; font-size: 11px; opacity: 0.6;"><i class="fa-solid fa-grip-vertical"></i> Drag to reorder</span>
+                    </label>
+                    <div id="linked-playlists-list" class="recent-playlists-list">
+                        <!-- Linked playlists will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- 3. Other Playlists (recent memory) -->
+                <div id="other-playlists-section" class="mb-md" style="display: none;">
+                    <label class="text-sm text-secondary mb-sm">Other Playlists</label>
+                    <div id="other-playlists-list" class="recent-playlists-list">
+                        <!-- Other recent playlists will be rendered here -->
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('link-playlist-dialog')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Collaboration Requests Dialog -->
+    <div id="collaboration-requests-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Collaboration Requests</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('collaboration-requests-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="collaboration-collection-id">
+                <div id="collaboration-requests-list" class="collaboration-requests-list">
+                    <!-- Requests will be rendered here -->
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('collaboration-requests-dialog')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Collaborator Access Confirmation Dialog -->
+    <div id="request-access-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Request Collaborator Access</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('request-access-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="request-access-collection-id">
+                <p class="text-secondary" style="line-height: 1.6;">
+                    Request Collaborator role on this Collection?
+                </p>
+                <p class="text-secondary" style="line-height: 1.6; margin-top: 12px;">
+                    Collaborators can edit Lyrics, Notes and Tempo. The Collection Owner will see this request.
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('request-access-dialog')">Cancel</button>
+                <button id="confirm-request-access-btn" class="btn btn-primary">Send Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Lyrics Dialog - Full Screen Split View -->
+    <div id="edit-lyrics-dialog" class="dialog-overlay hidden">
+        <div class="notes-editor-fullscreen">
+            <!-- Header -->
+            <div class="notes-editor-header">
+                <div class="notes-editor-title">
+                    <i class="fa-solid fa-music"></i>
+                    <span>Edit Lyrics</span>
+                </div>
+                <div class="notes-editor-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="PlayerManager.cancelLyricsEdit()">
+                        <i class="fa-solid fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="PlayerManager.saveLyrics()">
+                        <i class="fa-solid fa-save"></i> Save
+                    </button>
+                </div>
+                <div class="notes-editor-hints">
+                    <span class="shortcut-hint"><kbd>ESC</kbd> Cancel</span>
+                    <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
+                </div>
+            </div>
+
+            <!-- Split View Content -->
+            <div class="notes-editor-content" id="lyrics-editor-content">
+                <!-- Left Panel: Editable Lyrics with Line Numbers -->
+                <div class="notes-editor-panel" id="lyrics-editor-left-panel">
+                    <div class="notes-editor-panel-header">
+                        <i class="fa-solid fa-edit"></i> Edit Lyrics
+                        <div class="lyrics-editor-section-hints">
+                            <span class="shortcut-hint"><kbd>Alt</kbd>+<kbd>V</kbd>Verse </span>
+                            <span class="shortcut-hint"><kbd>C</kbd>Chorus </span>
+                            <span class="shortcut-hint"><kbd>B</kbd>Bridge </span>
+                            <span class="shortcut-hint"><kbd>I</kbd>Intro </span>
+                            <span class="shortcut-hint"><kbd>O</kbd>Outro </span>
+                            <span class="shortcut-hint"><kbd>T</kbd>Tighten</span>
+                        </div>
+                    </div>
+                    <div class="lyrics-editor-wrapper">
+                        <div class="lyrics-line-numbers" id="lyrics-line-numbers"></div>
+                        <textarea id="lyrics-editor" class="lyrics-textarea-with-numbers" placeholder="Enter lyrics here...
+
+Example:
+[Intro]
+Some people call me the space cowboy
+Yeah, some call me the gangster of love
+
+[Verse 1]
+Some people call me Maurice
+'Cause I speak of the pompatus of love"></textarea>
+                    </div>
+                </div>
+
+                <!-- Resizable Divider -->
+                <div class="editor-splitter" id="lyrics-editor-splitter">
+                    <div class="editor-splitter-handle"></div>
+                </div>
+
+                <!-- Right Panel: Read-Only Notes -->
+                <div class="notes-editor-lyrics" id="lyrics-editor-right-panel">
+                    <div class="notes-editor-panel-header">
+                        <i class="fa-solid fa-note-sticky"></i> Practice Notes
+                    </div>
+                    <div class="notes-editor-lyrics-content" id="lyrics-editor-notes-display">
+                        <!-- Notes will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Notes Dialog - Full Screen Split View -->
+    <div id="edit-notes-dialog" class="dialog-overlay hidden">
+        <div class="notes-editor-fullscreen">
+            <!-- Header -->
+            <div class="notes-editor-header">
+                <div class="notes-editor-title">
+                    <i class="fa-solid fa-note-sticky"></i>
+                    <span>Edit Practice Notes</span>
+                </div>
+                <div class="notes-editor-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="PlayerManager.cancelNotesEdit()">
+                        <i class="fa-solid fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="PlayerManager.saveNotes()">
+                        <i class="fa-solid fa-save"></i> Save
+                    </button>
+                </div>
+                <div class="notes-editor-hints">
+                    <span class="shortcut-hint"><kbd>ESC</kbd> Cancel</span>
+                    <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> Save</span>
+                </div>
+            </div>
+
+            <!-- Split View Content -->
+            <div class="notes-editor-content" id="notes-editor-content">
+                <!-- Left Panel: Numbered Lyrics -->
+                <div class="notes-editor-lyrics" id="notes-editor-left-panel">
+                    <div class="notes-editor-panel-header">
+                        <i class="fa-solid fa-music"></i> Numbered Lyrics
+                    </div>
+                    <div class="notes-editor-lyrics-content" id="notes-editor-lyrics-display">
+                        <!-- Lyrics will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Resizable Divider -->
+                <div class="editor-splitter" id="notes-editor-splitter">
+                    <div class="editor-splitter-handle"></div>
+                </div>
+
+                <!-- Right Panel: Notes Editor -->
+                <div class="notes-editor-panel" id="notes-editor-right-panel">
+                    <div class="notes-editor-panel-header">
+                        <i class="fa-solid fa-edit"></i> Practice Notes
+                    </div>
+                    <div class="notes-editor-instructions">
+                        <div class="notes-editor-instructions-title">Note Format:</div>
+                        <div class="notes-editor-format-examples">
+                            <code>START: Your note</code>
+                            <span class="format-desc">Song beginning</span>
+                            <code>5: Your note</code>
+                            <span class="format-desc">Single line</span>
+                            <code>10-15: Your note</code>
+                            <span class="format-desc">Line range</span>
+                            <code>END: Your note</code>
+                            <span class="format-desc">Song ending</span>
+                        </div>
+                    </div>
+                    <textarea id="notes-editor" class="notes-textarea" placeholder="Add your practice notes here...
+
+Example:
+START: Start with drum fill
+12: Heavy kick on 1 and 3
+45-48: Double time, watch for break
+END: Final chorus is acapella"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart BPM Dialog (Tap Trainer + Manual Adjustment) -->
+    <div id="bpm-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title"><i class="fa-solid fa-drum"></i> Set BPM</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('bpm-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <div class="text-center text-sm text-muted mb-md" style="line-height: 1.8;">
+                    <div>Tap <kbd>.</kbd> to train the tempo</div>
+                    <div><kbd>↑</kbd> <kbd>↓</kbd> to adjust ±0.1 • <kbd>Ctrl</kbd> + <kbd>↑</kbd> <kbd>↓</kbd> to adjust ±1.0</div>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px;">
+                    <div id="bpm-metronome-preview" class="bpm-metronome-preview">
+                        <i class="fa-solid fa-drum"></i>
+                    </div>
+                    <div id="bpm-value-display" class="bpm-display-large" style="margin: 0;">--.-</div>
+                </div>
+                <div id="bpm-tap-count" class="text-center text-sm text-secondary mt-sm">Ready to tap</div>
+            </div>
+            <div class="dialog-footer">
+                <button id="bpm-reset-btn" class="btn btn-secondary" onclick="PlayerManager.resetBpmDialog()">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button id="bpm-save-btn" class="btn btn-primary" onclick="PlayerManager.saveBpm()">
+                    <i class="fa-solid fa-check"></i> Save BPM
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
+
+    <!-- Common utilities -->
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/spotify_player.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/viewManager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+
+    <script>
+        // Always use Firebase Auth (both local and production)
+        console.log('🔥 Using Firebase Auth');
+
+        // Firebase configuration - replace with your project's config
+        const firebaseConfig = {
+            apiKey: "{{ config.FIREBASE_API_KEY }}",
+            authDomain: "{{ config.FIREBASE_AUTH_DOMAIN }}",
+            projectId: "{{ config.FIREBASE_PROJECT_ID }}"
+        };
+
+        console.log('🔥 Firebase config:', firebaseConfig);
+        console.log('🔥 Step 1: Initializing Firebase...');
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        console.log('🔥 Step 2: Firebase initialized');
+
+        const auth = firebase.auth();
+        console.log('🔥 Step 3: Auth instance created');
+
+        // Set persistence to LOCAL for redirect flow
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
+            console.log('🔥 Step 4: Persistence set to LOCAL');
+        }).catch((error) => {
+            console.error('❌ Failed to set persistence:', error);
+        });
+
+        // FirebaseUI configuration
+        const uiConfig = {
+            signInFlow: 'popup',  // Use popup flow (works reliably on localhost)
+            signInOptions: [
+                {
+                    provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                    customParameters: {
+                        prompt: 'select_account'
+                    }
+                }
+            ],
+            callbacks: {
+                signInSuccessWithAuthResult: (authResult) => {
+                    console.log('✅✅✅ SIGN IN SUCCESS CALLBACK FIRED ✅✅✅');
+                    console.log('📧 User email:', authResult.user.email);
+                    console.log('🆔 User uid:', authResult.user.uid);
+                    console.log('✅ Email verified:', authResult.user.emailVerified);
+                    console.log('👤 Full user object:', authResult.user);
+                    console.log('🔐 Credential:', authResult.credential);
+                    console.log('📝 Additional user info:', authResult.additionalUserInfo);
+                    console.log('🔄 Auth successful - onAuthStateChanged will handle UI');
+                    // Return false - let onAuthStateChanged handle showing the app
+                    return false;
+                },
+                signInFailure: (error) => {
+                    console.error('❌❌❌ SIGN IN FAILURE ❌❌❌');
+                    console.error('Error code:', error.code);
+                    console.error('Error message:', error.message);
+                    console.error('Full error:', error);
+                    return Promise.resolve();
+                },
+                uiShown: () => {
+                    console.log('🎨 FirebaseUI widget shown');
+                }
+            }
+        };
+
+        console.log('🔥 Step 5: Creating FirebaseUI instance...');
+        const ui = new firebaseui.auth.AuthUI(auth);
+        console.log('🔥 Step 6: FirebaseUI created');
+
+        let currentUser = null;
+        let idToken = null;
+        let authStateCallCount = 0;
+
+        // Auth state observer
+        console.log('🔥 Step 7: Setting up onAuthStateChanged listener...');
+        auth.onAuthStateChanged(async (user) => {
+            authStateCallCount++;
+            console.log('🔐🔐🔐 AUTH STATE CHANGED CALLBACK FIRED (Call #' + authStateCallCount + ') 🔐🔐🔐');
+            console.log('📍 Current URL:', window.location.href);
+            console.log('📍 Has URL params?', window.location.search);
+            console.log('User object:', user);
+            console.log('User email:', user ? user.email : 'NULL');
+            console.log('User emailVerified:', user ? user.emailVerified : 'N/A');
+            console.log('User uid:', user ? user.uid : 'N/A');
+
+            // DEBUG: Check if user was signed in before
+            if (!user && currentUser) {
+                console.error('🚨🚨🚨 USER WAS SIGNED IN BUT NOW IS NULL 🚨🚨🚨');
+                console.error('Previous user:', currentUser.email);
+                console.error('This means Firebase signed the user out!');
+            }
+
+            if (user) {
+                // User is signed in
+                console.log('✅ USER IS SIGNED IN');
+                try {
+                    console.log('📝 Step A: Getting ID token...');
+                    idToken = await user.getIdToken();  // Get current token
+                    console.log('✅ Step B: Got ID token (first 50 chars):', idToken.substring(0, 50));
+                    currentUser = user;
+
+                    // Check if user is allowed by making a test API call
+                    console.log('🌐 Step C: About to call /api/v3/auth/login with Authorization header...');
+                    console.log('Authorization header will be:', `Bearer ${idToken.substring(0, 50)}...`);
+
+                    const response = await fetch('/api/v3/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${idToken}`
+                        }
+                    });
+
+                    console.log('📥 Step D: /api/v3/auth/login response received. Status:', response.status);
+
+                    if (response.ok) {
+                        // User is authorized
+                        console.log('✅✅✅ USER AUTHORIZED ✅✅✅');
+                        console.log('User email:', user.email);
+                        console.log('Step E: Hiding auth gate, showing main app');
+                        document.getElementById('auth-gate').style.display = 'none';
+                        document.getElementById('main-app').style.display = 'block';
+
+                        // Update logout button tooltips with username
+                        const logoutButtons = [
+                            document.getElementById('signout-btn'),
+                            document.getElementById('songs-logout-btn'),
+                            document.getElementById('player-logout-btn')
+                        ];
+                        logoutButtons.forEach(btn => {
+                            if (btn) btn.title = `Logout ${user.email}`;
+                        });
+
+                        // Make current user available globally
+                        window.currentUser = user;
+
+                        // Initialize ViewManager for SPA navigation
+                        ViewManager.init();
+
+                        // Load collections
+                        loadCollections();
+                    } else {
+                        // User not authorized
+                        const errorText = await response.text();
+                        console.error('❌❌❌ AUTHORIZATION FAILED ❌❌❌');
+                        console.error('Response status:', response.status);
+                        console.error('Response body:', errorText);
+                        console.error('User email:', user.email);
+                        console.error('ID token (first 50 chars):', idToken.substring(0, 50));
+                        document.getElementById('auth-error').textContent =
+                            'You are not authorized to access this application. Contact the admin.';
+                        document.getElementById('auth-error').style.display = 'block';
+                        await auth.signOut();
+                    }
+                } catch (error) {
+                    console.error('💥💥💥 ERROR DURING AUTHENTICATION 💥💥💥');
+                    console.error('Error:', error);
+                    console.error('Error message:', error.message);
+                    console.error('Error stack:', error.stack);
+                    document.getElementById('auth-error').textContent = 'Authentication error. Please try again.';
+                    document.getElementById('auth-error').style.display = 'block';
+                }
+            } else {
+                // User is signed out
+                console.log('👋👋👋 USER IS NULL - SIGNED OUT 👋👋👋');
+                console.log('🔍 Checking localStorage for auth data...');
+                console.log('localStorage keys:', Object.keys(localStorage));
+                console.log('firebase:authUser keys:', Object.keys(localStorage).filter(k => k.includes('firebase')));
+
+                // Check if we're returning from OAuth redirect
+                const urlParams = new URLSearchParams(window.location.search);
+                console.log('🔍 URL params:', Array.from(urlParams.entries()));
+
+                console.log('Step X: Hiding main app, showing auth gate');
+                document.getElementById('main-app').style.display = 'none';
+                document.getElementById('auth-gate').style.display = 'block';
+
+                // Check if FirebaseUI is already rendered
+                const authContainer = document.getElementById('firebaseui-auth-container');
+                console.log('🔍 Auth container children:', authContainer.children.length);
+
+                if (authContainer.children.length === 0) {
+                    console.log('Step Y: Starting FirebaseUI...');
+                    ui.start('#firebaseui-auth-container', uiConfig);
+                    console.log('Step Z: FirebaseUI started');
+                } else {
+                    console.log('⚠️ FirebaseUI already rendered, not starting again');
+                }
+            }
+        });
+
+        console.log('🔥 Step 8: onAuthStateChanged listener registered');
+
+        // =================================================================
+        // COLLECTIONS UI LOGIC
+        // =================================================================
+
+        async function loadCollections() {
+            try {
+                console.log('📦 Loading collections...');
+                const data = await BPP.apiCall('/api/v3/collections');
+
+                console.log('📦 Collections loaded:', data);
+
+                // Render owned collections
+                renderCollections(data.owned, 'owned-collections');
+
+                // Render shared collections
+                if (data.shared && data.shared.length > 0) {
+                    renderCollections(data.shared, 'shared-collections');
+                } else {
+                    document.getElementById('shared-collections').innerHTML = '<p class="text-muted text-center">No shared collections yet</p>';
+                }
+
+                // Load public collections
+                await loadPublicCollections();
+
+            } catch (error) {
+                console.error('Error loading collections:', error);
+                BPP.showToast('Failed to load collections', 'error');
+            }
+        }
+
+        async function loadPublicCollections() {
+            try {
+                const data = await BPP.apiCall('/api/v3/collections/public');
+                const publicCollections = data.collections || [];
+
+                if (publicCollections.length > 0) {
+                    renderPublicCollections(publicCollections, 'public-collections');
+                } else {
+                    document.getElementById('public-collections').innerHTML = '<p class="text-muted text-center">No public collections available</p>';
+                }
+            } catch (error) {
+                console.error('Error loading public collections:', error);
+                document.getElementById('public-collections').innerHTML = '<p class="text-muted text-center">Failed to load public collections</p>';
+            }
+        }
+
+        function renderCollections(collections, containerId) {
+            const container = document.getElementById(containerId);
+
+            if (!collections || collections.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">No collections yet</p>';
+                return;
+            }
+
+            const currentUserUid = window.currentUser?.uid;
+
+            container.innerHTML = collections.map(collection => {
+                // Get artwork from first linked playlist, or use fallback icon
+                const firstPlaylist = collection.linked_playlists?.[0];
+                const artworkUrl = firstPlaylist?.image_url;
+                const hasArtwork = artworkUrl && artworkUrl.trim() !== '';
+                
+                // Check if current user is the owner
+                const isOwner = collection.owner_uid === currentUserUid;
+
+                return `
+                <div class="collection-card card card-clickable" data-collection-id="${collection.id}">
+                    <div class="collection-artwork-container">
+                        ${hasArtwork
+                            ? `<img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(collection.name)} artwork" class="collection-artwork" loading="lazy">`
+                            : `<div class="collection-artwork-placeholder">
+                                <img src="/static/favicon.svg" alt="Guitar" style="width: 80%; height: 80%; opacity: 0.6;">
+                               </div>`
+                        }
+                    </div>
+                    <div class="collection-content">
+                        <div class="collection-header">
+                            <div class="collection-title-row">
+                                <h3 class="collection-name">${escapeHtml(collection.name)}</h3>
+                            </div>
+                        </div>
+                        <div class="collection-description-row">
+                            ${collection.description ? `<p class="collection-description">${escapeHtml(collection.description)}</p>` : '<p class="collection-description"></p>'}
+                            <div class="collection-badges">
+                                ${collection.is_personal
+                                    ? '<span class="collection-badge">Personal</span>'
+                                    : collection.is_public
+                                        ? '<span class="collection-badge collection-badge-public">Public</span>'
+                                        : '<span class="collection-badge collection-badge-private"><i class="fa-solid fa-lock"></i></span>'
+                                }
+                            </div>
+                        </div>
+                        <div class="collection-meta-and-actions">
+                            <div class="collection-meta">
+                                <span class="collection-meta-item">
+                                    <i class="fa-solid fa-music"></i>
+                                    ${collection.song_count || 0} ${(collection.song_count || 0) === 1 ? 'song' : 'songs'}
+                                </span>
+                                <span class="collection-meta-item">
+                                    <i class="fa-solid fa-list"></i>
+                                    ${collection.linked_playlists?.length || 0} ${(collection.linked_playlists?.length || 0) === 1 ? 'playlist' : 'playlists'}
+                                </span>
+                            </div>
+                            <div class="collection-actions">
+                                ${isOwner ? `
+                                <button class="btn-icon btn-ghost collection-link-playlist-btn" data-collection-id="${collection.id}" title="Link Spotify playlist" aria-label="Link Spotify playlist">
+                                    <i class="fa-brands fa-spotify"></i>
+                                </button>
+                                ` : ''}
+                                ${collection.collaboration_requests && collection.collaboration_requests.length > 0 ? `
+                                <button class="btn-icon btn-ghost collection-requests-btn" data-collection-id="${collection.id}" title="${collection.collaboration_requests.length} pending request(s)" aria-label="View collaboration requests" style="position: relative;">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    <span class="badge" style="position: absolute; top: -4px; right: -4px; background: var(--accent-primary); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${collection.collaboration_requests.length}</span>
+                                </button>
+                                ` : ''}
+                                ${collection.is_personal ? `
+                                <button class="btn-icon btn-ghost" disabled title="Cannot edit Personal Collection" aria-label="Cannot edit Personal Collection" style="opacity: 0.5; cursor: not-allowed; position: relative;">
+                                    <i class="fa-solid fa-gear"></i>
+                                    <i class="fa-solid fa-slash" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2em;"></i>
+                                </button>
+                                ` : isOwner ? `
+                                <button class="btn-icon btn-ghost collection-edit-btn" data-collection-id="${collection.id}" title="Edit collection" aria-label="Edit collection">
+                                    <i class="fa-solid fa-gear"></i>
+                                </button>
+                                ` : ''}
+                                ${!collection.is_personal && isOwner ? `
+                                <button class="btn-icon btn-ghost collection-delete-btn" data-collection-id="${collection.id}" title="Delete collection" aria-label="Delete collection">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+
+            // Add click handlers for cards
+            container.querySelectorAll('.collection-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // Don't open if clicking action buttons
+                    if (e.target.closest('.collection-actions')) {
+                        return;
+                    }
+                    const collectionId = card.dataset.collectionId;
+                    openCollection(collectionId);
+                });
+            });
+
+            // Add click handlers for edit buttons
+            container.querySelectorAll('.collection-edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const collectionId = btn.dataset.collectionId;
+                    editCollection(collectionId);
+                });
+            });
+
+            // Add click handlers for delete buttons
+            container.querySelectorAll('.collection-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const collectionId = btn.dataset.collectionId;
+                    deleteCollection(collectionId);
+                });
+            });
+
+            // Add click handlers for link playlist buttons
+            container.querySelectorAll('.collection-link-playlist-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const collectionId = btn.dataset.collectionId;
+                    showLinkPlaylistDialog(collectionId);
+                });
+            });
+
+            // Add click handlers for collaboration requests buttons
+            container.querySelectorAll('.collection-requests-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const collectionId = btn.dataset.collectionId;
+                    showCollaborationRequests(collectionId);
+                });
+            });
+        }
+
+        function renderPublicCollections(collections, containerId) {
+            const container = document.getElementById(containerId);
+
+            if (!collections || collections.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">No public collections available</p>';
+                return;
+            }
+
+            container.innerHTML = collections.map(collection => {
+                // Get artwork from first linked playlist, or use fallback icon
+                const firstPlaylist = collection.linked_playlists?.[0];
+                const artworkUrl = firstPlaylist?.image_url;
+                const hasArtwork = artworkUrl && artworkUrl.trim() !== '';
+
+                return `
+                <div class="collection-card card card-clickable" data-collection-id="${collection.id}">
+                    <div class="collection-artwork-container">
+                        ${hasArtwork
+                            ? `<img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(collection.name)} artwork" class="collection-artwork" loading="lazy">`
+                            : `<div class="collection-artwork-placeholder">
+                                <img src="/static/favicon.svg" alt="Guitar" style="width: 80%; height: 80%; opacity: 0.6;">
+                               </div>`
+                        }
+                    </div>
+                    <div class="collection-content">
+                        <div class="collection-header">
+                            <div class="collection-title-row">
+                                <h3 class="collection-name">${escapeHtml(collection.name)}</h3>
+                            </div>
+                        </div>
+                        <div class="collection-description-row">
+                            ${collection.description ? `<p class="collection-description">${escapeHtml(collection.description)}</p>` : '<p class="collection-description"></p>'}
+                            <div class="collection-badges">
+                                <span class="collection-badge collection-badge-public"><i class="fa-solid fa-globe"></i> Public</span>
+                            </div>
+                        </div>
+                        <div class="collection-meta-and-actions">
+                            <div class="collection-meta">
+                                <span class="collection-meta-item">
+                                    <i class="fa-solid fa-music"></i>
+                                    ${collection.song_count || 0} ${(collection.song_count || 0) === 1 ? 'song' : 'songs'}
+                                </span>
+                            </div>
+                            <div class="collection-actions">
+                                ${collection.access_requested
+                                    ? `<button class="btn btn-sm btn-secondary" disabled title="Request pending">
+                                        <i class="fa-solid fa-clock"></i> Pending
+                                       </button>`
+                                    : `<button class="btn btn-sm btn-primary request-access-btn" data-collection-id="${collection.id}" title="Request collaborator access">
+                                        <i class="fa-solid fa-user-plus"></i> Request Access
+                                       </button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+
+            // Add click handlers for cards (open as read-only)
+            container.querySelectorAll('.collection-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // Don't open if clicking action buttons
+                    if (e.target.closest('.collection-actions')) {
+                        return;
+                    }
+                    const collectionId = card.dataset.collectionId;
+                    openCollection(collectionId);
+                });
+            });
+
+            // Add click handlers for request access buttons
+            container.querySelectorAll('.request-access-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const collectionId = btn.dataset.collectionId;
+                    showRequestAccessDialog(collectionId);
+                });
+            });
+        }
+
+        function showRequestAccessDialog(collectionId) {
+            // Store collection ID in hidden field
+            document.getElementById('request-access-collection-id').value = collectionId;
+            
+            // Show dialog
+            BPP.showDialog('request-access-dialog');
+            
+            // Focus the confirm button so Enter works
+            setTimeout(() => {
+                document.getElementById('confirm-request-access-btn').focus();
+            }, 100);
+        }
+
+        async function requestCollaborationAccess() {
+            try {
+                // Get collection ID from hidden field
+                const collectionId = document.getElementById('request-access-collection-id').value;
+                
+                // Hide dialog first
+                BPP.hideDialog('request-access-dialog');
+                
+                BPP.showLoading('Sending request...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/request-access`, {
+                    method: 'POST'
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Collaboration request sent!', 'success');
+
+                // Reload public collections to update the UI
+                await loadPublicCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error requesting collaboration:', error);
+                BPP.showToast(error.message || 'Failed to send request', 'error');
+            }
+        }
+
+        async function showCollaborationRequests(collectionId) {
+            try {
+                // Fetch collection data to get requests
+                const collection = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                const requests = collection.collaboration_requests || [];
+
+                document.getElementById('collaboration-collection-id').value = collectionId;
+
+                const requestsList = document.getElementById('collaboration-requests-list');
+
+                if (requests.length === 0) {
+                    // No requests left - close the dialog
+                    BPP.hideDialog('collaboration-requests-dialog');
+                    return;
+                }
+
+                // Fetch user data for each request to get photo_url
+                const requestsWithUserData = await Promise.all(requests.map(async req => {
+                    try {
+                        const userData = await BPP.apiCall(`/api/v3/users/${req.user_uid}`);
+                        return { ...req, photo_url: userData?.photo_url };
+                    } catch (error) {
+                        console.error(`Failed to fetch user data for ${req.user_uid}:`, error);
+                        return req; // Return request without photo if fetch fails
+                    }
+                }));
+
+                requestsList.innerHTML = requestsWithUserData.map(req => `
+                        <div class="collaboration-request-item">
+                            <div class="collab-request-content">
+                                <div class="collab-user-avatar">
+                                    ${req.photo_url ? 
+                                        `<img src="${escapeHtml(req.photo_url)}" alt="${escapeHtml(req.user_name)}" class="avatar-img">` :
+                                        `<div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>`
+                                    }
+                                </div>
+                                <div class="collab-user-info">
+                                    <div class="collab-user-name">${escapeHtml(req.user_name)}</div>
+                                    <div class="collab-user-email">${escapeHtml(req.user_email)}</div>
+                                    <div class="collab-request-time">${formatDate(req.requested_at)}</div>
+                                </div>
+                                <div class="collab-actions">
+                                    <button class="btn btn-primary accept-request-btn" data-requester-uid="${req.user_uid}" title="Accept request">
+                                        <i class="fa-solid fa-check"></i> Accept
+                                    </button>
+                                    <button class="btn btn-secondary deny-request-btn" data-requester-uid="${req.user_uid}" title="Deny request">
+                                        <i class="fa-solid fa-times"></i> Deny
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                // Add click handlers for accept/deny buttons
+                requestsList.querySelectorAll('.accept-request-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const requesterUid = btn.dataset.requesterUid;
+                        await acceptCollaborationRequest(collectionId, requesterUid);
+                    });
+                });
+
+                requestsList.querySelectorAll('.deny-request-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const requesterUid = btn.dataset.requesterUid;
+                        await denyCollaborationRequest(collectionId, requesterUid);
+                    });
+                });
+
+                BPP.showDialog('collaboration-requests-dialog');
+
+            } catch (error) {
+                console.error('Error loading collaboration requests:', error);
+                BPP.showToast('Failed to load requests', 'error');
+            }
+        }
+
+        async function acceptCollaborationRequest(collectionId, requesterUid) {
+            try {
+                BPP.showLoading('Accepting request...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/accept-collaborator`, {
+                    method: 'POST',
+                    body: JSON.stringify({ requester_uid: requesterUid })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Collaboration request accepted!', 'success');
+
+                // Reload the requests dialog
+                await showCollaborationRequests(collectionId);
+
+                // Reload collections to update counts
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error accepting request:', error);
+                BPP.showToast('Failed to accept request', 'error');
+            }
+        }
+
+        async function denyCollaborationRequest(collectionId, requesterUid) {
+            try {
+                BPP.showLoading('Denying request...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/deny-collaborator`, {
+                    method: 'POST',
+                    body: JSON.stringify({ requester_uid: requesterUid })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Collaboration request denied', 'success');
+
+                // Reload the requests dialog
+                await showCollaborationRequests(collectionId);
+
+                // Reload collections to update counts and remove badge if no more requests
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error denying request:', error);
+                BPP.showToast('Failed to deny request', 'error');
+            }
+        }
+
+        function openCollection(collectionId) {
+            // Use ViewManager for instant view switching (no page load!)
+            ViewManager.openCollection(collectionId);
+        }
+
+        async function editCollection(collectionId) {
+            try {
+                // Fetch collection data
+                const data = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+
+                // Populate form
+                document.getElementById('edit-collection-id').value = collectionId;
+                document.getElementById('edit-collection-name').value = data.name;
+                document.getElementById('edit-collection-description').value = data.description || '';
+                document.getElementById('edit-collection-public').checked = data.is_public || false;
+
+                // Show dialog
+                BPP.showDialog('edit-collection-dialog');
+
+                // Focus and select the collection name input
+                setTimeout(() => {
+                    const nameInput = document.getElementById('edit-collection-name');
+                    nameInput.focus();
+                    nameInput.select();
+                }, 100);
+            } catch (error) {
+                console.error('Error fetching collection:', error);
+                BPP.showToast('Failed to load collection', 'error');
+            }
+        }
+
+        async function deleteCollection(collectionId) {
+            try {
+                // Fetch collection to get name
+                const data = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+
+                // Set collection name in dialog
+                document.getElementById('delete-collection-id').value = collectionId;
+                document.getElementById('delete-collection-name').textContent = data.name;
+
+                // Show confirmation dialog
+                BPP.showDialog('delete-collection-dialog');
+
+                // Focus the delete button so user can hit ENTER to confirm or ESC to cancel
+                setTimeout(() => {
+                    document.getElementById('confirm-delete-btn').focus();
+                }, 100);
+            } catch (error) {
+                console.error('Error fetching collection:', error);
+                BPP.showToast('Failed to load collection', 'error');
+            }
+        }
+
+        async function showLinkPlaylistDialog(collectionId) {
+            try {
+                // Set collection ID
+                document.getElementById('link-playlist-collection-id').value = collectionId;
+
+                // Clear previous URL
+                document.getElementById('playlist-url').value = '';
+
+                // Reset playlist selection
+                selectedPlaylistIndex = -1;
+                currentPlaylistSection = null;
+
+                // Load collection data to get linked playlists
+                const collectionData = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+
+                // Load recent playlists
+                await loadPlaylistSections(collectionData);
+
+                // Show dialog
+                BPP.showDialog('link-playlist-dialog');
+
+                // Focus on URL input after dialog is shown
+                setTimeout(() => {
+                    document.getElementById('playlist-url').focus();
+                }, 100);
+            } catch (error) {
+                console.error('Error loading playlist data:', error);
+                BPP.showToast('Failed to load playlist data', 'error');
+            }
+        }
+
+        async function loadPlaylistSections(collectionData) {
+            try {
+                // 1. Render LINKED playlists for this collection
+                const linkedPlaylists = collectionData.linked_playlists || [];
+                console.log('Linked playlists:', linkedPlaylists);
+                if (linkedPlaylists.length > 0) {
+                    document.getElementById('linked-playlists-section').style.display = 'block';
+                    const linkedContainer = document.getElementById('linked-playlists-list');
+                    linkedContainer.innerHTML = linkedPlaylists.map((playlist, index) => {
+                        const hasArtwork = playlist.image_url && playlist.image_url.trim() !== '';
+                        return `
+                        <div class="recent-playlist-item playlist-draggable" data-playlist-id="${escapeHtml(playlist.playlist_id)}" data-section="linked" data-index="${index}" draggable="true">
+                            ${hasArtwork
+                                ? `<img src="${escapeHtml(playlist.image_url)}" alt="${escapeHtml(playlist.playlist_name)} artwork" class="playlist-artwork" loading="lazy">`
+                                : `<div class="playlist-artwork-placeholder">
+                                    <i class="fa-brands fa-spotify"></i>
+                                   </div>`
+                            }
+                            <div class="recent-playlist-info">
+                                <div class="recent-playlist-text">
+                                    <div class="recent-playlist-name">${escapeHtml(playlist.playlist_name || 'Untitled Playlist')}</div>
+                                    <div class="recent-playlist-meta text-xs text-muted">${playlist.track_count || 0} tracks</div>
+                                </div>
+                            </div>
+                            <div class="recent-playlist-actions">
+                                <button class="btn-icon btn-ghost unlink-playlist-btn" data-playlist-id="${escapeHtml(playlist.playlist_id)}" title="Unlink playlist">
+                                    <i class="fa-solid fa-unlink"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `}).join('');
+
+                    // Add click handlers for unlink buttons
+                    linkedContainer.querySelectorAll('.unlink-playlist-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const playlistId = btn.dataset.playlistId;
+                            if (playlistId) {
+                                unlinkPlaylist(playlistId);
+                            }
+                        });
+                    });
+                    
+                    // Setup drag-and-drop for reordering
+                    setupPlaylistDragAndDrop();
+                } else {
+                    document.getElementById('linked-playlists-section').style.display = 'none';
+                }
+
+                // 2. Render OTHER recent playlists (not linked to this collection)
+                const recentData = await BPP.apiCall('/api/v3/playlists/recent');
+                const linkedIds = new Set(linkedPlaylists.map(p => p.playlist_id));
+                const otherPlaylists = (recentData.playlists || []).filter(p => !linkedIds.has(p.id));
+
+                if (otherPlaylists.length > 0) {
+                    document.getElementById('other-playlists-section').style.display = 'block';
+                    const otherContainer = document.getElementById('other-playlists-list');
+                    otherContainer.innerHTML = otherPlaylists.map(playlist => {
+                        const hasArtwork = playlist.image_url && playlist.image_url.trim() !== '';
+                        return `
+                        <div class="recent-playlist-item" data-playlist-url="${escapeHtml(playlist.playlist_url)}" data-section="other">
+                            ${hasArtwork
+                                ? `<img src="${escapeHtml(playlist.image_url)}" alt="${escapeHtml(playlist.playlist_name)} artwork" class="playlist-artwork" loading="lazy">`
+                                : `<div class="playlist-artwork-placeholder">
+                                    <i class="fa-brands fa-spotify"></i>
+                                   </div>`
+                            }
+                            <div class="recent-playlist-info">
+                                <div class="recent-playlist-text">
+                                    <div class="recent-playlist-name">${escapeHtml(playlist.playlist_name)}</div>
+                                    <div class="recent-playlist-meta text-xs text-muted">${playlist.track_count || 0} tracks</div>
+                                </div>
+                            </div>
+                            <div class="recent-playlist-actions">
+                                <button class="btn-icon btn-ghost link-playlist-btn" data-playlist-url="${escapeHtml(playlist.playlist_url)}" title="Link playlist">
+                                    <i class="fa-solid fa-link"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `}).join('');
+
+                    // Add click handlers for link buttons
+                    otherContainer.querySelectorAll('.link-playlist-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const playlistUrl = btn.dataset.playlistUrl;
+                            if (playlistUrl) {
+                                linkPlaylistFromMemory(playlistUrl);
+                            }
+                        });
+                    });
+
+                    // Add click handlers for other playlists (select on click)
+                    otherContainer.querySelectorAll('.recent-playlist-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            const url = item.dataset.playlistUrl;
+                            document.getElementById('playlist-url').value = url;
+                        });
+                    });
+                } else {
+                    document.getElementById('other-playlists-section').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading playlist sections:', error);
+                document.getElementById('linked-playlists-section').style.display = 'none';
+                document.getElementById('other-playlists-section').style.display = 'none';
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // New Collection Button
+        document.getElementById('new-collection-btn').addEventListener('click', () => {
+            BPP.showDialog('new-collection-dialog');
+        });
+
+        // Create Collection Button
+        document.getElementById('create-collection-btn').addEventListener('click', async () => {
+            const name = document.getElementById('collection-name').value.trim();
+            const description = document.getElementById('collection-description').value.trim();
+            const isPublic = document.getElementById('collection-public').checked;
+
+            if (!name) {
+                BPP.showToast('Please enter a collection name', 'error');
+                return;
+            }
+
+            try {
+                BPP.showLoading('Creating collection...');
+
+                await BPP.apiCall('/api/v3/collections', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, description, is_public: isPublic })
+                });
+
+                BPP.hideLoading();
+                BPP.hideDialog('new-collection-dialog');
+                BPP.showToast('Collection created!', 'success');
+
+                // Clear form
+                document.getElementById('collection-name').value = '';
+                document.getElementById('collection-description').value = '';
+                document.getElementById('collection-public').checked = false;
+
+                // Reload collections
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error creating collection:', error);
+            }
+        });
+
+        // Save Collection Button (Edit)
+        document.getElementById('save-collection-btn').addEventListener('click', async () => {
+            const collectionId = document.getElementById('edit-collection-id').value;
+            const name = document.getElementById('edit-collection-name').value.trim();
+            const description = document.getElementById('edit-collection-description').value.trim();
+            const isPublic = document.getElementById('edit-collection-public').checked;
+
+            if (!name) {
+                BPP.showToast('Please enter a collection name', 'error');
+                return;
+            }
+
+            try {
+                BPP.showLoading('Saving changes...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ name, description, is_public: isPublic })
+                });
+
+                BPP.hideLoading();
+                BPP.hideDialog('edit-collection-dialog');
+                BPP.showToast('Collection updated!', 'success');
+
+                // Reload collections
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error updating collection:', error);
+                BPP.showToast('Failed to update collection', 'error');
+            }
+        });
+
+        // Confirm Delete Button
+        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            const collectionId = document.getElementById('delete-collection-id').value;
+
+            try {
+                BPP.showLoading('Deleting collection...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}`, {
+                    method: 'DELETE'
+                });
+
+                BPP.hideLoading();
+                BPP.hideDialog('delete-collection-dialog');
+                BPP.showToast('Collection deleted', 'success');
+
+                // Reload collections
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error deleting collection:', error);
+                BPP.showToast('Failed to delete collection', 'error');
+            }
+        });
+
+        // ENTER key on confirm delete button triggers delete
+        document.getElementById('confirm-delete-btn').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('confirm-delete-btn').click();
+            }
+        });
+
+        // Confirm Request Access Button
+        document.getElementById('confirm-request-access-btn').addEventListener('click', async () => {
+            await requestCollaborationAccess();
+        });
+
+        // ENTER key on confirm request access button triggers request
+        document.getElementById('confirm-request-access-btn').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('confirm-request-access-btn').click();
+            }
+        });
+
+        // Add Playlist Button
+        async function addPlaylistToCollection() {
+            const collectionId = document.getElementById('link-playlist-collection-id').value;
+            const playlistUrl = document.getElementById('playlist-url').value.trim();
+
+            if (!playlistUrl) {
+                BPP.showToast('Please enter a Spotify playlist URL', 'error');
+                return;
+            }
+
+            // Validate Spotify URL format
+            if (!playlistUrl.includes('spotify.com/playlist/')) {
+                BPP.showToast('Invalid Spotify playlist URL', 'error');
+                return;
+            }
+
+            try {
+                BPP.showLoading('Adding playlist...');
+
+                await BPP.apiCall('/api/v3/playlists/import', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        collection_id: collectionId,
+                        playlist_url: playlistUrl
+                    })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Playlist added successfully!', 'success');
+
+                // Clear URL input
+                document.getElementById('playlist-url').value = '';
+
+                // Reload playlist sections to show the newly added playlist
+                const collectionData = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                await loadPlaylistSections(collectionData);
+
+                // Reload collections to update counts
+                loadCollections();
+
+                // Refocus on input
+                document.getElementById('playlist-url').focus();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error adding playlist:', error);
+                BPP.showToast('Failed to add playlist', 'error');
+            }
+        }
+
+        document.getElementById('add-playlist-btn').addEventListener('click', addPlaylistToCollection);
+
+        // Enter key in playlist URL input triggers add
+        document.getElementById('playlist-url').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addPlaylistToCollection();
+            }
+        });
+
+        // ============================================================================
+        // PLAYLIST DRAG-AND-DROP REORDERING
+        // ============================================================================
+        let draggedElement = null;
+        let draggedIndex = null;
+
+        function setupPlaylistDragAndDrop() {
+            const linkedContainer = document.getElementById('linked-playlists-list');
+            if (!linkedContainer) return;
+
+            const playlistItems = linkedContainer.querySelectorAll('.playlist-draggable');
+
+            playlistItems.forEach((item) => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.currentTarget;
+            draggedIndex = parseInt(e.currentTarget.getAttribute('data-index'));
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+        }
+
+        function handleDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.playlist-draggable.drag-over').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+
+            const item = e.currentTarget;
+            if (item !== draggedElement && item.classList.contains('playlist-draggable')) {
+                item.classList.add('drag-over');
+            }
+
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        async function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            e.preventDefault();
+
+            const dropTarget = e.currentTarget;
+            dropTarget.classList.remove('drag-over');
+
+            if (draggedElement !== dropTarget && dropTarget.classList.contains('playlist-draggable')) {
+                const dropIndex = parseInt(dropTarget.getAttribute('data-index'));
+                const collectionId = document.getElementById('link-playlist-collection-id').value;
+
+                // Get current playlist IDs in order
+                const linkedContainer = document.getElementById('linked-playlists-list');
+                const playlistItems = Array.from(linkedContainer.querySelectorAll('.playlist-draggable'));
+                const playlistIds = playlistItems.map(item => item.dataset.playlistId);
+
+                // Reorder array
+                const [movedId] = playlistIds.splice(draggedIndex, 1);
+                playlistIds.splice(dropIndex, 0, movedId);
+
+                // Save new order to backend
+                await savePlaylistOrder(collectionId, playlistIds);
+            }
+
+            return false;
+        }
+
+        async function savePlaylistOrder(collectionId, playlistIds) {
+            try {
+                BPP.showLoading('Saving order...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/reorder-playlists`, {
+                    method: 'POST',
+                    body: JSON.stringify({ playlist_ids: playlistIds })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Playlist order saved', 'success');
+
+                // Reload to reflect new order
+                const collectionData = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                await loadPlaylistSections(collectionData);
+
+                // Reload collections to update artwork (first playlist determines collection art)
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error saving playlist order:', error);
+                BPP.showToast('Failed to save order', 'error');
+
+                // Reload to restore original order
+                const collectionData = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                await loadPlaylistSections(collectionData);
+            }
+        }
+
+        // ============================================================================
+        // PLAYLIST DIALOG KEYBOARD NAVIGATION
+        // ============================================================================
+
+        let selectedPlaylistIndex = -1;
+        let playlistElements = [];
+        let currentPlaylistSection = null; // 'linked' or 'other'
+
+        function getAllPlaylistElements() {
+            // Get all playlist items in both sections (visible only)
+            const linkedSection = document.getElementById('linked-playlists-section');
+            const otherSection = document.getElementById('other-playlists-section');
+            const allItems = [];
+
+            if (linkedSection && linkedSection.style.display !== 'none') {
+                allItems.push(...Array.from(linkedSection.querySelectorAll('.recent-playlist-item')));
+            }
+
+            if (otherSection && otherSection.style.display !== 'none') {
+                allItems.push(...Array.from(otherSection.querySelectorAll('.recent-playlist-item')));
+            }
+
+            return allItems;
+        }
+
+        function refreshPlaylistElements() {
+            playlistElements = getAllPlaylistElements();
+            console.log(`Refreshed playlist elements: ${playlistElements.length} found`);
+        }
+
+        function updatePlaylistFocus() {
+            // Get fresh list of all playlist items
+            const allItems = getAllPlaylistElements();
+
+            // Remove previous focus from all items
+            allItems.forEach(el => el.classList.remove('keyboard-selected'));
+
+            // Add focus to selected (with bounds check)
+            if (allItems.length > 0 && selectedPlaylistIndex >= 0 && selectedPlaylistIndex < allItems.length) {
+                const selected = allItems[selectedPlaylistIndex];
+                selected.classList.add('keyboard-selected');
+                selected.scrollIntoView({ block: 'nearest', behavior: 'instant' }); // Instant, not smooth!
+                currentPlaylistSection = selected.dataset.section;
+                console.log(`Focused playlist ${selectedPlaylistIndex} (total: ${allItems.length}) in section: ${currentPlaylistSection}`);
+            } else if (selectedPlaylistIndex >= allItems.length && allItems.length > 0) {
+                // Selection out of bounds (e.g., after unlinking) - reset
+                selectedPlaylistIndex = allItems.length - 1;
+                const selected = allItems[selectedPlaylistIndex];
+                selected.classList.add('keyboard-selected');
+                selected.scrollIntoView({ block: 'nearest', behavior: 'instant' }); // Instant, not smooth!
+                currentPlaylistSection = selected.dataset.section;
+                console.log(`Reset to last playlist ${selectedPlaylistIndex}`);
+            }
+        }
+
+        async function unlinkPlaylist(playlistId) {
+            const collectionId = document.getElementById('link-playlist-collection-id').value;
+
+            try {
+                BPP.showLoading('Unlinking playlist...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/unlink-playlist`, {
+                    method: 'POST',
+                    body: JSON.stringify({ playlist_id: playlistId })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Playlist unlinked', 'success');
+
+                // Reload playlist sections
+                const collectionData = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                await loadPlaylistSections(collectionData);
+
+                // Reload collections to update counts
+                loadCollections();
+
+                // Reset selection
+                selectedPlaylistIndex = -1;
+                refreshPlaylistElements();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error unlinking playlist:', error);
+                BPP.showToast('Failed to unlink playlist', 'error');
+            }
+        }
+
+        async function linkPlaylistFromMemory(playlistUrl) {
+            const collectionId = document.getElementById('link-playlist-collection-id').value;
+
+            try {
+                BPP.showLoading('Linking playlist...');
+
+                await BPP.apiCall('/api/v3/playlists/import', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        collection_id: collectionId,
+                        playlist_url: playlistUrl
+                    })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Playlist linked!', 'success');
+
+                // Reload playlist sections
+                const collectionData = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                await loadPlaylistSections(collectionData);
+
+                // Reload collections to update counts
+                loadCollections();
+
+                // Reset selection
+                selectedPlaylistIndex = -1;
+                refreshPlaylistElements();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error linking playlist:', error);
+                BPP.showToast('Failed to link playlist', 'error');
+            }
+        }
+
+        // Keyboard navigation in playlist dialog (attach to document, not dialog element)
+        document.addEventListener('keydown', (e) => {
+            const dialogOpen = !document.getElementById('link-playlist-dialog').classList.contains('hidden');
+            if (!dialogOpen) return;
+
+            const urlInput = document.getElementById('playlist-url');
+            const isInputFocused = e.target.id === 'playlist-url';
+
+            console.log(`Playlist dialog key: ${e.key}, inputFocused: ${isInputFocused}, currentIndex: ${selectedPlaylistIndex}`);
+
+            switch(e.key) {
+                case 'Tab':
+                    // Allow Tab to move between input and list
+                    if (isInputFocused && !e.shiftKey) {
+                        e.preventDefault();
+                        // Tab from input to first playlist
+                        const items = getAllPlaylistElements();
+                        if (items.length > 0) {
+                            urlInput.blur();
+                            selectedPlaylistIndex = 0;
+                            updatePlaylistFocus();
+                        }
+                    } else if (!isInputFocused && e.shiftKey && selectedPlaylistIndex === 0) {
+                        e.preventDefault();
+                        // Shift+Tab from first playlist back to input
+                        selectedPlaylistIndex = -1;
+                        updatePlaylistFocus();
+                        urlInput.focus();
+                    }
+                    break;
+
+                case 'ArrowDown':
+                case 'ArrowUp':
+                    e.preventDefault();
+
+                    // Get current playlist items
+                    const allItems = getAllPlaylistElements();
+                    if (allItems.length === 0) return;
+
+                    // If input is focused, blur it and start navigating
+                    if (isInputFocused) {
+                        urlInput.blur();
+                        selectedPlaylistIndex = e.key === 'ArrowDown' ? 0 : allItems.length - 1;
+                    } else {
+                        // Navigate through playlists
+                        if (e.key === 'ArrowDown') {
+                            selectedPlaylistIndex = selectedPlaylistIndex < 0 ? 0 : Math.min(selectedPlaylistIndex + 1, allItems.length - 1);
+                        } else {
+                            selectedPlaylistIndex = selectedPlaylistIndex < 0 ? allItems.length - 1 : Math.max(selectedPlaylistIndex - 1, 0);
+                        }
+                    }
+
+                    updatePlaylistFocus();
+                    break;
+
+                case 'Enter':
+                    // If input is focused, let the existing Enter handler deal with it
+                    if (isInputFocused) {
+                        return;
+                    }
+
+                    // Otherwise, link/unlink selected playlist
+                    e.preventDefault();
+                    const currentItems = getAllPlaylistElements();
+
+                    if (selectedPlaylistIndex >= 0 && selectedPlaylistIndex < currentItems.length) {
+                        const selected = currentItems[selectedPlaylistIndex];
+                        const section = selected.dataset.section;
+
+                        if (section === 'linked') {
+                            // Unlink the playlist
+                            const playlistId = selected.dataset.playlistId;
+                            if (playlistId) {
+                                unlinkPlaylist(playlistId);
+                            }
+                        } else if (section === 'other') {
+                            // Link the playlist
+                            const playlistUrl = selected.dataset.playlistUrl;
+                            if (playlistUrl) {
+                                linkPlaylistFromMemory(playlistUrl);
+                            }
+                        }
+                    }
+                    break;
+
+                case 'Home':
+                case 'End':
+                    e.preventDefault();
+
+                    // Blur input if focused
+                    if (isInputFocused) {
+                        urlInput.blur();
+                    }
+
+                    // Jump to first/last
+                    const homeEndItems = getAllPlaylistElements();
+                    if (homeEndItems.length > 0) {
+                        selectedPlaylistIndex = e.key === 'Home' ? 0 : homeEndItems.length - 1;
+                        updatePlaylistFocus();
+                    }
+                    break;
+
+                case 'Escape':
+                    // Clear selection visual when closing
+                    selectedPlaylistIndex = -1;
+                    updatePlaylistFocus();
+                    break;
+            }
+        });
+
+        // Sign out handler
+        document.getElementById('signout-btn')?.addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        // ESC to close dialogs
+        BPP.addEscapeHandler('new-collection-dialog');
+        BPP.addEscapeHandler('edit-collection-dialog');
+        BPP.addEscapeHandler('delete-collection-dialog');
+        BPP.addEscapeHandler('fetch-lyrics-dialog');
+        BPP.addEscapeHandler('link-playlist-dialog');
+        BPP.addEscapeHandler('request-access-dialog');
+
+        // Reset playlist selection when dialog closes
+        const linkPlaylistDialog = document.getElementById('link-playlist-dialog');
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const isHidden = linkPlaylistDialog.classList.contains('hidden');
+                    if (isHidden) {
+                        // Dialog closed - reset selection
+                        selectedPlaylistIndex = -1;
+                        currentPlaylistSection = null;
+                        refreshPlaylistElements();
+                        updatePlaylistFocus();
+                    }
+                }
+            });
+        });
+        observer.observe(linkPlaylistDialog, { attributes: true });
+
+        // Help card toggle
+        const helpCard = document.getElementById('help-card');
+        let helpCardVisible = false;
+
+        function toggleHelpCard() {
+            helpCardVisible = !helpCardVisible;
+            if (helpCardVisible) {
+                helpCard.style.opacity = '1';
+                helpCard.style.visibility = 'visible';
+                helpCard.style.transform = 'translateY(0)';
+            } else {
+                helpCard.style.opacity = '0';
+                helpCard.style.visibility = 'hidden';
+                helpCard.style.transform = 'translateY(-8px)';
+            }
+        }
+
+        // Click to toggle help
+        document.getElementById('help-toggle').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleHelpCard();
+        });
+
+        // Click outside to close help
+        document.addEventListener('click', (e) => {
+            if (helpCardVisible && !e.target.closest('.keyboard-shortcuts-help')) {
+                toggleHelpCard();
+            }
+        });
+
+        // ESC key to close help card
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && helpCardVisible) {
+                toggleHelpCard();
+            }
+        });
+
+        // ============================================================================
+        // KEYBOARD NAVIGATION - HOME View
+        // ============================================================================
+
+        // Enter key submits New Collection dialog
+        const newDialogInputs = ['collection-name', 'collection-description'];
+        newDialogInputs.forEach(inputId => {
+            document.getElementById(inputId).addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('create-collection-btn').click();
+                }
+            });
+        });
+
+        // Enter key submits Edit Collection dialog
+        const editDialogInputs = ['edit-collection-name', 'edit-collection-description'];
+        editDialogInputs.forEach(inputId => {
+            document.getElementById(inputId).addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('save-collection-btn').click();
+                }
+            });
+        });
+
+        // Global keyboard shortcuts for HOME view
+        let selectedCollectionIndex = -1;
+        let collectionElements = [];
+
+        function getGridColumns() {
+            // Calculate number of columns in the grid
+            if (collectionElements.length === 0) return 1;
+
+            const firstCard = collectionElements[0];
+            const container = firstCard.parentElement;
+            const containerWidth = container.offsetWidth;
+            const gap = parseInt(getComputedStyle(container).gap) || 8;
+
+            // Get the computed grid-template-columns
+            const gridCols = getComputedStyle(container).gridTemplateColumns;
+            const colCount = gridCols.split(' ').length;
+
+            return Math.max(1, colCount);
+        }
+
+        function updateCollectionFocus() {
+            // Remove previous focus
+            collectionElements.forEach(el => el.classList.remove('keyboard-selected'));
+
+            // Add focus to selected
+            if (selectedCollectionIndex >= 0 && selectedCollectionIndex < collectionElements.length) {
+                const selected = collectionElements[selectedCollectionIndex];
+                selected.classList.add('keyboard-selected');
+                selected.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+
+        function refreshCollectionElements() {
+            collectionElements = Array.from(document.querySelectorAll('.collection-card'));
+        }
+
+        document.addEventListener('keydown', (e) => {
+            // Don't handle if not in collections view
+            const inCollectionsView = ViewManager.currentView === 'collections';
+
+            // Don't handle if ANY dialog is open or user is typing
+            const dialogOpen = BPP.isAnyDialogVisible();
+            const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+
+            // Special case: / or ? key toggles help even if typing (but not in dialogs)
+            if ((e.key === '/' || e.key === '?') && !dialogOpen && inCollectionsView) {
+                e.preventDefault();
+                toggleHelpCard();
+                return;
+            }
+
+            if (!inCollectionsView || dialogOpen || isTyping) return;
+
+            switch(e.key) {
+
+                case 'n':
+                case 'N':
+                    // 'n' = New Collection
+                    e.preventDefault();
+                    document.getElementById('new-collection-btn').click();
+                    break;
+
+                case 'e':
+                case 'E':
+                    // 'e' = Edit selected collection
+                    e.preventDefault();
+                    if (selectedCollectionIndex >= 0 && selectedCollectionIndex < collectionElements.length) {
+                        const selectedCard = collectionElements[selectedCollectionIndex];
+                        const editBtn = selectedCard.querySelector('.collection-edit-btn');
+                        if (editBtn) {
+                            editBtn.click();
+                        }
+                    }
+                    break;
+
+                case 'p':
+                case 'P':
+                    // 'p' = Link playlists to selected collection
+                    e.preventDefault();
+                    if (selectedCollectionIndex >= 0 && selectedCollectionIndex < collectionElements.length) {
+                        const selectedCard = collectionElements[selectedCollectionIndex];
+                        const playlistBtn = selectedCard.querySelector('.collection-link-playlist-btn');
+                        if (playlistBtn) {
+                            playlistBtn.click();
+                        }
+                    }
+                    break;
+
+                case 'Delete':
+                    // 'Del' = Delete selected collection
+                    e.preventDefault();
+                    if (selectedCollectionIndex >= 0 && selectedCollectionIndex < collectionElements.length) {
+                        const selectedCard = collectionElements[selectedCollectionIndex];
+                        const deleteBtn = selectedCard.querySelector('.collection-delete-btn');
+                        if (deleteBtn) {
+                            deleteBtn.click();
+                        } else {
+                            // Personal collection - can't delete
+                            BPP.showToast('Personal collection cannot be deleted', 'info');
+                        }
+                    }
+                    break;
+
+                case 'ArrowRight':
+                    // Navigate right in grid
+                    e.preventDefault();
+                    refreshCollectionElements();
+                    if (collectionElements.length > 0) {
+                        const cols = getGridColumns();
+                        const currentRow = Math.floor(selectedCollectionIndex / cols);
+                        const currentCol = selectedCollectionIndex % cols;
+                        const isLastInRow = currentCol === cols - 1 || selectedCollectionIndex === collectionElements.length - 1;
+
+                        if (!isLastInRow) {
+                            selectedCollectionIndex = Math.min(selectedCollectionIndex + 1, collectionElements.length - 1);
+                        }
+                        updateCollectionFocus();
+                    }
+                    break;
+
+                case 'ArrowLeft':
+                    // Navigate left in grid
+                    e.preventDefault();
+                    refreshCollectionElements();
+                    if (collectionElements.length > 0) {
+                        const cols = getGridColumns();
+                        const currentCol = selectedCollectionIndex % cols;
+                        const isFirstInRow = currentCol === 0;
+
+                        if (!isFirstInRow) {
+                            selectedCollectionIndex = Math.max(selectedCollectionIndex - 1, 0);
+                        }
+                        updateCollectionFocus();
+                    }
+                    break;
+
+                case 'ArrowDown':
+                    // Navigate down in grid (move down one row)
+                    e.preventDefault();
+                    refreshCollectionElements();
+                    if (collectionElements.length > 0) {
+                        const cols = getGridColumns();
+                        const newIndex = selectedCollectionIndex + cols;
+
+                        if (newIndex < collectionElements.length) {
+                            selectedCollectionIndex = newIndex;
+                        } else {
+                            // Jump to last item if we'd go past the end
+                            selectedCollectionIndex = collectionElements.length - 1;
+                        }
+                        updateCollectionFocus();
+                    }
+                    break;
+
+                case 'ArrowUp':
+                    // Navigate up in grid (move up one row)
+                    e.preventDefault();
+                    refreshCollectionElements();
+                    if (collectionElements.length > 0) {
+                        const cols = getGridColumns();
+                        const newIndex = selectedCollectionIndex - cols;
+
+                        if (newIndex >= 0) {
+                            selectedCollectionIndex = newIndex;
+                        } else {
+                            // Jump to first item if we'd go before the start
+                            selectedCollectionIndex = 0;
+                        }
+                        updateCollectionFocus();
+                    }
+                    break;
+
+                case 'Home':
+                    // Jump to first collection
+                    e.preventDefault();
+                    refreshCollectionElements();
+                    if (collectionElements.length > 0) {
+                        selectedCollectionIndex = 0;
+                        updateCollectionFocus();
+                    }
+                    break;
+
+                case 'End':
+                    // Jump to last collection
+                    e.preventDefault();
+                    refreshCollectionElements();
+                    if (collectionElements.length > 0) {
+                        selectedCollectionIndex = collectionElements.length - 1;
+                        updateCollectionFocus();
+                    }
+                    break;
+
+                case 'Enter':
+                    // Open selected collection
+                    e.preventDefault();
+                    if (selectedCollectionIndex >= 0 && selectedCollectionIndex < collectionElements.length) {
+                        collectionElements[selectedCollectionIndex].click();
+                    }
+                    break;
+            }
+        });
+
+        // Initialize first collection as selected
+        setTimeout(() => {
+            refreshCollectionElements();
+            if (collectionElements.length > 0) {
+                selectedCollectionIndex = 0;
+                updateCollectionFocus();
+            }
+        }, 500); // Wait for collections to load
+    </script>
+</body>
+</html>
