@@ -116,6 +116,14 @@ const ViewManager = {
             }
         }
 
+        // Clear song search filter when leaving songs view
+        if (this.currentView === 'songs' && viewName !== 'songs') {
+            const searchInput = document.getElementById('song-search');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+        }
+
         // Hide all views
         Object.values(this.views).forEach(view => {
             if (view) view.classList.remove('active');
