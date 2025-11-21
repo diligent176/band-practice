@@ -424,6 +424,23 @@
 
             <!-- Player Main Content -->
             <div class="player-main">
+                <!-- Spotify Connection Prompt (shown when not connected) -->
+                <div id="spotify-connect-prompt" class="spotify-connect-prompt hidden">
+                    <div class="spotify-connect-card">
+                        <i class="fa-brands fa-spotify" style="font-size: 48px; color: #1DB954; margin-bottom: 16px;"></i>
+                        <h3 style="margin: 0 0 8px 0;">Connect Spotify to Play Music</h3>
+                        <p style="margin: 0 0 16px 0; color: rgba(255, 255, 255, 0.7);">
+                            Band Practice Pro uses Spotify Web Playback to play music directly in your browser.
+                        </p>
+                        <p style="margin: 0 0 24px 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">
+                            <strong>Spotify Premium required</strong>
+                        </p>
+                        <button class="btn btn-primary" onclick="SpotifyPlayer.connectSpotify()" style="background: #1DB954; padding: 12px 24px;">
+                            <i class="fa-brands fa-spotify"></i> Connect Spotify
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Lyrics Panel (100% width - notes shown as callouts) -->
                 <div class="player-lyrics-panel lyrics-columns-3" id="player-lyrics-panel">
                     <div class="empty-state">
@@ -752,6 +769,7 @@ END: Final chorus is acapella"></textarea>
 
     <!-- Common utilities -->
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/spotify_player.js') }}"></script>
     <script src="{{ url_for('static', filename='js/viewManager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/player.js') }}"></script>
 

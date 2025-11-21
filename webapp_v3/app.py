@@ -21,6 +21,7 @@ from services.auth_service_v3 import AuthService, initialize_firebase_admin, req
 from services.user_service_v3 import UserService
 from services.collections_service_v3 import CollectionsService
 from services.playlist_service_v3 import PlaylistServiceV3
+from services.spotify_playback_service_v3 import SpotifyPlaybackService
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -647,25 +648,6 @@ def fetch_song_lyrics(song_id):
         logger.error(f"Error fetching lyrics for song {song_id}: {e}")
         return jsonify({'error': str(e)}), 500
 
-# Spotify endpoints (to be implemented in Phase 6)
-@app.route('/api/v3/spotify/auth-url', methods=['GET'])
-def spotify_auth_url():
-    """Get Spotify OAuth URL"""
-    # TODO: Implement in Phase 6
-    return jsonify({'error': 'Not implemented yet'}), 501
-
-@app.route('/api/v3/spotify/callback', methods=['POST'])
-def spotify_callback():
-    """Handle Spotify OAuth callback"""
-    # TODO: Implement in Phase 6
-    return jsonify({'error': 'Not implemented yet'}), 501
-
-@app.route('/api/v3/spotify/token', methods=['GET'])
-def spotify_token():
-    """Get user's Spotify token"""
-    # TODO: Implement in Phase 6
-    return jsonify({'error': 'Not implemented yet'}), 501
-
 # ============================================================================
 # PWA Support
 # ============================================================================
@@ -681,6 +663,144 @@ def service_worker():
     """Serve service worker"""
     from flask import send_from_directory
     return send_from_directory('static', 'service-worker.js')
+
+# ============================================================================
+# Spotify Web Playback SDK - OAuth Routes
+# ============================================================================
+
+# Initialize Spotify Playback service
+spotify_playback = SpotifyPlaybackService()
+
+@app.route('/api/v3/spotify/auth-url', methods=['GET'])
+@require_auth
+def get_spotify_auth_url():
+    """
+    Get Spotify OAuth URL for user authentication
+    Returns URL to redirect user to Spotify login
+    """
+    try:
+        user_info = request.user_info
+        uid = user_info['uid']
+
+        # Use UID as state for CSRF protection
+        auth_url = spotify_playback.get_auth_url(state=uid)
+
+        return jsonify({'auth_url': auth_url}), 200
+
+    except Exception as e:
+        logger.error(f"Get Spotify auth URL error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/v3/spotify/callback', methods=['GET'])
+def spotify_callback():
+    """
+    Handle Spotify OAuth callback
+    Exchanges authorization code for tokens and closes popup
+    """
+    code = request.args.get('code')
+    state = request.args.get('state')  # Should match UID
+    error = request.args.get('error')
+
+    if error:
+        logger.warning(f"Spotify OAuth error: {error}")
+        return f"""
+        <html>
+        <body>
+            <script>
+                window.opener.postMessage({{type: 'spotify-error', error: '{error}'}}, '*');
+                window.close();
+            </script>
+            <p>Spotify authorization denied. Closing window...</p>
+        </body>
+        </html>
+        """
+
+    if not code or not state:
+        return jsonify({'error': 'Missing code or state parameter'}), 400
+
+    try:
+        # Exchange code for token
+        token_data = spotify_playback.exchange_code_for_token(code)
+
+        # Check if user has Premium (required for Web Playback SDK)
+        is_premium = spotify_playback.check_premium_status(token_data['access_token'])
+
+        # Save token for user (state = uid)
+        spotify_playback.save_user_token(state, token_data)
+
+        # Close popup and notify parent window
+        return f"""
+        <html>
+        <body>
+            <script>
+                window.opener.postMessage({{
+                    type: 'spotify-connected',
+                    isPremium: {str(is_premium).lower()}
+                }}, '*');
+                window.close();
+            </script>
+            <p>Spotify connected! Closing window...</p>
+        </body>
+        </html>
+        """
+
+    except Exception as e:
+        logger.error(f"Spotify callback error: {e}")
+        return f"""
+        <html>
+        <body>
+            <script>
+                window.opener.postMessage({{type: 'spotify-error', error: 'Connection failed'}}, '*');
+                window.close();
+            </script>
+            <p>Failed to connect Spotify. Closing window...</p>
+        </body>
+        </html>
+        """
+
+
+@app.route('/api/v3/spotify/token', methods=['GET'])
+@require_auth
+def get_spotify_token():
+    """
+    Get current Spotify access token for user
+    Auto-refreshes if expired
+    """
+    try:
+        user_info = request.user_info
+        uid = user_info['uid']
+
+        access_token = spotify_playback.get_user_token(uid)
+
+        return jsonify({'access_token': access_token}), 200
+
+    except ValueError as e:
+        # User has not connected Spotify
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        logger.error(f"Get Spotify token error: {e}")
+        return jsonify({'error': 'Failed to get Spotify token'}), 500
+
+
+@app.route('/api/v3/spotify/disconnect', methods=['POST'])
+@require_auth
+def disconnect_spotify():
+    """
+    Disconnect Spotify for user (remove tokens)
+    """
+    try:
+        user_info = request.user_info
+        uid = user_info['uid']
+
+        spotify_playback.disconnect_user(uid)
+
+        return jsonify({'success': True}), 200
+
+    except Exception as e:
+        logger.error(f"Disconnect Spotify error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 # ============================================================================
 # Error Handlers

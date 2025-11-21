@@ -53,6 +53,21 @@ const PlayerManager = {
             this.nextSong();
         });
 
+        // Progress bar click-to-seek
+        const progressBar = document.querySelector('.player-progress-bar');
+        if (progressBar) {
+            progressBar.addEventListener('click', (e) => {
+                if (!window.SpotifyPlayer.isReady || !window.SpotifyPlayer.duration) return;
+
+                const rect = progressBar.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const percentage = clickX / rect.width;
+                const newPosition = percentage * window.SpotifyPlayer.duration;
+
+                window.SpotifyPlayer.seek(newPosition);
+            });
+        }
+
         // View controls
         document.getElementById('player-toggle-columns')?.addEventListener('click', () => {
             this.toggleColumns();
@@ -136,8 +151,18 @@ const PlayerManager = {
             this.startBpmFlasher();
         }
 
-        // TODO: Load Spotify preview (Phase 8)
-        // this.loadSpotifyPreview();
+        // Initialize Spotify Player on first load
+        if (!window.SpotifyPlayer.player) {
+            await window.SpotifyPlayer.init();
+        }
+
+        // Don't load track into Spotify - just show connect prompt if needed
+        if (song.spotify_uri && !window.SpotifyPlayer.accessToken) {
+            this.showSpotifyConnectPrompt();
+        }
+
+        // Reset play button to show play icon (not pause)
+        this.updatePlayButton(false);
     },
 
     /**
@@ -1354,9 +1379,12 @@ const PlayerManager = {
     /**
      * Navigate to previous song
      */
-    previousSong() {
+    async previousSong() {
         const allSongs = ViewManager.state.allSongs;
         if (!allSongs || allSongs.length === 0) return;
+
+        // Pause current playback
+        await this.pausePlayback();
 
         const currentIndex = allSongs.findIndex(s => s.id === this.currentSong.id);
         if (currentIndex > 0) {
@@ -1369,9 +1397,12 @@ const PlayerManager = {
     /**
      * Navigate to next song
      */
-    nextSong() {
+    async nextSong() {
         const allSongs = ViewManager.state.allSongs;
         if (!allSongs || allSongs.length === 0) return;
+
+        // Pause current playback
+        await this.pausePlayback();
 
         const currentIndex = allSongs.findIndex(s => s.id === this.currentSong.id);
         if (currentIndex < allSongs.length - 1) {
@@ -1382,26 +1413,155 @@ const PlayerManager = {
     },
 
     /**
-     * Playback controls (stubbed for now - will implement in Phase 8)
+     * Pause playback
      */
-    togglePlayback() {
-        BPP.showToast('Spotify playback coming in Phase 8', 'info');
+    async pausePlayback() {
+        if (window.SpotifyPlayer.isPlaying) {
+            await window.SpotifyPlayer.pause();
+            this.updatePlayButton(false);
+        }
     },
 
-    restartTrack() {
-        BPP.showToast('Restart track (coming soon)', 'info');
+    /**
+     * Toggle playback (play/pause)
+     */
+    async togglePlayback() {
+        if (!this.currentSong || !this.currentSong.spotify_uri) {
+            BPP.showToast('No Spotify track for this song', 'info');
+            return;
+        }
+
+        if (!window.SpotifyPlayer.isReady) {
+            BPP.showToast('Spotify player not ready', 'warning');
+            return;
+        }
+
+        // If currently playing the same track, just toggle pause
+        if (window.SpotifyPlayer.isPlaying && window.SpotifyPlayer.currentTrackUri === this.currentSong.spotify_uri) {
+            await window.SpotifyPlayer.pause();
+            this.updatePlayButton(false);
+        }
+        // If nothing playing or different track, start playing current song
+        else {
+            await window.SpotifyPlayer.play(this.currentSong.spotify_uri);
+            this.updatePlayButton(true);
+        }
     },
 
-    toggleMute() {
-        BPP.showToast('Mute toggle (coming soon)', 'info');
+    async restartTrack() {
+        if (!window.SpotifyPlayer.isReady) {
+            BPP.showToast('Spotify player not ready', 'warning');
+            return;
+        }
+
+        await window.SpotifyPlayer.seek(0);
+        BPP.showToast('Track restarted', 'success');
     },
 
-    skipBackward(seconds) {
-        // Coming in Phase 8 - Spotify playback
+    async toggleMute() {
+        if (!window.SpotifyPlayer.isReady) {
+            BPP.showToast('Spotify player not ready', 'warning');
+            return;
+        }
+
+        // Toggle between 0 and saved volume
+        if (window.SpotifyPlayer.volume > 0) {
+            this.savedVolume = window.SpotifyPlayer.volume;
+            await window.SpotifyPlayer.setVolume(0);
+            BPP.showToast('Muted', 'info');
+        } else {
+            await window.SpotifyPlayer.setVolume(this.savedVolume || 0.5);
+            BPP.showToast('Unmuted', 'info');
+        }
     },
 
-    skipForward(seconds) {
-        // Coming in Phase 8 - Spotify playback
+    savedVolume: 0.5,
+
+    async skipBackward(seconds) {
+        if (!window.SpotifyPlayer.isReady) return;
+
+        const newPosition = Math.max(0, window.SpotifyPlayer.position - (seconds * 1000));
+        await window.SpotifyPlayer.seek(newPosition);
+    },
+
+    async skipForward(seconds) {
+        if (!window.SpotifyPlayer.isReady) return;
+
+        const newPosition = Math.min(
+            window.SpotifyPlayer.duration,
+            window.SpotifyPlayer.position + (seconds * 1000)
+        );
+        await window.SpotifyPlayer.seek(newPosition);
+    },
+
+    /**
+     * Update play button icon based on playing state
+     * @param {boolean} isPlaying - Whether music is playing
+     */
+    updatePlayButton(isPlaying) {
+        const playBtn = document.getElementById('player-play-btn');
+        if (!playBtn) return;
+
+        const icon = playBtn.querySelector('i');
+        if (icon) {
+            icon.className = isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+        }
+    },
+
+    /**
+     * Update progress bar and time displays
+     * @param {number} position - Current position in ms
+     * @param {number} duration - Total duration in ms
+     */
+    updateProgress(position, duration) {
+        const progressFill = document.getElementById('player-progress-fill');
+        const currentTime = document.getElementById('player-current-time');
+        const durationEl = document.getElementById('player-duration');
+
+        if (progressFill && duration > 0) {
+            const percentage = (position / duration) * 100;
+            progressFill.style.width = `${percentage}%`;
+        }
+
+        if (currentTime) {
+            currentTime.textContent = this.formatTime(position);
+        }
+
+        if (durationEl) {
+            durationEl.textContent = this.formatTime(duration);
+        }
+    },
+
+    /**
+     * Format milliseconds to M:SS
+     * @param {number} ms - Time in milliseconds
+     * @returns {string} - Formatted time string
+     */
+    formatTime(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    },
+
+    /**
+     * Show Spotify connection prompt
+     */
+    showSpotifyConnectPrompt() {
+        const prompt = document.getElementById('spotify-connect-prompt');
+        if (prompt) {
+            prompt.classList.remove('hidden');
+        }
+    },
+
+    /**
+     * Hide Spotify connection prompt
+     */
+    hideSpotifyConnectPrompt() {
+        const prompt = document.getElementById('spotify-connect-prompt');
+        if (prompt) {
+            prompt.classList.add('hidden');
+        }
     },
 
     /**

@@ -108,6 +108,13 @@ const ViewManager = {
     showView(viewName) {
         console.log(`🔄 Switching to ${viewName} view`);
 
+        // Pause music when leaving player view
+        if (this.currentView === 'player' && viewName !== 'player') {
+            if (window.PlayerManager) {
+                PlayerManager.pausePlayback();
+            }
+        }
+
         // Hide all views
         Object.values(this.views).forEach(view => {
             if (view) view.classList.remove('active');
