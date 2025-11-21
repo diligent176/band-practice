@@ -119,12 +119,38 @@ function handleKeyboard(event, handlers) {
 }
 
 /**
+ * Check if a specific dialog is currently visible
+ * @param {string} dialogId - ID of the dialog element
+ * @returns {boolean} - True if dialog is visible
+ */
+function isDialogVisible(dialogId) {
+  const dialog = document.getElementById(dialogId);
+  return dialog && !dialog.classList.contains('hidden');
+}
+
+/**
+ * Check if ANY dialog is currently visible
+ * @returns {boolean} - True if any dialog is visible
+ */
+function isAnyDialogVisible() {
+  const dialogs = document.querySelectorAll('[id$="-dialog"]');
+  for (const dialog of dialogs) {
+    if (!dialog.classList.contains('hidden')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Add escape key handler to close dialog
  * @param {string} dialogId - ID of the dialog to close on escape
  */
 function addEscapeHandler(dialogId) {
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && isDialogVisible(dialogId)) {
+      event.stopPropagation();
+      event.preventDefault();
       hideDialog(dialogId);
     }
   });
@@ -365,6 +391,8 @@ window.BPP = {
   hideDialog,
   confirmDialog,
   addEscapeHandler,
+  isDialogVisible,
+  isAnyDialogVisible,
 
   // Keyboard utilities
   handleKeyboard,

@@ -626,6 +626,31 @@
         </div>
     </div>
 
+    <!-- Request Collaborator Access Confirmation Dialog -->
+    <div id="request-access-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Request Collaborator Access</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('request-access-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="request-access-collection-id">
+                <p class="text-secondary" style="line-height: 1.6;">
+                    Request Collaborator role on this Collection?
+                </p>
+                <p class="text-secondary" style="line-height: 1.6; margin-top: 12px;">
+                    Collaborators can edit Lyrics, Notes and Tempo. The Collection Owner will see this request.
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('request-access-dialog')">Cancel</button>
+                <button id="confirm-request-access-btn" class="btn btn-primary">Send Request</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Lyrics Dialog - Full Screen Split View -->
     <div id="edit-lyrics-dialog" class="dialog-overlay hidden">
         <div class="notes-editor-fullscreen">
@@ -1254,16 +1279,35 @@ END: Final chorus is acapella"></textarea>
 
             // Add click handlers for request access buttons
             container.querySelectorAll('.request-access-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
+                btn.addEventListener('click', (e) => {
                     e.stopPropagation(); // Prevent card click
                     const collectionId = btn.dataset.collectionId;
-                    await requestCollaborationAccess(collectionId);
+                    showRequestAccessDialog(collectionId);
                 });
             });
         }
 
-        async function requestCollaborationAccess(collectionId) {
+        function showRequestAccessDialog(collectionId) {
+            // Store collection ID in hidden field
+            document.getElementById('request-access-collection-id').value = collectionId;
+            
+            // Show dialog
+            BPP.showDialog('request-access-dialog');
+            
+            // Focus the confirm button so Enter works
+            setTimeout(() => {
+                document.getElementById('confirm-request-access-btn').focus();
+            }, 100);
+        }
+
+        async function requestCollaborationAccess() {
             try {
+                // Get collection ID from hidden field
+                const collectionId = document.getElementById('request-access-collection-id').value;
+                
+                // Hide dialog first
+                BPP.hideDialog('request-access-dialog');
+                
                 BPP.showLoading('Sending request...');
 
                 await BPP.apiCall(`/api/v3/collections/${collectionId}/request-access`, {
@@ -1704,7 +1748,22 @@ END: Final chorus is acapella"></textarea>
         document.getElementById('confirm-delete-btn').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                e.stopPropagation();
                 document.getElementById('confirm-delete-btn').click();
+            }
+        });
+
+        // Confirm Request Access Button
+        document.getElementById('confirm-request-access-btn').addEventListener('click', async () => {
+            await requestCollaborationAccess();
+        });
+
+        // ENTER key on confirm request access button triggers request
+        document.getElementById('confirm-request-access-btn').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('confirm-request-access-btn').click();
             }
         });
 
@@ -2010,6 +2069,7 @@ END: Final chorus is acapella"></textarea>
         BPP.addEscapeHandler('edit-collection-dialog');
         BPP.addEscapeHandler('delete-collection-dialog');
         BPP.addEscapeHandler('link-playlist-dialog');
+        BPP.addEscapeHandler('request-access-dialog');
 
         // Reset playlist selection when dialog closes
         const linkPlaylistDialog = document.getElementById('link-playlist-dialog');
@@ -2132,11 +2192,8 @@ END: Final chorus is acapella"></textarea>
             // Don't handle if not in collections view
             const inCollectionsView = ViewManager.currentView === 'collections';
 
-            // Don't handle if dialog is open or user is typing
-            const dialogOpen = !document.getElementById('new-collection-dialog').classList.contains('hidden') ||
-                              !document.getElementById('edit-collection-dialog').classList.contains('hidden') ||
-                              !document.getElementById('delete-collection-dialog').classList.contains('hidden') ||
-                              !document.getElementById('link-playlist-dialog').classList.contains('hidden');
+            // Don't handle if ANY dialog is open or user is typing
+            const dialogOpen = BPP.isAnyDialogVisible();
             const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
 
             // Special case: / or ? key toggles help even if typing (but not in dialogs)
