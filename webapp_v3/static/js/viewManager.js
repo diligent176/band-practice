@@ -566,18 +566,40 @@ const ViewManager = {
             }
         }
 
-        // . (period) - BPM tap (even in tap dialog)
+        // . (period) - BPM dialog (tap or open)
         if (e.key === '.') {
-            const tapDialog = document.getElementById('bpm-tap-dialog');
-            if (tapDialog && !tapDialog.classList.contains('hidden')) {
+            const bpmDialog = document.getElementById('bpm-dialog');
+            if (bpmDialog && !bpmDialog.classList.contains('hidden')) {
                 e.preventDefault();
-                PlayerManager.handleTap();
+                PlayerManager.handleBpmTap();
                 return;
             }
             // If dialog not open, open it
             if (!isTyping) {
                 e.preventDefault();
-                PlayerManager.openBpmTapTrainer();
+                PlayerManager.openBpmDialog();
+                return;
+            }
+        }
+
+        // Arrow keys in BPM dialog for adjustment
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            const bpmDialog = document.getElementById('bpm-dialog');
+            if (bpmDialog && !bpmDialog.classList.contains('hidden')) {
+                e.preventDefault();
+                const increment = e.ctrlKey ? 1.0 : 0.1;
+                const direction = e.key === 'ArrowUp' ? 1 : -1;
+                PlayerManager.adjustBpmValue(increment * direction);
+                return;
+            }
+        }
+
+        // Enter in BPM dialog to save
+        if (e.key === 'Enter') {
+            const bpmDialog = document.getElementById('bpm-dialog');
+            if (bpmDialog && !bpmDialog.classList.contains('hidden')) {
+                e.preventDefault();
+                PlayerManager.saveBpm();
                 return;
             }
         }
@@ -611,9 +633,17 @@ const ViewManager = {
             return;
         }
 
-        // ESC - Close help card first, then go back to songs view
+        // ESC - Close BPM dialog first, then help card, then go back to songs view
         if (e.key === 'Escape') {
             e.preventDefault();
+            
+            // Check if BPM dialog is open
+            const bpmDialog = document.getElementById('bpm-dialog');
+            if (bpmDialog && !bpmDialog.classList.contains('hidden')) {
+                BPP.hideDialog('bpm-dialog');
+                return;
+            }
+            
             // Check if help card is visible using PlayerManager's state variable
             if (PlayerManager.helpCardVisible) {
                 // Help card is open - close it

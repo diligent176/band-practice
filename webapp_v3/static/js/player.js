@@ -1301,44 +1301,87 @@ const PlayerManager = {
     },
 
     /**
-     * Open BPM tap trainer dialog
+     * Open smart BPM dialog (unified tap + adjust)
      */
-    openBpmTapTrainer() {
-        this.resetTapTrainer();
-        BPP.showDialog('bpm-tap-dialog');
-    },
-
-    /**
-     * Reset tap trainer
-     */
-    resetTapTrainer() {
-        this.tapTimes = [];
-        this.detectedBpm = null;
-
-        const bpmDisplay = document.getElementById('bpm-detected');
-        const tapCount = document.getElementById('bpm-tap-count');
-        const saveBtn = document.getElementById('bpm-tap-save-btn');
-
-        if (bpmDisplay) bpmDisplay.textContent = '--.-';
-        if (tapCount) tapCount.textContent = 'Taps: 0';
-        if (saveBtn) saveBtn.disabled = true;
-    },
-
-    /**
-     * Handle tap (called on '.' key press)
-     */
-    handleTap() {
-        const now = Date.now();
-        this.tapTimes.push(now);
-
-        // Keep only last 8 taps
-        if (this.tapTimes.length > 8) {
-            this.tapTimes.shift();
+    openBpmDialog() {
+        if (!this.currentSong) {
+            BPP.showToast('No song loaded', 'error');
+            return;
         }
 
+        // Initialize with current song's BPM if available
+        if (this.currentSong.bpm && this.currentSong.bpm !== 'N/A' && this.currentSong.bpm !== 'NOT_FOUND') {
+            this.detectedBpm = parseFloat(this.currentSong.bpm);
+        } else {
+            this.detectedBpm = null;
+        }
+
+        this.tapTimes = [];
+        this.updateBpmDisplay();
+        this.startBpmPreview();
+
+        BPP.showDialog('bpm-dialog');
+    },
+
+    /**
+     * Reset BPM dialog to initial state
+     */
+    resetBpmDialog() {
+        this.tapTimes = [];
+        
+        // Reset to current song's BPM or null
+        if (this.currentSong.bpm && this.currentSong.bpm !== 'N/A' && this.currentSong.bpm !== 'NOT_FOUND') {
+            this.detectedBpm = parseFloat(this.currentSong.bpm);
+        } else {
+            this.detectedBpm = null;
+        }
+
+        this.updateBpmDisplay();
+        this.startBpmPreview(); // Restart preview with reset BPM
+    },
+
+    /**
+     * Update BPM display in dialog
+     */
+    updateBpmDisplay() {
+        const bpmDisplay = document.getElementById('bpm-value-display');
         const tapCount = document.getElementById('bpm-tap-count');
+
+        if (bpmDisplay) {
+            if (this.detectedBpm !== null) {
+                bpmDisplay.textContent = this.detectedBpm.toFixed(1);
+            } else {
+                bpmDisplay.textContent = '--.-';
+            }
+        }
+
         if (tapCount) {
-            tapCount.textContent = `Taps: ${this.tapTimes.length}`;
+            if (this.tapTimes.length > 0) {
+                tapCount.textContent = `Taps: ${this.tapTimes.length}`;
+            } else if (this.detectedBpm !== null) {
+                tapCount.textContent = 'Use arrows to adjust';
+            } else {
+                tapCount.textContent = 'Ready to tap';
+            }
+        }
+    },
+
+    /**
+     * Handle tap (called on '.' key press in dialog)
+     */
+    handleBpmTap() {
+        const now = Date.now();
+        
+        // Filter out taps older than 5 seconds (5000ms)
+        // This allows fresh starts if user pauses
+        const recentCutoff = now - 5000;
+        this.tapTimes = this.tapTimes.filter(t => t > recentCutoff);
+        
+        this.tapTimes.push(now);
+
+        // Keep only last 10 taps (even within 5 second window)
+        if (this.tapTimes.length > 10) {
+            this.tapTimes.shift();
         }
 
         // Calculate BPM if we have at least 2 taps
@@ -1350,47 +1393,113 @@ const PlayerManager = {
 
             const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
             this.detectedBpm = Math.round((60000 / avgInterval) * 10) / 10; // Round to 1 decimal
+            
+            // Update metronome preview with new BPM
+            this.startBpmPreview();
+        }
 
-            const bpmDisplay = document.getElementById('bpm-detected');
-            const saveBtn = document.getElementById('bpm-tap-save-btn');
+        this.updateBpmDisplay();
 
-            if (bpmDisplay) {
-                bpmDisplay.textContent = this.detectedBpm.toFixed(1);
-            }
-
-            if (saveBtn && this.tapTimes.length >= 4) {
-                saveBtn.disabled = false;
-            }
+        // Visual feedback - pulse the display
+        const bpmDisplay = document.getElementById('bpm-value-display');
+        if (bpmDisplay) {
+            bpmDisplay.style.transform = 'scale(1.08)';
+            setTimeout(() => {
+                bpmDisplay.style.transform = 'scale(1)';
+            }, 100);
         }
     },
 
     /**
-     * Save BPM from tap trainer
+     * Adjust BPM value with arrow keys
+     * @param {number} delta - Amount to adjust (0.1 or 1.0, positive or negative)
      */
-    async saveBpmFromTap() {
-        if (!this.detectedBpm) {
-            BPP.showToast('No BPM detected', 'error');
+    adjustBpmValue(delta) {
+        // If no BPM set yet, start at 120
+        if (this.detectedBpm === null) {
+            this.detectedBpm = 120.0;
+        }
+
+        // Adjust and round to 1 decimal
+        this.detectedBpm = Math.round((this.detectedBpm + delta) * 10) / 10;
+
+        // Keep in reasonable range (30-300 BPM)
+        this.detectedBpm = Math.max(30.0, Math.min(300.0, this.detectedBpm));
+
+        this.updateBpmDisplay();
+        this.startBpmPreview(); // Update preview with new BPM
+    },
+
+    /**
+     * Save BPM to database
+     */
+    async saveBpm() {
+        if (!this.currentSong) {
+            BPP.showToast('No song loaded', 'error');
+            return;
+        }
+
+        if (this.detectedBpm === null || this.detectedBpm <= 0) {
+            BPP.showToast('Please set a BPM value', 'error');
             return;
         }
 
         try {
+            // Save with 1 decimal precision
+            const bpmToSave = this.detectedBpm.toFixed(1);
+
             await BPP.apiCall(`/api/v3/songs/${this.currentSong.id}`, {
                 method: 'PUT',
-                body: JSON.stringify({ bpm: Math.round(this.detectedBpm) })
+                body: JSON.stringify({ 
+                    bpm: bpmToSave,
+                    bpm_manual: true 
+                })
             });
 
-            this.currentSong.bpm = Math.round(this.detectedBpm);
+            this.currentSong.bpm = bpmToSave;
+            this.currentSong.bpm_manual = true;
             this.renderTopNav();
-            BPP.hideDialog('bpm-tap-dialog');
-            BPP.showToast(`BPM set to ${this.currentSong.bpm}`, 'success');
+            this.stopBpmPreview();
+            BPP.hideDialog('bpm-dialog');
+            BPP.showToast(`BPM set to ${bpmToSave}`, 'success');
 
-            // Restart flasher with new BPM
+            // Restart metronome with new BPM
             if (this.bpmIndicatorEnabled) {
                 this.startBpmFlasher();
             }
         } catch (error) {
             console.error('Failed to save BPM:', error);
             BPP.showToast('Failed to save BPM', 'error');
+        }
+    },
+
+    /**
+     * Start BPM preview metronome in dialog
+     */
+    startBpmPreview() {
+        if (this.detectedBpm === null || this.detectedBpm <= 0) {
+            this.stopBpmPreview();
+            return;
+        }
+
+        const previewElement = document.getElementById('bpm-metronome-preview');
+        if (!previewElement) return;
+
+        // Calculate animation duration (same as main metronome)
+        const beatDuration = 60 / this.detectedBpm;
+        const animationDuration = beatDuration * 2;
+
+        previewElement.style.animationDuration = `${animationDuration}s`;
+        previewElement.classList.add('animating');
+    },
+
+    /**
+     * Stop BPM preview metronome
+     */
+    stopBpmPreview() {
+        const previewElement = document.getElementById('bpm-metronome-preview');
+        if (previewElement) {
+            previewElement.classList.remove('animating');
         }
     },
 

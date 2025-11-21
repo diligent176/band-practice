@@ -404,8 +404,8 @@
                                     </div>
                                     <div class="help-item">
                                         <div class="help-keys"><kbd>.</kbd></div>
-                                        <i class="fa-solid fa-hand-pointer help-icon"></i>
-                                        <span>BPM Tap</span>
+                                        <i class="fa-solid fa-drum help-icon"></i>
+                                        <span>Set BPM</span>
                                     </div>
                                 </div>
                             </div>
@@ -733,27 +733,34 @@ END: Final chorus is acapella"></textarea>
         </div>
     </div>
 
-    <!-- BPM Tap Trainer Dialog -->
-    <div id="bpm-tap-dialog" class="dialog-overlay hidden">
+    <!-- Smart BPM Dialog (Tap Trainer + Manual Adjustment) -->
+    <div id="bpm-dialog" class="dialog-overlay hidden">
         <div class="dialog">
             <div class="dialog-header">
-                <h3 class="dialog-title"><i class="fa-solid fa-hand-pointer"></i> BPM Tap Trainer</h3>
-                <button class="dialog-close" onclick="BPP.hideDialog('bpm-tap-dialog')">
+                <h3 class="dialog-title"><i class="fa-solid fa-drum"></i> Set BPM</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('bpm-dialog')">
                     <i class="fa-solid fa-times"></i>
                 </button>
             </div>
             <div class="dialog-body">
-                <p class="text-center mb-md">Tap the <kbd>.</kbd> (period) key to the beat</p>
-                <div id="bpm-detected" class="bpm-display-large">--.-</div>
-                <p class="text-center text-sm text-muted">Tap at least 4 times for accurate detection</p>
-                <div id="bpm-tap-count" class="text-center text-sm text-secondary">Taps: 0</div>
+                <div class="text-center text-sm text-muted mb-md" style="line-height: 1.8;">
+                    <div>Tap <kbd>.</kbd> to train the tempo</div>
+                    <div><kbd>↑</kbd> <kbd>↓</kbd> to adjust ±0.1 • <kbd>Ctrl</kbd> + <kbd>↑</kbd> <kbd>↓</kbd> to adjust ±1.0</div>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px;">
+                    <div id="bpm-metronome-preview" class="bpm-metronome-preview">
+                        <i class="fa-solid fa-drum"></i>
+                    </div>
+                    <div id="bpm-value-display" class="bpm-display-large" style="margin: 0;">--.-</div>
+                </div>
+                <div id="bpm-tap-count" class="text-center text-sm text-secondary mt-sm">Ready to tap</div>
             </div>
             <div class="dialog-footer">
-                <button id="bpm-tap-reset-btn" class="btn btn-secondary" onclick="PlayerManager.resetTapTrainer()">
+                <button id="bpm-reset-btn" class="btn btn-secondary" onclick="PlayerManager.resetBpmDialog()">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
-                <button id="bpm-tap-save-btn" class="btn btn-primary" onclick="PlayerManager.saveBpmFromTap()" disabled>
-                    <i class="fa-solid fa-check"></i> Use This BPM
+                <button id="bpm-save-btn" class="btn btn-primary" onclick="PlayerManager.saveBpm()">
+                    <i class="fa-solid fa-check"></i> Save BPM
                 </button>
             </div>
         </div>

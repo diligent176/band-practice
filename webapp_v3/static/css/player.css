@@ -669,6 +669,60 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
   margin: var(--spacing-lg) 0;
+  transition: transform 0.1s ease;
+}
+
+/* BPM Metronome Preview in Dialog */
+.bpm-metronome-preview {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(45, 122, 74, 0.15);
+  border: 2px solid rgba(45, 122, 74, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: rgba(45, 122, 74, 0.8);
+  transition: all 0.1s ease;
+}
+
+.bpm-metronome-preview.animating {
+  animation-name: bpm-preview-pulse;
+  animation-timing-function: steps(1, jump-none);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  will-change: background, border-color, transform;
+}
+
+@keyframes bpm-preview-pulse {
+  0% {
+    background: rgba(45, 122, 74, 0.4);
+    border-color: rgba(45, 122, 74, 0.7);
+    box-shadow: 0 0 16px rgba(45, 122, 74, 0.5);
+    transform: scale(1.05);
+  }
+
+  50% {
+    background: rgba(45, 122, 74, 0.4);
+    border-color: rgba(45, 122, 74, 0.7);
+    box-shadow: 0 0 16px rgba(45, 122, 74, 0.5);
+    transform: scale(1.05);
+  }
+
+  51% {
+    background: rgba(45, 122, 74, 0.15);
+    border-color: rgba(45, 122, 74, 0.3);
+    box-shadow: none;
+    transform: scale(1);
+  }
+
+  100% {
+    background: rgba(45, 122, 74, 0.15);
+    border-color: rgba(45, 122, 74, 0.3);
+    box-shadow: none;
+    transform: scale(1);
+  }
 }
 
 #bpm-tap-count {
