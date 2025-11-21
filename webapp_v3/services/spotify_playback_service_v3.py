@@ -229,7 +229,10 @@ class SpotifyPlaybackService:
             user_data = response.json()
             product = user_data.get('product', 'free')
 
-            return product == 'premium'
+            logger.info(f"Spotify user product type: {product} (email: {user_data.get('email', 'unknown')})")
+
+            # Check for any premium variant (premium, premium-family, premium-student, etc.)
+            return product.startswith('premium') if product else False
         except Exception as e:
             logger.error(f"Error checking Spotify Premium status: {e}")
             return False
