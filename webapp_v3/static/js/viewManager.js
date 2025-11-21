@@ -295,9 +295,6 @@ const ViewManager = {
                     <div class="song-title">${this.escapeHtml(song.title || 'Unknown')}</div>
                     <div class="song-artist">${this.escapeHtml(song.artist || 'Unknown')}</div>
                 </div>
-                <div class="song-meta">
-                    ${song.bpm && song.bpm !== 'N/A' ? `<span class="song-bpm"><i class="fa-solid fa-drum"></i> ${song.bpm}</span>` : ''}
-                </div>
             </div>
         `;
     },

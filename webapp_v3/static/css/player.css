@@ -538,6 +538,12 @@
   justify-content: center;
   height: 100%;
   color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.player-lyrics-panel .empty-state a {
+  color: var(--text-muted);
+  text-decoration: underline;
 }
 
 /* ============================================================================

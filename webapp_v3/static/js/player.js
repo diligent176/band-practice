@@ -224,7 +224,10 @@ const PlayerManager = {
         const lyrics = this.currentSong.lyrics_numbered || this.currentSong.lyrics || '';
 
         if (!lyrics || lyrics.trim() === '') {
-            lyricsPanel.innerHTML = '<div class="empty-state"><p>No lyrics available. Press L to edit lyrics.</p></div>';
+            const title = encodeURIComponent(this.currentSong.title || '');
+            const artist = encodeURIComponent(this.currentSong.artist || '');
+            const googleUrl = `https://www.google.com/search?q=Lyrics+for+${title}+by+${artist}`;
+            lyricsPanel.innerHTML = `<div class="empty-state" style="text-align: center;"><p>No lyrics available.<br /><br />Press L to add/edit lyrics or G to fetch from Genius.<br /><br />Or <a href="${googleUrl}" target="_blank" rel="noopener">search lyrics on Google</a></p></div>`;
             return;
         }
 
