@@ -655,6 +655,61 @@ def unlink_playlist(collection_id):
         logger.error(f"Error unlinking playlist: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/v3/collections/<collection_id>/reorder-playlists', methods=['POST'])
+@require_auth
+def reorder_playlists(collection_id):
+    """Reorder linked playlists in a collection"""
+    try:
+        user_id = request.user_id
+        data = request.get_json()
+        playlist_ids = data.get('playlist_ids', [])
+
+        if not playlist_ids:
+            return jsonify({'error': 'playlist_ids required'}), 400
+
+        # Verify user owns the collection
+        collections_service = CollectionsService()
+        collection = collections_service.get_collection(collection_id, user_id)
+
+        if not collection:
+            return jsonify({'error': 'Collection not found'}), 404
+
+        if collection['owner_uid'] != user_id:
+            return jsonify({'error': 'You do not own this collection'}), 403
+
+        # Get current linked playlists
+        linked_playlists = collection.get('linked_playlists', [])
+        
+        # Create a map of playlist_id to playlist data
+        playlist_map = {p['playlist_id']: p for p in linked_playlists}
+        
+        # Reorder playlists according to new order
+        reordered_playlists = []
+        for playlist_id in playlist_ids:
+            if playlist_id in playlist_map:
+                reordered_playlists.append(playlist_map[playlist_id])
+        
+        # Update collection with new order
+        from firebase_admin import firestore
+        from datetime import datetime
+        db = firestore.client()
+        collection_ref = db.collection('collections_v3').document(collection_id)
+        collection_ref.update({
+            'linked_playlists': reordered_playlists,
+            'updated_at': datetime.utcnow()
+        })
+
+        logger.info(f"Reordered playlists for collection {collection_id}: {playlist_ids}")
+
+        return jsonify({
+            'message': 'Playlist order updated successfully',
+            'playlist_ids': playlist_ids
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error reordering playlists: {e}")
+        return jsonify({'error': str(e)}), 500
+
 # Songs endpoints
 @app.route('/api/v3/songs/<song_id>', methods=['GET', 'PUT'])
 @require_auth

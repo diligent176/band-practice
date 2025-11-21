@@ -571,7 +571,10 @@
 
                 <!-- 2. Linked Playlists (set order) -->
                 <div id="linked-playlists-section" class="mb-md" style="display: none;">
-                    <label class="text-sm text-secondary mb-sm">Linked Playlists</label>
+                    <label class="text-sm text-secondary mb-sm">
+                        Linked Playlists
+                        <span style="margin-left: 8px; font-size: 11px; opacity: 0.6;"><i class="fa-solid fa-grip-vertical"></i> Drag to reorder</span>
+                    </label>
                     <div id="linked-playlists-list" class="recent-playlists-list">
                         <!-- Linked playlists will be rendered here -->
                     </div>
@@ -1538,10 +1541,10 @@ END: Final chorus is acapella"></textarea>
                 if (linkedPlaylists.length > 0) {
                     document.getElementById('linked-playlists-section').style.display = 'block';
                     const linkedContainer = document.getElementById('linked-playlists-list');
-                    linkedContainer.innerHTML = linkedPlaylists.map(playlist => {
+                    linkedContainer.innerHTML = linkedPlaylists.map((playlist, index) => {
                         const hasArtwork = playlist.image_url && playlist.image_url.trim() !== '';
                         return `
-                        <div class="recent-playlist-item" data-playlist-id="${escapeHtml(playlist.playlist_id)}" data-section="linked">
+                        <div class="recent-playlist-item playlist-draggable" data-playlist-id="${escapeHtml(playlist.playlist_id)}" data-section="linked" data-index="${index}" draggable="true">
                             ${hasArtwork
                                 ? `<img src="${escapeHtml(playlist.image_url)}" alt="${escapeHtml(playlist.playlist_name)} artwork" class="playlist-artwork" loading="lazy">`
                                 : `<div class="playlist-artwork-placeholder">
@@ -1572,6 +1575,9 @@ END: Final chorus is acapella"></textarea>
                             }
                         });
                     });
+                    
+                    // Setup drag-and-drop for reordering
+                    setupPlaylistDragAndDrop();
                 } else {
                     document.getElementById('linked-playlists-section').style.display = 'none';
                 }
@@ -1841,6 +1847,119 @@ END: Final chorus is acapella"></textarea>
                 addPlaylistToCollection();
             }
         });
+
+        // ============================================================================
+        // PLAYLIST DRAG-AND-DROP REORDERING
+        // ============================================================================
+        let draggedElement = null;
+        let draggedIndex = null;
+
+        function setupPlaylistDragAndDrop() {
+            const linkedContainer = document.getElementById('linked-playlists-list');
+            if (!linkedContainer) return;
+
+            const playlistItems = linkedContainer.querySelectorAll('.playlist-draggable');
+
+            playlistItems.forEach((item) => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.currentTarget;
+            draggedIndex = parseInt(e.currentTarget.getAttribute('data-index'));
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+        }
+
+        function handleDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.playlist-draggable.drag-over').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+
+            const item = e.currentTarget;
+            if (item !== draggedElement && item.classList.contains('playlist-draggable')) {
+                item.classList.add('drag-over');
+            }
+
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        async function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            e.preventDefault();
+
+            const dropTarget = e.currentTarget;
+            dropTarget.classList.remove('drag-over');
+
+            if (draggedElement !== dropTarget && dropTarget.classList.contains('playlist-draggable')) {
+                const dropIndex = parseInt(dropTarget.getAttribute('data-index'));
+                const collectionId = document.getElementById('link-playlist-collection-id').value;
+
+                // Get current playlist IDs in order
+                const linkedContainer = document.getElementById('linked-playlists-list');
+                const playlistItems = Array.from(linkedContainer.querySelectorAll('.playlist-draggable'));
+                const playlistIds = playlistItems.map(item => item.dataset.playlistId);
+
+                // Reorder array
+                const [movedId] = playlistIds.splice(draggedIndex, 1);
+                playlistIds.splice(dropIndex, 0, movedId);
+
+                // Save new order to backend
+                await savePlaylistOrder(collectionId, playlistIds);
+            }
+
+            return false;
+        }
+
+        async function savePlaylistOrder(collectionId, playlistIds) {
+            try {
+                BPP.showLoading('Saving order...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/reorder-playlists`, {
+                    method: 'POST',
+                    body: JSON.stringify({ playlist_ids: playlistIds })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Playlist order saved', 'success');
+
+                // Reload to reflect new order
+                const collectionData = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                await loadPlaylistSections(collectionData);
+
+                // Reload collections to update artwork (first playlist determines collection art)
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error saving playlist order:', error);
+                BPP.showToast('Failed to save order', 'error');
+
+                // Reload to restore original order
+                const collectionData = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                await loadPlaylistSections(collectionData);
+            }
+        }
 
         // ============================================================================
         // PLAYLIST DIALOG KEYBOARD NAVIGATION
