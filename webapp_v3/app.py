@@ -419,24 +419,30 @@ def import_playlist():
             'updated_at': datetime.utcnow()
         })
 
-        # Start background lyrics fetching for this collection
+        # Start background lyrics and BPM fetching for this collection
         # This runs in a separate thread so it doesn't block the response
         import threading
         from services.lyrics_service_v3 import LyricsServiceV3
         
-        def fetch_lyrics_background():
+        def fetch_lyrics_and_bpm_background():
             try:
-                logger.info(f"Starting background lyrics fetch for collection {collection_id}")
                 lyrics_service = LyricsServiceV3()
+                
+                logger.info(f"Starting background lyrics fetch for collection {collection_id}")
                 lyrics_service.batch_fetch_lyrics_for_collection(collection_id)
                 logger.info(f"Completed background lyrics fetch for collection {collection_id}")
+                
+                logger.info(f"Starting background BPM fetch for collection {collection_id}")
+                lyrics_service.batch_fetch_bpm_for_collection(collection_id)
+                logger.info(f"Completed background BPM fetch for collection {collection_id}")
+                
             except Exception as e:
-                logger.error(f"Error in background lyrics fetch: {e}")
+                logger.error(f"Error in background lyrics/BPM fetch: {e}")
         
         # Start background thread (daemon=True so it doesn't block app shutdown)
-        lyrics_thread = threading.Thread(target=fetch_lyrics_background, daemon=True)
-        lyrics_thread.start()
-        logger.info("Background lyrics fetching started")
+        background_thread = threading.Thread(target=fetch_lyrics_and_bpm_background, daemon=True)
+        background_thread.start()
+        logger.info("Background lyrics and BPM fetching started")
 
         return jsonify({
             'message': 'Playlist imported successfully',

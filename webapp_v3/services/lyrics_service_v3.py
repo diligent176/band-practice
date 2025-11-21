@@ -46,6 +46,11 @@ class LyricsServiceV3:
         # Firestore
         self.db = firestore.client()
 
+        # GetSongBPM API configuration
+        self.getsongbpm_api_key = os.getenv('GETSONGBPM_API_KEY')
+        if not self.getsongbpm_api_key:
+            logger.warning("GETSONGBPM_API_KEY not set - BPM fetching will fail")
+
     def _search_genius(self, query: str) -> Optional[Dict]:
         """Search Genius API for a song"""
         try:
@@ -347,3 +352,174 @@ class LyricsServiceV3:
 
         except Exception as e:
             logger.error(f"Error in batch_fetch_lyrics_for_collection: {e}")
+
+    def _fetch_bpm(self, title: str, artist: str) -> str:
+        """
+        Fetch BPM (tempo) from GetSongBPM API
+        
+        Args:
+            title: Song title
+            artist: Artist name
+            
+        Returns:
+            BPM as string (integer), 'N/A' if unavailable, or 'NOT_FOUND' if API lookup failed
+        """
+        try:
+            # Check if API key is configured
+            if not self.getsongbpm_api_key:
+                logger.warning("GetSongBPM API key not configured")
+                return 'N/A'
+
+            # Search for the song using GetSongBPM API
+            search_url = 'https://api.getsong.co/search/'
+            
+            # Try searching with just the title first (works better than "artist title")
+            params = {
+                'api_key': self.getsongbpm_api_key,
+                'type': 'song',
+                'lookup': title
+            }
+
+            response = requests.get(search_url, params=params, timeout=10)
+
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if we got results
+                if data.get('search') and isinstance(data['search'], list) and len(data['search']) > 0:
+                    # Try to find a match with the artist name
+                    for result in data['search']:
+                        result_artist = result.get('artist', {})
+                        if isinstance(result_artist, dict):
+                            result_artist_name = result_artist.get('name', '').lower()
+                        else:
+                            result_artist_name = ''
+                        
+                        # Check if artist name matches (case-insensitive partial match)
+                        if artist.lower() in result_artist_name or result_artist_name in artist.lower():
+                            tempo = result.get('tempo')
+                            if tempo:
+                                try:
+                                    bpm = int(round(float(tempo)))
+                                    logger.info(f"Found BPM for {title} by {artist}: {bpm}")
+                                    return str(bpm)
+                                except (ValueError, TypeError):
+                                    pass
+                    
+                    # If no artist match found, use first result's tempo if available
+                    first_result = data['search'][0]
+                    tempo = first_result.get('tempo')
+                    if tempo:
+                        try:
+                            bpm = int(round(float(tempo)))
+                            logger.info(f"Found BPM for {title} (no artist match): {bpm}")
+                            return str(bpm)
+                        except (ValueError, TypeError):
+                            pass
+                
+                logger.warning(f"No BPM found for {title} by {artist}")
+                return 'NOT_FOUND'
+            else:
+                logger.error(f"GetSongBPM API returned status {response.status_code}")
+                return 'N/A'
+
+        except Exception as e:
+            logger.error(f"Error fetching BPM for {title} by {artist}: {e}")
+            return 'N/A'
+
+    def fetch_and_update_song_bpm(self, song_id: str) -> bool:
+        """
+        Fetch and update BPM for a single song
+        
+        Args:
+            song_id: Song document ID
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Get song from Firestore
+            song_ref = self.db.collection('songs_v3').document(song_id)
+            song_doc = song_ref.get()
+
+            if not song_doc.exists:
+                logger.error(f"Song {song_id} not found")
+                return False
+
+            song_data = song_doc.to_dict()
+            
+            # Skip if BPM already set (and not N/A or NOT_FOUND)
+            current_bpm = song_data.get('bpm', 'N/A')
+            if current_bpm not in ['N/A', 'NOT_FOUND']:
+                logger.info(f"Song {song_id} already has BPM: {current_bpm}")
+                return True
+            
+            # Skip if previously marked as NOT_FOUND
+            if current_bpm == 'NOT_FOUND':
+                logger.info(f"Song {song_id} previously marked as NOT_FOUND - skipping")
+                return True
+
+            title = song_data.get('title')
+            artist = song_data.get('artist')
+
+            if not title or not artist:
+                logger.error(f"Song {song_id} missing title or artist")
+                return False
+
+            logger.info(f"Fetching BPM for: {title} by {artist}")
+
+            # Fetch BPM
+            bpm = self._fetch_bpm(title, artist)
+
+            # Update song in Firestore
+            update_data = {
+                'bpm': bpm,
+                'updated_at': datetime.utcnow()
+            }
+
+            song_ref.update(update_data)
+            logger.info(f"Updated BPM for song {song_id}: {bpm}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error updating BPM for song {song_id}: {e}")
+            return False
+
+    def batch_fetch_bpm_for_collection(self, collection_id: str, max_songs: int = None):
+        """
+        Fetch BPM for all songs in a collection that don't have it yet
+        Runs synchronously - call from background thread if needed
+        
+        Args:
+            collection_id: Collection ID
+            max_songs: Optional limit on number of songs to fetch
+        """
+        try:
+            # Query songs without BPM in this collection
+            query = (self.db.collection('songs_v3')
+                    .where('collection_id', '==', collection_id)
+                    .where('bpm', 'in', ['N/A', 'NOT_FOUND']))
+            
+            if max_songs:
+                query = query.limit(max_songs)
+
+            songs_without_bpm = list(query.stream())
+            total = len(songs_without_bpm)
+
+            logger.info(f"Fetching BPM for {total} songs in collection {collection_id}")
+
+            for i, doc in enumerate(songs_without_bpm, 1):
+                song_data = doc.to_dict()
+                
+                # Skip if previously marked as NOT_FOUND
+                if song_data.get('bpm') == 'NOT_FOUND':
+                    continue
+                    
+                logger.info(f"Progress: {i}/{total}")
+                self.fetch_and_update_song_bpm(doc.id)
+
+            logger.info(f"Completed BPM fetch for collection {collection_id}")
+
+        except Exception as e:
+            logger.error(f"Error in batch_fetch_bpm_for_collection: {e}")
+
