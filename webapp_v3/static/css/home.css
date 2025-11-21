@@ -122,6 +122,7 @@
 .section-title i {
   color: var(--accent-primary);
   font-size: 14px;
+  margin-right: 4px;
 }
 
 /* ============================================================================
