@@ -103,6 +103,12 @@
   margin-bottom: 10px;
 }
 
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .section-title {
   font-size: 16px;
   font-weight: 600;
