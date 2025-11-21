@@ -63,11 +63,6 @@ variable "firebase_api_key" {
   sensitive   = true
 }
 
-variable "allowed_user_emails" {
-  description = "List of email addresses allowed to access the app"
-  type        = list(string)
-}
-
 variable "custom_domain" {
   description = "Web app custom domain in Cloud Run service."
   type        = string

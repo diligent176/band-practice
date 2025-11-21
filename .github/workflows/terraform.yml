@@ -44,7 +44,6 @@ jobs:
       - name: Create terraform.tfvars from secrets
         run: |
           cat > terraform.tfvars <<EOF
-          allowed_user_emails     = ${{ secrets.ALLOWED_USER_EMAILS }}
           firebase_api_key        = "${{ secrets.FIREBASE_API_KEY }}"
           firestore_location      = "${{ secrets.FIRESTORE_LOCATION }}"
           flask_secret_key        = "${{ secrets.FLASK_SECRET_KEY }}"

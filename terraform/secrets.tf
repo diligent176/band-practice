@@ -65,19 +65,6 @@ resource "google_secret_manager_secret_version" "firebase_api_key" {
   secret_data = var.firebase_api_key
 }
 
-resource "google_secret_manager_secret" "allowed_users" {
-  secret_id = "ALLOWED_USERS"
-  replication {
-    auto {}
-  }
-  depends_on = [google_project_service.secretmanager]
-}
-
-resource "google_secret_manager_secret_version" "allowed_users" {
-  secret      = google_secret_manager_secret.allowed_users.id
-  secret_data = join(",", var.allowed_user_emails)
-}
-
 resource "google_secret_manager_secret" "scraper_api_key" {
   secret_id = "SCRAPER_API_KEY"
   replication {

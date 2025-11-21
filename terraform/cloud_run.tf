@@ -92,16 +92,6 @@ resource "google_cloud_run_service" "band_practice" {
         }
 
         env {
-          name = "ALLOWED_USERS"
-          value_from {
-            secret_key_ref {
-              name = google_secret_manager_secret.allowed_users.secret_id
-              key  = "latest"
-            }
-          }
-        }
-
-        env {
           name = "SCRAPER_API_KEY"
           value_from {
             secret_key_ref {
