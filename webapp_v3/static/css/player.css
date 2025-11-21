@@ -756,26 +756,18 @@
   right: 8px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .shortcut-hint {
-  font-size: 11px;
-  color: var(--text-muted);
-  opacity: 0.7;
   display: flex;
   align-items: center;
-  gap: 4px;
-}
-
-.shortcut-hint kbd {
-  background: var(--bg-tertiary);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  font-size: 10px;
-  border: 1px solid var(--border-subtle);
+  gap: 6px;
+  font-size: 12px;
   color: var(--text-secondary);
 }
+
+/* kbd styling now in base.css - shared across all components */
 
 /* Split View Content */
 .notes-editor-content {
