@@ -395,6 +395,23 @@
 }
 
 @media (max-width: 768px) {
+
+  /* Hide help card on mobile (keyboard shortcuts not relevant) */
+  #songs-help-toggle {
+    display: none;
+  }
+
+  /* Hide search filter on mobile */
+  .search-bar {
+    display: none;
+  }
+
+  /* Tighten up back button positioning */
+  #songs-back-btn {
+    left: 0px;
+    padding-left: 0px;
+  }
+
   .songs-header {
     flex-direction: column;
     align-items: stretch;
@@ -407,13 +424,6 @@
 
   .songs-header-right {
     flex-wrap: wrap;
-  }
-
-  .search-input {
-    width: 100%;
-    min-height: 44px;
-    font-size: 16px;
-    /* Prevent zoom on iOS */
   }
 
   .songs-list {

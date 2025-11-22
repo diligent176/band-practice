@@ -783,16 +783,15 @@
 
 @media (max-width: 768px) {
   .player-top-nav {
-    height: auto;
-    min-height: 64px;
-    flex-wrap: wrap;
-    padding: var(--spacing-sm);
-    gap: var(--spacing-sm);
+    height: 46px;
+    min-height: 46px;
+    padding: 0;
+    position: relative;
   }
 
   .player-main {
-    margin-top: 64px;
-    height: calc(100vh - 64px);
+    margin-top: 46px !important;
+    height: calc(100vh - 46px) !important;
     width: 100%;
   }
 
@@ -1299,9 +1298,9 @@
 /* Improve touch targets on mobile */
 @media (max-width: 1024px) {
   .btn-icon {
-    min-width: 44px;
-    min-height: 44px;
-    padding: 12px;
+    width: 28px;
+    height: 28px;
+    padding: 6px;
   }
 
   .help-card {
@@ -1365,7 +1364,8 @@
   }
 
   .player-back-btn {
-    left: 4px;
+    left: 0px;
+    padding-left: 0px;
   }
 
   /* Hide prev/next buttons on small screens (swipe gestures work) */
@@ -1374,18 +1374,18 @@
     display: none;
   }
 
-  /* Make play button much smaller */
-  .btn-play-large {
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
-  }
-
   /* Reduce all player control button sizes */
   .btn-player {
-    width: 22px;
-    height: 22px;
-    font-size: 10px;
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 11px !important;
+  }
+
+  /* Make play button slightly larger for better tap target */
+  .btn-play-large {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 13px !important;
   }
 
   /* Make BPM indicator more compact */
@@ -1405,23 +1405,48 @@
     min-width: 24px;
   }
 
-  /* Compact progress bar */
+  /* Full-width progress bar at bottom of nav */
   .player-progress-container {
-    max-width: 120px;
-    min-width: 80px;
-    gap: 4px;
+    position: absolute;
+    /* bottom: 0; */
+    top: 32px;
+    left: 0;
+    right: 0;
+    max-width: none;
+    min-width: auto;
+    gap: 0;
+    height: 4px;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    z-index: 10;
   }
 
+  /* Hide time labels on small screens */
   .player-time {
-    font-size: 9px;
-    min-width: 28px;
+    display: none;
   }
 
-  /* Reduce central controls spacing */
+  .player-progress-bar {
+    height: 4px;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .player-progress-fill {
+    height: 100%;
+    border-radius: 0;
+  }
+
+  /* Reduce central controls spacing and center properly */
   .player-center-controls {
+    position: absolute;
+    left: 50%;
+    top: 6px;
+    transform: translateX(-50%);
+    right: auto;
     gap: 4px;
-    right: 100px;
-    /* Less space needed */
+    z-index: 5;
   }
 
   /* Compact player controls container */
@@ -1431,14 +1456,20 @@
 
   /* Make view options (columns, font) much more compact */
   .player-view-options {
-    gap: 2px;
+    gap: 1px;
   }
 
   .player-view-options .btn-icon {
-    width: 22px;
-    height: 22px;
-    font-size: 10px;
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
     padding: 0;
+    min-width: 20px;
+  }
+
+  /* Hide help card on mobile (keyboard shortcuts not relevant) */
+  #player-help-toggle {
+    display: none;
   }
 
   /* Make Spotify connect card more compact on mobile */
@@ -1472,6 +1503,46 @@
   .songs-list {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 12px;
+  }
+}
+
+/* Very small screens - hide song title to maximize space */
+@media (max-width: 650px) {
+  .player-song-title {
+    display: none;
+  }
+
+  /* Remove separator when title is hidden */
+  .player-song-title::after {
+    content: none;
+  }
+
+  /* Reduce all player control button sizes - INCLUDING play button */
+  .btn-player {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 9px !important;
+  }
+
+  /* Keep album art visible - just adjust spacing */
+  .player-song-info {
+    margin-left: 4px;
+  }
+
+  /* Center controls properly on very small screens */
+  .player-center-controls {
+    gap: 2px;
+  }
+
+  /* Even smaller view options */
+  .player-view-options {
+    gap: 0;
+  }
+
+  .player-view-options .btn-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
   }
 }
 

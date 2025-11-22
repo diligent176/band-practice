@@ -564,6 +564,12 @@
 }
 
 @media (max-width: 768px) {
+
+  /* Hide help card on mobile (keyboard shortcuts not relevant) */
+  #help-toggle {
+    display: none;
+  }
+
   .home-header {
     flex-direction: column;
     align-items: stretch;
@@ -597,10 +603,5 @@
   .collection-actions {
     flex-wrap: wrap;
     gap: 8px;
-  }
-
-  .btn-icon {
-    min-width: 44px;
-    min-height: 44px;
   }
 }
