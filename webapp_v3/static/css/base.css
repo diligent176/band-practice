@@ -1,6 +1,21 @@
 /*
  * Band Practice Pro v3 - Base CSS
- * Reusable components and utilities for the entire app
+ * 
+ * ARCHITECTURE: This file contains ALL shared, reusable components and utilities
+ * used across multiple views. If a component appears in 2+ views, it belongs here.
+ * 
+ * CONTAINS:
+ * - Design system (CSS variables for colors, spacing, typography, etc.)
+ * - Reusable components (buttons, dialogs, cards, inputs, kbd elements)
+ * - Help card system (keyboard shortcuts overlay for all views)
+ * - Collaboration UI (avatars, request cards)
+ * - Toast notifications (app-wide success/error messages)
+ * - Loading states (overlay, spinner, empty states)
+ * - Utility classes (text, spacing, visibility)
+ * - Animations (fadeIn, slideUp, spin)
+ * 
+ * VIEW-SPECIFIC STYLES: See home.css, songs.css, player.css, auth.css
+ * 
  * Dark, modern, classy design for TV screens in dark rooms
  */
 
@@ -521,6 +536,53 @@ body {
 }
 
 /* ============================================================================
+   LOADING OVERLAY - Full-screen loading state
+   ============================================================================ */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-text {
+  margin-top: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ============================================================================
+   EMPTY STATE - No content placeholder
+   ============================================================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+  gap: var(--spacing-sm);
+}
+
+.empty-state a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+/* ============================================================================
    KEYBOARD SHORTCUTS - Common kbd element styling
    ============================================================================ */
 kbd {
@@ -723,4 +785,69 @@ kbd {
   border-top-color: var(--accent-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+/* ============================================================================
+   TOAST NOTIFICATIONS - App-wide toast messages
+   ============================================================================ */
+.toast-container {
+  position: fixed;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--spacing-sm);
+  pointer-events: none;
+}
+
+.toast {
+  background: rgba(30, 30, 35, 0.95);
+  backdrop-filter: blur(8px);
+  color: var(--text-primary);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  min-width: 300px;
+  max-width: 500px;
+  opacity: 0;
+  transform: translateX(400px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+.toast-show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-hide {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-success {
+  border-color: var(--success);
+  background: rgba(29, 185, 84, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.toast-error {
+  border-color: var(--error);
+  background: rgba(244, 67, 54, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.toast-info {
+  border-color: var(--info);
+  background: rgba(33, 150, 243, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.toast-warning {
+  border-color: var(--warning);
+  background: rgba(255, 152, 0, 0.25);
+  backdrop-filter: blur(8px);
 }

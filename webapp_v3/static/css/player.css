@@ -1,5 +1,21 @@
 /*
- * Band Practice Pro v3 - Player View CSS
+ * Band Practice Pro v3 - PLAYER View CSS
+ * 
+ * ARCHITECTURE: This file contains styles SPECIFIC to the Player/Lyrics view only.
+ * Shared components (buttons, dialogs, toasts, etc.) are in base.css.
+ * 
+ * CONTAINS:
+ * - Player top nav (fixed header with album art, song info, controls)
+ * - BPM indicator block with pulsing animation
+ * - Playback controls (play/pause, progress bar, time display)
+ * - Lyrics panel (columns, line numbers, section headers, highlighting)
+ * - Notes panel (note cards with color cycling)
+ * - Note callout (floating note display with dissolve animation)
+ * - Lyrics/Notes editor dialogs (split view with resizable splitter)
+ * - Spotify connection prompt
+ * - Player-specific button variants (.btn-player, .btn-play-large)
+ * 
+ * SHARED STYLES: base.css handles buttons, dialogs, help cards, kbd elements
  * Styles for the PLAYER view (lyrics + notes + playback controls)
  */
 

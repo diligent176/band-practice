@@ -1,5 +1,18 @@
 /*
  * Band Practice Pro v3 - SONGS View Styles
+ * 
+ * ARCHITECTURE: This file contains styles SPECIFIC to the Songs grid view only.
+ * Shared components (buttons, dialogs, toasts, etc.) are in base.css.
+ * 
+ * CONTAINS:
+ * - Songs container and layout
+ * - Ultra-tight header with search bar and sort indicator
+ * - Songs grid with beautiful artwork cards
+ * - Song item cards (artwork, metadata, BPM)
+ * - Playlist badge (shown when sorted by playlist)
+ * - Lyrics status indicators
+ * 
+ * SHARED STYLES: base.css handles buttons, dialogs, help cards, empty states
  * Tight, grid-based layout with beautiful artwork for each song
  */
 
@@ -177,15 +190,9 @@
   margin: 0 auto;
 }
 
-/* Empty state */
-.empty-state {
+/* Empty state - grid positioning (base styling in base.css) */
+.songs-list .empty-state {
   grid-column: 1 / -1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 20px;
-  color: var(--text-secondary);
-  font-size: 14px;
 }
 
 /* Loading spinner */

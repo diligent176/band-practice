@@ -1,5 +1,18 @@
 /*
  * Band Practice Pro v3 - HOME View (Collections) Styles
+ * 
+ * ARCHITECTURE: This file contains styles SPECIFIC to the Collections view only.
+ * Shared components (buttons, dialogs, toasts, etc.) are in base.css.
+ * 
+ * CONTAINS:
+ * - Home container and layout
+ * - Ultra-tight header with Reggae gradient title
+ * - Collections grid and collection cards
+ * - Playlist dialog items (recent playlists, drag-drop)
+ * - Checkbox styling for dialogs
+ * - View management (SPA view switching)
+ * 
+ * SHARED STYLES: base.css handles buttons, dialogs, toasts, loading, help cards
  */
 
 /* ============================================================================
@@ -384,98 +397,6 @@
   border: solid rgb(96, 165, 250);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
-}
-
-/* ============================================================================
-   LOADING OVERLAY
-   ============================================================================ */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--z-modal);
-}
-
-.loading-content {
-  text-align: center;
-}
-
-.loading-text {
-  margin-top: var(--spacing-md);
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-/* ============================================================================
-   TOAST NOTIFICATIONS
-   ============================================================================ */
-.toast-container {
-  position: fixed;
-  bottom: var(--spacing-lg);
-  right: var(--spacing-lg);
-  z-index: var(--z-toast);
-  display: flex;
-  flex-direction: column-reverse;
-  gap: var(--spacing-sm);
-  pointer-events: none;
-}
-
-.toast {
-  background: rgba(30, 30, 35, 0.95);
-  backdrop-filter: blur(8px);
-  color: var(--text-primary);
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  min-width: 300px;
-  max-width: 500px;
-  opacity: 0;
-  transform: translateX(400px);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: auto;
-}
-
-.toast-show {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.toast-hide {
-  opacity: 0;
-  transform: translateY(20px) scale(0.95);
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.toast-success {
-  border-color: var(--success);
-  background: rgba(29, 185, 84, 0.25);
-  backdrop-filter: blur(8px);
-}
-
-.toast-error {
-  border-color: var(--error);
-  background: rgba(244, 67, 54, 0.25);
-  backdrop-filter: blur(8px);
-}
-
-.toast-info {
-  border-color: var(--info);
-  background: rgba(33, 150, 243, 0.25);
-  backdrop-filter: blur(8px);
-}
-
-.toast-warning {
-  border-color: var(--warning);
-  background: rgba(255, 152, 0, 0.25);
-  backdrop-filter: blur(8px);
 }
 
 /* ============================================================================
