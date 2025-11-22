@@ -477,15 +477,17 @@
                 </div>
             </div>
 
-            <!-- Spotify Connection Prompt Overlay -->
+            <!-- Spotify Connection Prompt - Docked Bottom Right -->
             <div id="spotify-connect-prompt" class="spotify-connect-prompt hidden">
                 <div class="spotify-connect-card">
-                    <i class="fa-brands fa-spotify" style="font-size: 48px; color: #1DB954;"></i>
-                    <h3>Connect Spotify for Playback</h3>
-                    <p>Connect your Spotify Premium account to play music directly in the browser.</p>
-                    <button onclick="SpotifyPlayer.connectSpotify()" class="btn btn-primary">
+                    <i class="fa-brands fa-spotify" style="font-size: 24px; color: #1DB954;"></i>
+                    <div class="spotify-connect-text">
+                        <div class="spotify-connect-title">Connect Spotify Premium</div>
+                        <div class="spotify-connect-subtitle">for best playback experience</div>
+                    </div>
+                    <button onclick="SpotifyPlayer.connectSpotify()" class="btn btn-sm btn-primary" title="Connect Spotify Premium">
                         <i class="fa-brands fa-spotify"></i>
-                        Connect Spotify
+                        Connect
                     </button>
                 </div>
             </div>

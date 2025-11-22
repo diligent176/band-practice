@@ -1138,18 +1138,10 @@
    ============================================================================ */
 
 .spotify-connect-prompt {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(10px);
+  position: fixed;
+  bottom: 6px;
+  right: 6px;
   z-index: 900;
-  padding: var(--spacing-xl);
 }
 
 .spotify-connect-prompt.hidden {
@@ -1157,35 +1149,52 @@
 }
 
 .spotify-connect-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(29, 185, 84, 0.3);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-2xl);
-  max-width: 500px;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
 }
 
-.spotify-connect-card h3 {
+.spotify-connect-card:hover {
+  border-color: rgba(29, 185, 84, 0.6);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.spotify-connect-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.spotify-connect-title {
   color: var(--text-primary);
-  font-size: 24px;
+  font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.spotify-connect-card p {
-  font-size: 15px;
-  line-height: 1.6;
+.spotify-connect-subtitle {
+  color: var(--text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .spotify-connect-card .btn {
-  font-size: 16px;
-  font-weight: 600;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+  font-size: 13px;
+  padding: 6px 12px;
+  transition: transform 0.2s ease;
 }
 
 .spotify-connect-card .btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 24px rgba(29, 185, 84, 0.4);
 }
 
 /* ============================================================================
