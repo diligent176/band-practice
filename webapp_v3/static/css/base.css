@@ -125,6 +125,19 @@ body {
   overflow-x: hidden;
 }
 
+/* Hide scrollbars but keep functionality (all browsers) */
+* {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
+}
+
 /* ============================================================================
    BUTTONS - Classy Translucent Button System
    NO JUMPING! Only opacity and subtle glow changes.

@@ -29,7 +29,10 @@
    HEADER - ULTRA TIGHT!
    ============================================================================ */
 .home-header {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -100,9 +103,11 @@
 .home-content {
   flex: 1;
   padding: var(--spacing-lg) var(--spacing-xl);
+  padding-top: calc(42px + var(--spacing-lg));
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+  overflow-y: auto;
 }
 
 .collections-section {
@@ -409,8 +414,8 @@
 .view.active {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ============================================================================
