@@ -457,7 +457,9 @@
 
 /* Lyrics Columns (1/2/3) */
 .lyrics-columns-1 {
-  column-count: 1;
+  /* DISABLE multi-column layout completely - don't use column-count at all */
+  column-count: unset !important;
+  column-width: unset !important;
   column-gap: 0;
   column-rule: none;
 }
@@ -466,12 +468,14 @@
   column-count: 2;
   column-gap: var(--spacing-2xl);
   column-rule: 1px solid rgba(255, 255, 255, 0.08);
+  column-width: auto;
 }
 
 .lyrics-columns-3 {
   column-count: 3;
   column-gap: var(--spacing-lg);
   column-rule: 1px solid rgba(255, 255, 255, 0.08);
+  column-width: auto;
 }
 
 /* Lyric Lines - Tight spacing like v2 */
@@ -744,19 +748,36 @@
     flex-direction: column;
   }
 
-  .player-lyrics-panel {
-    flex: 1 1 auto;
-    max-height: 60%;
-  }
-
+  /* Hide notes panel on mobile/tablet - lyrics only */
   .player-notes-panel {
-    flex: 0 0 40%;
-    border-left: none;
-    border-top: 1px solid var(--border-color);
+    display: none;
   }
 
-  .lyrics-columns-3 {
-    column-count: 2;
+  .player-lyrics-panel {
+    flex: 1 1 100%;
+    max-height: 100%;
+    width: 100%;
+  }
+
+  /* Hide column toggle button on mobile/tablet */
+  #player-toggle-columns {
+    display: none !important;
+  }
+
+  /* FORCE SINGLE COLUMN - DISABLE multi-column layout completely */
+  .player-lyrics-panel,
+  #player-lyrics-panel,
+  .lyrics-columns-1,
+  .lyrics-columns-2,
+  .lyrics-columns-3,
+  div[class*="lyrics-columns"] {
+    column-count: unset !important;
+    column-gap: 0 !important;
+    column-rule: none !important;
+    column-width: unset !important;
+    columns: unset !important;
+    -webkit-column-count: unset !important;
+    -moz-column-count: unset !important;
   }
 }
 
@@ -772,11 +793,35 @@
   .player-main {
     margin-top: 64px;
     height: calc(100vh - 64px);
+    width: 100%;
   }
 
+  /* Force single column on mobile - complete override */
+  .player-lyrics-panel.lyrics-columns-1,
+  .player-lyrics-panel.lyrics-columns-2,
+  .player-lyrics-panel.lyrics-columns-3,
+  .lyrics-columns-1,
   .lyrics-columns-2,
   .lyrics-columns-3 {
-    column-count: 1;
+    column-count: 1 !important;
+    column-width: auto !important;
+    column-gap: 0 !important;
+    column-rule: none !important;
+    max-width: 100vw;
+  }
+
+  .player-lyrics-panel {
+    padding: var(--spacing-md);
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Ensure lyrics lines don't overflow */
+  .lyric-line {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .player-song-info {
@@ -1195,6 +1240,153 @@
 
 .spotify-connect-card .btn:hover {
   transform: scale(1.05);
+}
+
+/* ============================================================================
+   MOBILE/TABLET TOUCH OPTIMIZATIONS
+   ============================================================================ */
+
+/* Mobile navigation buttons for touch devices */
+.mobile-nav-buttons {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 800;
+  display: none;
+}
+
+.touch-device .mobile-nav-buttons {
+  display: block;
+}
+
+.mobile-nav-btn {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(45, 122, 74, 0.4);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-nav-btn:hover,
+.mobile-nav-btn:active {
+  background: rgba(45, 122, 74, 0.3);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+  transform: scale(1.1);
+}
+
+.mobile-nav-prev {
+  left: 12px;
+}
+
+.mobile-nav-next {
+  right: 12px;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 1024px) {
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+  }
+
+  .help-card {
+    max-width: 90vw;
+    font-size: 14px;
+  }
+
+  /* Make lyrics more scrollable on mobile */
+  .player-lyrics-panel {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 80px;
+    /* Space for mobile nav buttons */
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Larger tap targets for song cards */
+  .song-item {
+    min-height: 72px;
+    padding: 12px;
+  }
+
+  .collection-card {
+    min-height: 80px;
+  }
+
+  /* Hide note callouts on mobile - not useful without keyboard navigation */
+  .note-callout {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* Stack player controls vertically on small screens */
+  .player-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Make Spotify connect card more compact on mobile */
+  .spotify-connect-prompt {
+    bottom: 80px;
+    right: 12px;
+  }
+
+  .spotify-connect-card {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .spotify-connect-text {
+    display: none;
+    /* Hide text on very small screens, just show icon + button */
+  }
+
+  /* Improve touch targets for keyboard shortcuts */
+  .help-item {
+    padding: 8px;
+    min-height: 44px;
+  }
+
+  /* Mobile-friendly grid layouts */
+  .collections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .songs-list {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .collections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .songs-list {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
 }
 
 /* ============================================================================

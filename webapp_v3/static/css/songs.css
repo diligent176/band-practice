@@ -374,7 +374,19 @@
    ============================================================================ */
 @media (max-width: 1200px) {
   .songs-list {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+/* Tablet optimization */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .songs-list {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .song-item {
+    min-height: 72px;
   }
 }
 
@@ -395,18 +407,33 @@
 
   .search-input {
     width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+    /* Prevent zoom on iOS */
   }
 
   .songs-list {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  /* Larger touch targets for song cards */
+  .song-item {
+    min-height: 72px;
+    padding: 12px;
   }
 
   .song-title {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .song-artist {
-    font-size: 10px;
+    font-size: 11px;
+  }
+
+  /* Make album art touch-friendly */
+  .song-album-art {
+    min-width: 60px;
+    min-height: 60px;
   }
 }

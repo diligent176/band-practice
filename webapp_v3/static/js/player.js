@@ -613,7 +613,13 @@ const PlayerManager = {
         if (!lyricsPanel) return;
 
         lyricsPanel.classList.remove('lyrics-columns-1', 'lyrics-columns-2', 'lyrics-columns-3');
-        lyricsPanel.classList.add(`lyrics-columns-${this.columnMode}`);
+        
+        // Force single column on mobile/tablet (1024px and below)
+        if (window.innerWidth <= 1024) {
+            lyricsPanel.classList.add('lyrics-columns-1');
+        } else {
+            lyricsPanel.classList.add(`lyrics-columns-${this.columnMode}`);
+        }
     },
 
     /**

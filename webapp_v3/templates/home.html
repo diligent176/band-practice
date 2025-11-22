@@ -939,6 +939,7 @@ END: Final chorus is acapella"></textarea>
     <!-- Common utilities -->
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/spotify_player.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/touchGestures.js') }}"></script>
     <script src="{{ url_for('static', filename='js/authManager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/collectionsManager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/playlistManager.js') }}"></script>
@@ -1017,6 +1018,11 @@ END: Final chorus is acapella"></textarea>
                 window.SpotifyPlayer.init().catch(err => {
                     console.log('ℹ️ Spotify player initialization deferred:', err.message);
                 });
+            }
+
+            // Initialize touch gestures for mobile/tablet
+            if (window.TouchGestures) {
+                TouchGestures.init();
             }
         };
 

@@ -538,6 +538,25 @@
 /* ============================================================================
    RESPONSIVE DESIGN
    ============================================================================ */
+
+/* Tablet optimization */
+@media (max-width: 1024px) {
+  .collections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  /* Larger touch targets */
+  .collection-card {
+    min-height: 80px;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .home-header {
     flex-direction: column;
@@ -554,12 +573,28 @@
   }
 
   .collections-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
   }
 
   .section-header {
     flex-direction: column;
     align-items: stretch;
     gap: var(--spacing-sm);
+  }
+
+  /* Mobile-friendly collection cards */
+  .collection-card {
+    padding: 16px;
+  }
+
+  .collection-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
