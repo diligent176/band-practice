@@ -499,17 +499,23 @@ const ViewManager = {
 
         // ESC - back to collections (even when typing)
         if (e.key === 'Escape') {
+            e.preventDefault(); // Prevent default ESC behavior
+            
             // If help card is open, close it first
             if (this.songsHelpCardVisible) {
                 this.toggleSongsHelpCard();
                 return;
             }
-            // If in search, clear it first
-            if (isSearchInput && e.target.value) {
-                e.target.value = '';
+            // If songs are filtered (fewer filtered songs than all songs), clear filter first
+            if (this.state.filteredSongs.length < this.state.allSongs.length) {
+                const searchInput = document.getElementById('song-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
                 this.filterSongs();
                 return;
             }
+            // Finally, go back to collections
             this.showView('collections');
             return;
         }
