@@ -249,13 +249,13 @@ const CollectionsManager = {
                     </div>
                     <div class="collection-meta-and-actions">
                         <div class="collection-meta">
-                            <span class="collection-meta-item">
+                            <span class="collection-meta-item" title="${collection.song_count || 0} ${(collection.song_count || 0) === 1 ? 'song' : 'songs'}">
                                 <i class="fa-solid fa-music"></i>
-                                ${collection.song_count || 0} ${(collection.song_count || 0) === 1 ? 'song' : 'songs'}
+                                ${collection.song_count || 0}
                             </span>
-                            <span class="collection-meta-item">
+                            <span class="collection-meta-item" title="${collection.linked_playlists?.length || 0} ${(collection.linked_playlists?.length || 0) === 1 ? 'playlist' : 'playlists'}">
                                 <i class="fa-solid fa-list"></i>
-                                ${collection.linked_playlists?.length || 0} ${(collection.linked_playlists?.length || 0) === 1 ? 'playlist' : 'playlists'}
+                                ${collection.linked_playlists?.length || 0}
                             </span>
                         </div>
                         <div class="collection-actions">
@@ -414,9 +414,9 @@ const CollectionsManager = {
                     </div>
                     <div class="collection-meta-and-actions">
                         <div class="collection-meta">
-                            <span class="collection-meta-item">
+                            <span class="collection-meta-item" title="${collection.song_count || 0} ${(collection.song_count || 0) === 1 ? 'song' : 'songs'}">
                                 <i class="fa-solid fa-music"></i>
-                                ${collection.song_count || 0} ${(collection.song_count || 0) === 1 ? 'song' : 'songs'}
+                                ${collection.song_count || 0}
                             </span>
                         </div>
                         <div class="collection-actions">
