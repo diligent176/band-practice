@@ -679,6 +679,30 @@
         </div>
     </div>
 
+    <!-- Manage Collaborators Dialog -->
+    <div id="manage-collaborators-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Manage Collaborators</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('manage-collaborators-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="manage-collaborators-collection-id">
+                <p class="text-secondary" style="line-height: 1.6; margin-bottom: 16px;">
+                    Collaborators can edit Lyrics, Notes and Tempo in this Collection.
+                </p>
+                <div id="collaborators-list" class="collaboration-requests-list">
+                    <!-- Collaborators will be rendered here -->
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('manage-collaborators-dialog')">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Lyrics Dialog - Full Screen Split View -->
     <div id="edit-lyrics-dialog" class="dialog-overlay hidden">
         <div class="notes-editor-fullscreen">
@@ -1172,6 +1196,12 @@ END: Final chorus is acapella"></textarea>
                                     <span class="badge" style="position: absolute; top: -4px; right: -4px; background: var(--accent-primary); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${collection.collaboration_requests.length}</span>
                                 </button>
                                 ` : ''}
+                                ${collection.collaborators && collection.collaborators.length > 0 && isOwner ? `
+                                <button class="btn-icon btn-ghost collection-collaborators-btn" data-collection-id="${collection.id}" title="${collection.collaborators.length} collaborator(s)" aria-label="Manage collaborators" style="position: relative;">
+                                    <i class="fa-solid fa-user-group"></i>
+                                    <span class="badge" style="position: absolute; top: -4px; right: -4px; background: var(--text-secondary); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${collection.collaborators.length}</span>
+                                </button>
+                                ` : ''}
                                 ${collection.is_personal ? `
                                 <button class="btn-icon btn-ghost" disabled title="Cannot edit Personal Collection" aria-label="Cannot edit Personal Collection" style="opacity: 0.5; cursor: not-allowed; position: relative;">
                                     <i class="fa-solid fa-gear"></i>
@@ -1238,6 +1268,15 @@ END: Final chorus is acapella"></textarea>
                     e.stopPropagation(); // Prevent card click
                     const collectionId = btn.dataset.collectionId;
                     showCollaborationRequests(collectionId);
+                });
+            });
+
+            // Add click handlers for manage collaborators buttons
+            container.querySelectorAll('.collection-collaborators-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click
+                    const collectionId = btn.dataset.collectionId;
+                    showManageCollaborators(collectionId);
                 });
             });
         }
@@ -1485,6 +1524,109 @@ END: Final chorus is acapella"></textarea>
                 BPP.hideLoading();
                 console.error('Error denying request:', error);
                 BPP.showToast('Failed to deny request', 'error');
+            }
+        }
+
+        async function showManageCollaborators(collectionId) {
+            try {
+                // Fetch collection data to get collaborators
+                const collection = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+                const collaborators = collection.collaborators || [];
+
+                document.getElementById('manage-collaborators-collection-id').value = collectionId;
+
+                const collaboratorsList = document.getElementById('collaborators-list');
+
+                if (collaborators.length === 0) {
+                    collaboratorsList.innerHTML = '<p class="text-muted text-center">No collaborators</p>';
+                    BPP.showDialog('manage-collaborators-dialog');
+                    return;
+                }
+
+                // Fetch user data for each collaborator to get photo_url
+                const collaboratorsWithUserData = await Promise.all(collaborators.map(async collaboratorUid => {
+                    try {
+                        const userData = await BPP.apiCall(`/api/v3/users/${collaboratorUid}`);
+                        return {
+                            user_uid: collaboratorUid,
+                            user_name: userData?.display_name || userData?.email || 'Unknown',
+                            user_email: userData?.email || '',
+                            photo_url: userData?.photo_url
+                        };
+                    } catch (error) {
+                        console.error(`Failed to fetch user data for ${collaboratorUid}:`, error);
+                        return {
+                            user_uid: collaboratorUid,
+                            user_name: 'Unknown User',
+                            user_email: '',
+                            photo_url: null
+                        };
+                    }
+                }));
+
+                collaboratorsList.innerHTML = collaboratorsWithUserData.map(collaborator => `
+                        <div class="collaboration-request-item">
+                            <div class="collab-request-content">
+                                <div class="collab-user-avatar">
+                                    ${collaborator.photo_url ?
+                                        `<img src="${escapeHtml(collaborator.photo_url)}" alt="${escapeHtml(collaborator.user_name)}" class="avatar-img">` :
+                                        `<div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>`
+                                    }
+                                </div>
+                                <div class="collab-user-info">
+                                    <div class="collab-user-name">${escapeHtml(collaborator.user_name)}</div>
+                                    <div class="collab-user-email">${escapeHtml(collaborator.user_email)}</div>
+                                </div>
+                                <div class="collab-actions">
+                                    <button class="btn btn-danger remove-collaborator-btn" data-collaborator-uid="${collaborator.user_uid}" title="Remove collaborator">
+                                        <i class="fa-solid fa-user-minus"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                // Add click handlers for remove buttons
+                collaboratorsList.querySelectorAll('.remove-collaborator-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const collaboratorUid = btn.dataset.collaboratorUid;
+                        await removeCollaborator(collectionId, collaboratorUid);
+                    });
+                });
+
+                BPP.showDialog('manage-collaborators-dialog');
+
+            } catch (error) {
+                console.error('Error loading collaborators:', error);
+                BPP.showToast('Failed to load collaborators', 'error');
+            }
+        }
+
+        async function removeCollaborator(collectionId, collaboratorUid) {
+            try {
+                const confirmed = await confirmDialog('Remove this collaborator? They will lose edit access to this collection.');
+                if (!confirmed) return;
+
+                BPP.showLoading('Removing collaborator...');
+
+                await BPP.apiCall(`/api/v3/collections/${collectionId}/remove-collaborator`, {
+                    method: 'POST',
+                    body: JSON.stringify({ collaborator_uid: collaboratorUid })
+                });
+
+                BPP.hideLoading();
+                BPP.showToast('Collaborator removed', 'success');
+
+                // Reload the collaborators dialog
+                await showManageCollaborators(collectionId);
+
+                // Reload collections to update counts
+                loadCollections();
+
+            } catch (error) {
+                BPP.hideLoading();
+                console.error('Error removing collaborator:', error);
+                BPP.showToast('Failed to remove collaborator', 'error');
             }
         }
 
