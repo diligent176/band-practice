@@ -718,8 +718,11 @@ const PlayerManager = {
         // Apply saved split percentage
         this.applySavedSplit('lyrics');
 
-        // Focus the textarea
-        setTimeout(() => editor.focus(), 100);
+        // Focus the textarea at the beginning
+        setTimeout(() => {
+            editor.focus();
+            editor.setSelectionRange(0, 0);
+        }, 100);
     },
 
     /**
