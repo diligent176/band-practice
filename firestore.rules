@@ -1,0 +1,185 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // HELPER FUNCTIONS
+    // =========================================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users_v3/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users_v3/$(request.auth.uid)).data.is_admin == true;
+    }
+
+    function isCollectionOwner(collectionId) {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/collections_v3/$(collectionId)) &&
+             get(/databases/$(database)/documents/collections_v3/$(collectionId)).data.owner_uid == request.auth.uid;
+    }
+
+    function isCollectionCollaborator(collectionId) {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/collections_v3/$(collectionId)) &&
+             request.auth.uid in get(/databases/$(database)/documents/collections_v3/$(collectionId)).data.collaborators;
+    }
+
+    function canReadCollection(collectionId) {
+      let collection = get(/databases/$(database)/documents/collections_v3/$(collectionId));
+      return collection.data.visibility == 'public' ||
+             collection.data.owner_uid == request.auth.uid ||
+             request.auth.uid in collection.data.collaborators;
+    }
+
+    // =========================================================================
+    // V3 COLLECTIONS (NEW - LOCKED DOWN)
+    // =========================================================================
+
+    // Users v3
+    match /users_v3/{userId} {
+      // Users can read their own profile, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can update their own profile (except is_admin field)
+      allow update: if isOwner(userId) &&
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['is_admin']);
+
+      // Only backend service account can create users
+      allow create: if false;
+
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // Collections v3
+    match /collections_v3/{collectionId} {
+      // Read: Public collections, owned collections, collaborated collections
+      allow read: if isAuthenticated() &&
+                     (resource.data.visibility == 'public' ||
+                      isOwner(resource.data.owner_uid) ||
+                      request.auth.uid in resource.data.collaborators ||
+                      isAdmin());
+
+      // Create: Only authenticated users can create, must set themselves as owner
+      allow create: if isAuthenticated() &&
+                       request.resource.data.owner_uid == request.auth.uid;
+
+      // Update: Only owners can update
+      allow update: if isOwner(resource.data.owner_uid) || isAdmin();
+
+      // Delete: Only owners can delete
+      allow delete: if isOwner(resource.data.owner_uid) || isAdmin();
+    }
+
+    // Songs v3
+    match /songs_v3/{songId} {
+      // Read: Must be able to read parent collection
+      allow read: if isAuthenticated() &&
+                     (isCollectionOwner(resource.data.collection_id) ||
+                      isCollectionCollaborator(resource.data.collection_id) ||
+                      canReadCollection(resource.data.collection_id) ||
+                      isAdmin());
+
+      // Create: Must be owner or collaborator of collection
+      allow create: if isAuthenticated() &&
+                       (isCollectionOwner(request.resource.data.collection_id) ||
+                        isCollectionCollaborator(request.resource.data.collection_id) ||
+                        isAdmin());
+
+      // Update: Must be owner or collaborator of collection
+      allow update: if isAuthenticated() &&
+                       (isCollectionOwner(resource.data.collection_id) ||
+                        isCollectionCollaborator(resource.data.collection_id) ||
+                        isAdmin());
+
+      // Delete: Only collection owners can delete songs
+      allow delete: if isCollectionOwner(resource.data.collection_id) || isAdmin();
+    }
+
+    // Playlist Memory v3
+    match /playlist_memory_v3/{playlistId} {
+      // Read: Only backend service account (no direct user access)
+      allow read: if false;
+
+      // Write: Only backend service account
+      allow create, update, delete: if false;
+    }
+
+    // Spotify Tokens v3
+    match /spotify_tokens_v3/{userId} {
+      // Read/Write: Only backend service account (tokens never exposed to client)
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // V2 COLLECTIONS (LEGACY - LOCKED DOWN)
+    // =========================================================================
+
+    match /users_v2/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false; // Backend only
+    }
+
+    match /collections_v2/{collectionId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Backend only
+    }
+
+    match /songs_v2/{songId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Backend only
+    }
+
+    match /playlist_memory_v2/{playlistId} {
+      allow read, write: if false; // Backend only
+    }
+
+    // =========================================================================
+    // V1 COLLECTIONS (LEGACY - LOCKED DOWN)
+    // =========================================================================
+
+    match /collections/{collectionId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Backend only
+    }
+
+    match /songs/{songId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Backend only
+    }
+
+    match /playlist_memory/{playlistId} {
+      allow read, write: if false; // Backend only
+    }
+
+    // =========================================================================
+    // ADMIN COLLECTIONS
+    // =========================================================================
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false; // Backend only
+    }
+
+    match /oauth_states/{stateId} {
+      allow read, write: if false; // Backend only (temporary state storage)
+    }
+
+    // =========================================================================
+    // DEFAULT DENY ALL
+    // =========================================================================
+
+    // Deny all other paths not explicitly allowed
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

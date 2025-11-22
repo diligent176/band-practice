@@ -72,6 +72,13 @@ jobs:
             --region=${{ env.REGION }} \
             --format='value(status.url)'
 
+      - name: Deploy Firestore Security Rules
+        run: |
+          echo "🔒 Deploying Firestore Security Rules..."
+          npm install -g firebase-tools
+          # Use FIREBASE_TOKEN secret (created in GitHub Secrets)
+          firebase deploy --only firestore:rules --project ${{ env.PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
+
       - name: Cleanup old images
         run: |
           # List all image digests (excluding 'latest' tag), sort by creation time, and keep only the 3 most recent
