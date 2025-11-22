@@ -111,8 +111,9 @@
                         </div>
                     </div>
                 </div>
-                <button id="signout-btn" class="btn-icon btn-ghost" title="Logout">
-                    <i class="fa-solid fa-right-from-bracket"></i>
+                <button id="signout-btn" class="user-profile-logout-btn" title="Logout">
+                    <div id="home-user-photo-container"></div>
+                    <i class="fa-solid fa-right-from-bracket user-logout-icon"></i>
                 </button>
             </div>
         </header>
@@ -241,8 +242,9 @@
                         </div>
                     </div>
                     <!-- Logout -->
-                    <button id="songs-logout-btn" class="btn-icon btn-ghost" title="Logout" onclick="firebase.auth().signOut()">
-                        <i class="fa-solid fa-right-from-bracket"></i>
+                    <button id="songs-logout-btn" class="user-profile-logout-btn" title="Logout" onclick="firebase.auth().signOut()">
+                        <div id="songs-user-photo-container"></div>
+                        <i class="fa-solid fa-right-from-bracket user-logout-icon"></i>
                     </button>
                 </div>
             </header>
@@ -435,8 +437,9 @@
                     </div>
 
                     <!-- Logout -->
-                    <button id="player-logout-btn" class="btn-icon btn-ghost" title="Logout" onclick="firebase.auth().signOut()">
-                        <i class="fa-solid fa-right-from-bracket"></i>
+                    <button id="player-logout-btn" class="user-profile-logout-btn" title="Logout" onclick="firebase.auth().signOut()">
+                        <div id="player-user-photo-container"></div>
+                        <i class="fa-solid fa-right-from-bracket user-logout-icon"></i>
                     </button>
                 </div>
             </div>

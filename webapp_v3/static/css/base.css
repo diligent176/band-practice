@@ -459,6 +459,62 @@ body {
   color: white;
 }
 
+/* ============================================================================
+   USER PROFILE LOGOUT BUTTON - Combined photo + logout icon
+   ============================================================================ */
+.user-profile-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  height: 34px;
+  min-width: 68px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.user-profile-logout-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: rgba(45, 122, 74, 0.4);
+  box-shadow: 0 0 10px rgba(45, 122, 74, 0.2);
+}
+
+.user-profile-photo {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.user-profile-photo-placeholder {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(45, 122, 74, 0.2);
+  color: var(--text-secondary);
+  font-size: 16px;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.user-logout-icon {
+  padding-left: 10px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.user-profile-logout-btn:hover .user-logout-icon {
+  color: var(--text-primary);
+}
+
 .collab-request-time {
   font-size: 11px;
   color: var(--text-muted);
@@ -646,7 +702,7 @@ kbd {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 4px;
+  padding: 2px;
   cursor: pointer;
   transition: all 0.2s ease;
   height: 34px;
@@ -659,7 +715,7 @@ kbd {
 }
 
 .keyboard-shortcuts-help i {
-  font-size: 20px;
+  font-size: 24px;
   color: var(--text-secondary);
 }
 

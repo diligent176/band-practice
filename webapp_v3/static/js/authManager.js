@@ -160,6 +160,19 @@ const AuthManager = {
                     if (btn) btn.title = `Logout ${user.email}`;
                 });
 
+                // Populate user profile photos in all three views
+                const photoUrl = user.photoURL;
+                ['home-user-photo-container', 'songs-user-photo-container', 'player-user-photo-container'].forEach(containerId => {
+                    const container = document.getElementById(containerId);
+                    if (container) {
+                        if (photoUrl) {
+                            container.innerHTML = `<img src="${photoUrl}" alt="${user.displayName || user.email}" class="user-profile-photo">`;
+                        } else {
+                            container.innerHTML = '<div class="user-profile-photo-placeholder"><i class="fa-solid fa-user"></i></div>';
+                        }
+                    }
+                });
+
                 // Make current user available globally
                 window.currentUser = user;
 
