@@ -137,7 +137,7 @@
 /* Central Player Controls Container - Fixed position from right */
 .player-center-controls {
   position: absolute;
-  right: 90px;
+  right: 124px;
   /* Space for help+logout (80px) + padding */
   top: 50%;
   transform: translateY(-50%);

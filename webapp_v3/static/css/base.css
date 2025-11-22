@@ -505,14 +505,15 @@ body {
 }
 
 .user-logout-icon {
-  padding-left: 10px;
+  padding: 0 10px;
   color: var(--text-secondary);
   font-size: 14px;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .user-profile-logout-btn:hover .user-logout-icon {
-  color: var(--text-primary);
+  color: #ff6b6b;
+  filter: drop-shadow(0 0 3px rgba(255, 107, 107, 0.4));
 }
 
 .collab-request-time {
@@ -714,9 +715,15 @@ kbd {
   border-color: rgba(45, 122, 74, 0.4);
 }
 
-.keyboard-shortcuts-help i {
+.keyboard-shortcuts-help>i {
   font-size: 24px;
   color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.keyboard-shortcuts-help:hover>i {
+  color: var(--accent-primary);
+  filter: drop-shadow(0 0 3px rgba(45, 122, 74, 0.4));
 }
 
 .help-card {
@@ -834,9 +841,9 @@ kbd {
 
 .help-item {
   display: grid;
-  grid-template-columns: 100px auto 1fr;
+  grid-template-columns: 100px 20px 1fr;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 4px 8px;
   border-radius: var(--radius-sm);
 }
@@ -845,13 +852,15 @@ kbd {
   display: flex;
   gap: 4px;
   align-items: center;
+  justify-content: flex-start;
 }
 
 .help-icon {
-  font-size: 11px;
+  font-size: 14px;
   color: var(--text-muted);
-  width: 16px;
+  width: 20px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .help-item span {
