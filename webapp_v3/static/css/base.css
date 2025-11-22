@@ -367,14 +367,14 @@ body {
 .collaboration-requests-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-xs);
 }
 
 .collaboration-request-item {
   background: rgba(20, 20, 20, 0.4);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xs) var(--spacing-md);
   transition: all 0.2s ease;
 }
 
@@ -386,7 +386,7 @@ body {
 .collab-request-content {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
 }
 
 .collab-user-avatar {
@@ -395,8 +395,8 @@ body {
 
 .avatar-img,
 .avatar-placeholder {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -408,30 +408,61 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .collab-user-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.collab-user-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .collab-user-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 1px;
+  line-height: 1.2;
 }
 
 .collab-user-email {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-secondary);
-  margin-bottom: 2px;
+  margin-bottom: 0;
+  line-height: 1.2;
+}
+
+.collab-badge {
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.collab-badge-owner {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.collab-badge-collaborator {
+  background: var(--text-secondary);
+  color: white;
 }
 
 .collab-request-time {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
+  line-height: 1.2;
 }
 
 .collab-actions {

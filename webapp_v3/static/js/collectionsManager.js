@@ -56,6 +56,7 @@ const CollectionsManager = {
         BPP.addEscapeHandler('edit-collection-dialog');
         BPP.addEscapeHandler('delete-collection-dialog');
         BPP.addEscapeHandler('request-access-dialog');
+        BPP.addEscapeHandler('view-collaborators-dialog');
 
         // Help card
         this.setupHelpCard();
@@ -273,6 +274,12 @@ const CollectionsManager = {
                                 <span class="badge" style="position: absolute; top: -4px; right: -4px; background: var(--text-secondary); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${collection.collaborators.length}</span>
                             </button>
                             ` : ''}
+                            ${!isOwner && (collection.collaborators && collection.collaborators.includes(currentUserUid)) ? `
+                            <button class="btn-icon btn-ghost collection-view-team-btn" data-collection-id="${collection.id}" title="View collection team" aria-label="View owner and collaborators" style="position: relative;">
+                                <i class="fa-solid fa-user-group"></i>
+                                <span class="badge" style="position: absolute; top: -4px; right: -4px; background: var(--text-secondary); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${(collection.collaborators.length || 0) + 1}</span>
+                            </button>
+                            ` : ''}
                             ${collection.is_personal ? `
                             <button class="btn-icon btn-ghost" disabled title="Cannot edit Personal Collection" aria-label="Cannot edit Personal Collection" style="opacity: 0.5; cursor: not-allowed; position: relative;">
                                 <i class="fa-solid fa-gear"></i>
@@ -351,6 +358,15 @@ const CollectionsManager = {
                 e.stopPropagation();
                 const collectionId = btn.dataset.collectionId;
                 this.showManageCollaborators(collectionId);
+            });
+        });
+
+        // Add click handlers for view team buttons (shared collections)
+        container.querySelectorAll('.collection-view-team-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const collectionId = btn.dataset.collectionId;
+                this.showViewCollaborators(collectionId);
             });
         });
     },
@@ -625,8 +641,11 @@ const CollectionsManager = {
                 }
             </div>
             <div class="collab-user-info">
-                <div class="collab-user-name">${this.escapeHtml(ownerName)}</div>
-                ${ownerEmail ? `<div class="collab-user-email">${this.escapeHtml(ownerEmail)}</div>` : ''}
+                <div class="collab-user-text">
+                    <div class="collab-user-name">${this.escapeHtml(ownerName)}</div>
+                    ${ownerEmail ? `<div class="collab-user-email">${this.escapeHtml(ownerEmail)}</div>` : ''}
+                </div>
+                <span class="collab-badge collab-badge-owner">Owner</span>
             </div>
         `;
         
@@ -879,6 +898,108 @@ const CollectionsManager = {
         } catch (error) {
             console.error('Error loading collaborators:', error);
             BPP.showToast('Failed to load collaborators', 'error');
+        }
+    },
+
+    /**
+     * Show view collaborators dialog (read-only for shared collections)
+     */
+    async showViewCollaborators(collectionId) {
+        try {
+            // Fetch collection data to get owner and collaborators
+            const collection = await BPP.apiCall(`/api/v3/collections/${collectionId}`);
+            const collaborators = collection.collaborators || [];
+            const ownerUid = collection.owner_uid;
+
+            document.getElementById('view-collaborators-collection-id').value = collectionId;
+
+            const collaboratorsList = document.getElementById('view-collaborators-list');
+
+            // Fetch owner data
+            let ownerData = null;
+            try {
+                ownerData = await BPP.apiCall(`/api/v3/users/${ownerUid}`);
+            } catch (error) {
+                console.error(`Failed to fetch owner data for ${ownerUid}:`, error);
+            }
+
+            // Fetch user data for each collaborator
+            const collaboratorsWithUserData = await Promise.all(collaborators.map(async collaboratorUid => {
+                try {
+                    const userData = await BPP.apiCall(`/api/v3/users/${collaboratorUid}`);
+                    return {
+                        user_uid: collaboratorUid,
+                        user_name: userData?.display_name || userData?.email || 'Unknown',
+                        user_email: userData?.email || '',
+                        photo_url: userData?.photo_url
+                    };
+                } catch (error) {
+                    console.error(`Failed to fetch user data for ${collaboratorUid}:`, error);
+                    return {
+                        user_uid: collaboratorUid,
+                        user_name: 'Unknown User',
+                        user_email: '',
+                        photo_url: null
+                    };
+                }
+            }));
+
+            // Build HTML with owner first, then collaborators
+            let html = '';
+
+            // Owner section
+            if (ownerData) {
+                html += `
+                    <div class="collaboration-request-item" style="border: 2px solid var(--accent-primary);">
+                        <div class="collab-request-content">
+                            <div class="collab-user-avatar">
+                                ${ownerData.photo_url ?
+                                    `<img src="${this.escapeHtml(ownerData.photo_url)}" alt="${this.escapeHtml(ownerData.display_name || ownerData.email)}" class="avatar-img">` :
+                                    `<div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>`
+                                }
+                            </div>
+                            <div class="collab-user-info">
+                                <div class="collab-user-text">
+                                    <div class="collab-user-name">${this.escapeHtml(ownerData.display_name || ownerData.email || 'Unknown')}</div>
+                                    <div class="collab-user-email">${this.escapeHtml(ownerData.email || '')}</div>
+                                </div>
+                                <span class="collab-badge collab-badge-owner">Owner</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Collaborators section
+            if (collaboratorsWithUserData.length > 0) {
+                html += collaboratorsWithUserData.map(collaborator => `
+                    <div class="collaboration-request-item">
+                        <div class="collab-request-content">
+                            <div class="collab-user-avatar">
+                                ${collaborator.photo_url ?
+                                    `<img src="${this.escapeHtml(collaborator.photo_url)}" alt="${this.escapeHtml(collaborator.user_name)}" class="avatar-img">` :
+                                    `<div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>`
+                                }
+                            </div>
+                            <div class="collab-user-info">
+                                <div class="collab-user-text">
+                                    <div class="collab-user-name">${this.escapeHtml(collaborator.user_name)}</div>
+                                    <div class="collab-user-email">${this.escapeHtml(collaborator.user_email)}</div>
+                                </div>
+                                <span class="collab-badge collab-badge-collaborator">Collaborator</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            collaboratorsList.innerHTML = html;
+
+            BPP.showDialog('view-collaborators-dialog');
+
+        } catch (error) {
+            console.error('Error loading collection team:', error);
+            BPP.showToast('Failed to load collection team', 'error');
         }
     },
 

@@ -668,7 +668,7 @@
                 <p class="text-secondary" style="line-height: 1.6;">
                     Request Collaborator Access to this Collection?
                 </p>
-                <p class="text-secondary" style="line-height: 1.6; margin-top: 12px;">
+                <p class="text-secondary" style="line-height: 1.6;">
                     Collaborators can edit Song Lyrics, Notes and Tempo.
                 </p>
                 <p class="text-secondary" style="line-height: 1.6; margin-top: 16px; font-weight: 600;">
@@ -705,6 +705,30 @@
             </div>
             <div class="dialog-footer">
                 <button class="btn btn-secondary" onclick="BPP.hideDialog('manage-collaborators-dialog')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Collaborators Dialog (Read-Only for Shared Collections) -->
+    <div id="view-collaborators-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Collection Team</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('view-collaborators-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="view-collaborators-collection-id">
+                <p class="text-secondary" style="line-height: 1.6; margin-bottom: 16px;">
+                    Owner and collaborators who can edit this Collection.
+                </p>
+                <div id="view-collaborators-list" class="collaboration-requests-list">
+                    <!-- Owner and collaborators will be rendered here -->
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('view-collaborators-dialog')">Close</button>
             </div>
         </div>
     </div>
