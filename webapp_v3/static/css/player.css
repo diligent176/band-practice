@@ -1338,10 +1338,107 @@
 
 @media (max-width: 768px) {
 
-  /* Stack player controls vertically on small screens */
+  /* Hide artist name on small screens */
+  .player-artist {
+    display: none;
+  }
+
+  /* Remove separator when artist is hidden */
+  .player-song-title::after {
+    content: none;
+  }
+
+  /* Reduce margins and padding */
+  .player-album-art-container {
+    margin-left: 38px;
+    /* Less space for back button */
+  }
+
+  .player-album-art {
+    width: 36px;
+    height: 36px;
+  }
+
+  .player-song-info {
+    margin-left: 6px;
+    margin-right: 6px;
+  }
+
+  .player-back-btn {
+    left: 4px;
+  }
+
+  /* Hide prev/next buttons on small screens (swipe gestures work) */
+  #player-prev-btn,
+  #player-next-btn {
+    display: none;
+  }
+
+  /* Make play button much smaller */
+  .btn-play-large {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  /* Reduce all player control button sizes */
+  .btn-player {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+
+  /* Make BPM indicator more compact */
+  .bpm-indicator-block {
+    padding: 3px 6px;
+    gap: 3px;
+    margin-right: 6px;
+    font-size: 11px;
+  }
+
+  .bpm-indicator-block i {
+    font-size: 11px;
+  }
+
+  .player-bpm-value {
+    font-size: 10px;
+    min-width: 24px;
+  }
+
+  /* Compact progress bar */
+  .player-progress-container {
+    max-width: 120px;
+    min-width: 80px;
+    gap: 4px;
+  }
+
+  .player-time {
+    font-size: 9px;
+    min-width: 28px;
+  }
+
+  /* Reduce central controls spacing */
+  .player-center-controls {
+    gap: 4px;
+    right: 100px;
+    /* Less space needed */
+  }
+
+  /* Compact player controls container */
   .player-controls {
-    flex-wrap: wrap;
-    gap: 8px;
+    gap: 4px;
+  }
+
+  /* Make view options (columns, font) much more compact */
+  .player-view-options {
+    gap: 2px;
+  }
+
+  .player-view-options .btn-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+    padding: 0;
   }
 
   /* Make Spotify connect card more compact on mobile */
