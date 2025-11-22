@@ -21,7 +21,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 48px 6px 48px; /* Leave space for back button on left, help+logout on right */
+  padding: 6px 48px 6px 48px;
+  /* Leave space for back button on left, help+logout on right */
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
   gap: 16px;
@@ -156,145 +157,8 @@
 }
 
 /* ============================================================================
-   HELP CARD (from home.css - hover card)
+   HELP CARD - Now using base.css styles (no duplication!)
    ============================================================================ */
-.keyboard-shortcuts-help {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  height: 34px;
-  width: 34px;
-}
-
-.keyboard-shortcuts-help:hover {
-  background: var(--bg-tertiary);
-  border-color: rgba(45, 122, 74, 0.4);
-}
-
-.keyboard-shortcuts-help i {
-  font-size: 20px;
-  color: var(--text-secondary);
-}
-
-.help-card {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: var(--bg-elevated);
-  border: 1px solid rgba(45, 122, 74, 0.3);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  min-width: 520px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-8px);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10000;
-  pointer-events: none;
-}
-
-.help-card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: rgba(45, 122, 74, 0.15);
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 13px;
-  border-bottom: 1px solid rgba(45, 122, 74, 0.2);
-}
-
-.help-card-header i {
-  font-size: 16px;
-  color: var(--accent-primary);
-}
-
-.help-toggle-hint {
-  margin-left: auto;
-  font-size: 11px;
-  font-weight: 400;
-  opacity: 0.7;
-  font-style: italic;
-}
-
-.help-card-content {
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-}
-
-.help-column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.help-section {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.help-section:not(:first-child) {
-  margin-top: 6px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(45, 122, 74, 0.15);
-}
-
-.help-section-title {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--accent-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 3px;
-  margin-top: 0;
-  padding-left: 8px;
-}
-
-.help-item {
-  display: grid;
-  grid-template-columns: 100px auto 1fr;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  transition: background 0.15s ease;
-}
-
-.help-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.help-keys {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-/* kbd styling now in base.css - shared across all components */
-
-.help-icon {
-  font-size: 11px;
-  color: var(--text-muted);
-  width: 16px;
-  text-align: center;
-}
-
-.help-item span {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
 
 /* ============================================================================
    MAIN CONTENT - Songs Grid
@@ -392,7 +256,7 @@
   background: rgba(20, 20, 20, 0.9);
   border-color: rgba(45, 122, 74, 0.8);
   box-shadow: 0 0 20px rgba(45, 122, 74, 0.3),
-              0 0 0 2px rgba(45, 122, 74, 0.4);
+    0 0 0 2px rgba(45, 122, 74, 0.4);
 }
 
 /* Song Artwork */

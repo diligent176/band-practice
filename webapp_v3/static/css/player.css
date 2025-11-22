@@ -342,23 +342,7 @@
   background: rgba(45, 122, 74, 0.1);
 }
 
-/* Help Toggle (reuse from songs.css) */
-.keyboard-shortcuts-help {
-  position: relative;
-  flex-shrink: 0;
-}
-
-#player-help-toggle {
-  cursor: pointer;
-  font-size: 20px;
-  color: var(--text-muted);
-  transition: color 0.2s ease;
-  padding: var(--spacing-xs);
-}
-
-#player-help-toggle:hover {
-  color: var(--accent-primary);
-}
+/* Help Toggle - Now using base.css styles (no duplication!) */
 
 /* Back Button */
 #player-back-btn {
