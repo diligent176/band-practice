@@ -109,6 +109,12 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="help-card-footer pwa-install-footer" id="home-pwa-install" style="display: none;">
+                            <button class="pwa-install-btn" onclick="window.installPWA()">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Install as App</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <button id="signout-btn" class="user-profile-logout-btn" title="Logout">
@@ -238,6 +244,12 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="help-card-footer pwa-install-footer" id="songs-pwa-install" style="display: none;">
+                                <button class="pwa-install-btn" onclick="window.installPWA()">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span>Install as App</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -432,6 +444,12 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="help-card-footer pwa-install-footer" id="player-pwa-install" style="display: none;">
+                            <button class="pwa-install-btn" onclick="window.installPWA()">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Install as App</span>
+                            </button>
                         </div>
                     </div>
                     </div>
@@ -926,6 +944,50 @@ END: Final chorus is acapella"></textarea>
     <script src="{{ url_for('static', filename='js/player.js') }}"></script>
 
     <script>
+        // PWA Installation Detection and Handler
+        let deferredPrompt;
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                      window.navigator.standalone || 
+                      document.referrer.includes('android-app://');
+
+        // Capture the beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install buttons in all help cards if not running as PWA
+            if (!isPWA) {
+                ['home-pwa-install', 'songs-pwa-install', 'player-pwa-install'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'flex';
+                });
+            }
+        });
+
+        // PWA Install function
+        window.installPWA = async function() {
+            if (!deferredPrompt) {
+                console.log('PWA install prompt not available');
+                return;
+            }
+
+            // Show the install prompt
+            deferredPrompt.prompt();
+            
+            // Wait for the user's response
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`PWA install outcome: ${outcome}`);
+            
+            // Clear the deferredPrompt
+            deferredPrompt = null;
+            
+            // Hide install buttons
+            ['home-pwa-install', 'songs-pwa-install', 'player-pwa-install'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        };
+
         // Firebase configuration from template
         const firebaseConfig = {
             apiKey: "{{ config.FIREBASE_API_KEY }}",

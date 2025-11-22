@@ -77,7 +77,7 @@ const ViewManager = {
         });
 
         document.addEventListener('click', (e) => {
-            if (this.songsHelpCardVisible && !e.target.closest('#songs-help-toggle')) {
+            if (this.songsHelpCardVisible && !e.target.closest('#songs-help-toggle') && !e.target.closest('#songs-help-card')) {
                 this.toggleSongsHelpCard();
             }
         });

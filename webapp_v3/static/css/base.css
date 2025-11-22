@@ -768,6 +768,40 @@ kbd {
   gap: 16px;
 }
 
+.help-card-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  border-top: 1px solid rgba(45, 122, 74, 0.2);
+  background: rgba(45, 122, 74, 0.08);
+}
+
+.pwa-install-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pwa-install-btn:hover {
+  background: #3d9860;
+  box-shadow: 0 4px 12px rgba(45, 122, 74, 0.3);
+  transform: translateY(-1px);
+}
+
+.pwa-install-btn i {
+  font-size: 14px;
+}
+
 .help-column {
   flex: 1;
   display: flex;

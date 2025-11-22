@@ -124,7 +124,7 @@ const CollectionsManager = {
 
         // Click outside to close help
         document.addEventListener('click', (e) => {
-            if (this.helpCardVisible && !e.target.closest('.keyboard-shortcuts-help')) {
+            if (this.helpCardVisible && !e.target.closest('.keyboard-shortcuts-help') && !e.target.closest('.help-card')) {
                 this.toggleHelpCard();
             }
         });
@@ -141,10 +141,12 @@ const CollectionsManager = {
             helpCard.style.opacity = '1';
             helpCard.style.visibility = 'visible';
             helpCard.style.transform = 'translateY(0)';
+            helpCard.style.pointerEvents = 'auto';
         } else {
             helpCard.style.opacity = '0';
             helpCard.style.visibility = 'hidden';
             helpCard.style.transform = 'translateY(-8px)';
+            helpCard.style.pointerEvents = 'none';
         }
     },
 

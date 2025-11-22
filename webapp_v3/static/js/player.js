@@ -101,7 +101,7 @@ const PlayerManager = {
         });
 
         document.addEventListener('click', (e) => {
-            if (this.helpCardVisible && !e.target.closest('#player-help-toggle')) {
+            if (this.helpCardVisible && !e.target.closest('#player-help-toggle') && !e.target.closest('#player-help-card')) {
                 this.togglePlayerHelpCard();
             }
         });
