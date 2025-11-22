@@ -666,11 +666,17 @@
             <div class="dialog-body">
                 <input type="hidden" id="request-access-collection-id">
                 <p class="text-secondary" style="line-height: 1.6;">
-                    Request Collaborator role on this Collection?
+                    Request Collaborator Access to this Collection?
                 </p>
                 <p class="text-secondary" style="line-height: 1.6; margin-top: 12px;">
-                    Collaborators can edit Lyrics, Notes and Tempo. The Collection Owner will see this request.
+                    Collaborators can edit Song Lyrics, Notes and Tempo.
                 </p>
+                <p class="text-secondary" style="line-height: 1.6; margin-top: 16px; font-weight: 600;">
+                    The collection owner will receive this request:
+                </p>
+                <div id="request-access-owner-info" class="collab-request-content" style="margin-top: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                    <!-- Owner info will be populated here -->
+                </div>
             </div>
             <div class="dialog-footer">
                 <button class="btn btn-secondary" onclick="BPP.hideDialog('request-access-dialog')">Cancel</button>

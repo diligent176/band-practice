@@ -433,7 +433,8 @@ const CollectionsManager = {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const collectionId = btn.dataset.collectionId;
-                this.showRequestAccessDialog(collectionId);
+                const collection = collections.find(c => c.id === collectionId);
+                this.showRequestAccessDialog(collection);
             });
         });
     },
@@ -604,9 +605,30 @@ const CollectionsManager = {
     /**
      * Show request access dialog
      */
-    showRequestAccessDialog(collectionId) {
+    showRequestAccessDialog(collection) {
         // Store collection ID in hidden field
-        document.getElementById('request-access-collection-id').value = collectionId;
+        document.getElementById('request-access-collection-id').value = collection.id;
+        
+        // Populate owner information
+        const ownerInfoDiv = document.getElementById('request-access-owner-info');
+        const ownerName = collection.owner_name || 'Unknown';
+        const ownerEmail = collection.owner_email || '';
+        const ownerPhotoUrl = collection.owner_photo_url;
+        
+        ownerInfoDiv.innerHTML = `
+            <div class="collab-user-avatar">
+                ${ownerPhotoUrl
+                    ? `<img src="${this.escapeHtml(ownerPhotoUrl)}" alt="${this.escapeHtml(ownerName)}" class="avatar-img">`
+                    : `<div class="avatar-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                       </div>`
+                }
+            </div>
+            <div class="collab-user-info">
+                <div class="collab-user-name">${this.escapeHtml(ownerName)}</div>
+                ${ownerEmail ? `<div class="collab-user-email">${this.escapeHtml(ownerEmail)}</div>` : ''}
+            </div>
+        `;
         
         // Show dialog
         BPP.showDialog('request-access-dialog');

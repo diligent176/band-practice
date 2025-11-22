@@ -295,9 +295,11 @@ class CollectionsService:
             limit: Maximum number of collections to return
 
         Returns:
-            List of public collection dictionaries
+            List of public collection dictionaries with owner information
         """
         try:
+            from .user_service_v3 import UserService
+            
             # Get public collections that are not owned by this user
             query = (self.db.collection(self.collections)
                     .where('is_public', '==', True)
@@ -316,6 +318,16 @@ class CollectionsService:
                     # Check if user has already requested access
                     requests = collection_data.get('collaboration_requests', [])
                     collection_data['access_requested'] = any(req['user_uid'] == user_id for req in requests)
+                    
+                    # Fetch owner information
+                    owner_uid = collection_data.get('owner_uid')
+                    if owner_uid:
+                        owner_user = UserService.get_user(owner_uid)
+                        if owner_user:
+                            collection_data['owner_name'] = owner_user.get('display_name', 'Unknown')
+                            collection_data['owner_email'] = owner_user.get('email', '')
+                            collection_data['owner_photo_url'] = owner_user.get('photo_url', None)
+                    
                     public_collections.append(collection_data)
 
             logger.info(f"Retrieved {len(public_collections)} public collections for user {user_id}")
