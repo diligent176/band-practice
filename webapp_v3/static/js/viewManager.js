@@ -194,8 +194,7 @@ const ViewManager = {
             this.state.filteredSongs = this.state.allSongs.filter(song => {
                 const title = (song.title || '').toLowerCase();
                 const artist = (song.artist || '').toLowerCase();
-                const album = (song.album || '').toLowerCase();
-                return title.includes(searchTerm) || artist.includes(searchTerm) || album.includes(searchTerm);
+                return title.includes(searchTerm) || artist.includes(searchTerm);
             });
         } else {
             this.state.filteredSongs = [...this.state.allSongs];
