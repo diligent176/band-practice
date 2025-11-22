@@ -154,9 +154,14 @@ const PlayerManager = {
             this.startBpmFlasher();
         }
 
-        // Initialize Spotify Player on first load
-        if (!window.SpotifyPlayer.player) {
-            await window.SpotifyPlayer.init();
+        // Initialize Spotify Player if not already initialized or in progress
+        // Should already be ready from early init in Collections view
+        if (!window.SpotifyPlayer.player && !window.SpotifyPlayer.isInitializing) {
+            console.log('🎵 Spotify player not initialized yet, initializing now...');
+            window.SpotifyPlayer.isInitializing = true;
+            await window.SpotifyPlayer.init().finally(() => {
+                window.SpotifyPlayer.isInitializing = false;
+            });
         }
 
         // Don't load track into Spotify - just show connect prompt if needed

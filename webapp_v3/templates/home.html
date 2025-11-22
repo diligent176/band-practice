@@ -1007,6 +1007,15 @@ END: Final chorus is acapella"></textarea>
         // Callback after successful authentication
         window.onAuthSuccess = function() {
             CollectionsManager.loadCollections();
+            
+            // Initialize Spotify Player early (non-blocking)
+            // This prepares the player in the background so it's ready when user needs it
+            // Will not block the UI if Spotify is not connected or user doesn't have Premium
+            if (window.SpotifyPlayer && !window.SpotifyPlayer.player) {
+                window.SpotifyPlayer.init().catch(err => {
+                    console.log('ℹ️ Spotify player initialization deferred:', err.message);
+                });
+            }
         };
 
         // Expose showLinkPlaylistDialog for collection cards to call
