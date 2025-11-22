@@ -165,6 +165,17 @@ const ViewManager = {
             // Update sort indicator to match current mode
             this.updateSortIndicator();
 
+            // If collection is empty, auto-open playlist dialog to save user steps
+            if (this.state.allSongs.length === 0) {
+                console.log('📂 Collection is empty, opening playlist dialog');
+                // Use setTimeout to ensure view is fully rendered before showing dialog
+                setTimeout(() => {
+                    if (typeof showLinkPlaylistDialog === 'function') {
+                        showLinkPlaylistDialog(collectionId);
+                    }
+                }, 100);
+            }
+
             // Filter and render
             this.filterSongs();
 
