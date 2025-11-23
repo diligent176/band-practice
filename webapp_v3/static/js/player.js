@@ -232,9 +232,49 @@ const PlayerManager = {
             const title = encodeURIComponent(this.currentSong.title || '');
             const artist = encodeURIComponent(this.currentSong.artist || '');
             const googleUrl = `https://www.google.com/search?q=Lyrics+for+${title}+by+${artist}`;
-            lyricsPanel.innerHTML = `<div class="empty-state" style="text-align: center;"><p>No lyrics available.<br /><br />Press <kbd>L</kbd> to add lyrics.<br />Press <kbd>G</kbd> to fetch from Genius.<br />Or click to <a href="${googleUrl}" target="_blank" rel="noopener">search these lyrics on Google</a></p></div>`;
+            lyricsPanel.innerHTML = `
+                <div class="empty-state" style="text-align: center; max-width: 400px; margin: 0 auto;">
+                    <p style="margin-bottom: 2em;">No lyrics available.</p>
+                    <p style="line-height: 1.8;">
+                        Press <kbd>L</kbd> to <a href="#" id="empty-add-lyrics">add lyrics</a>.<br />
+                        Press <kbd>N</kbd> to <a href="#" id="empty-add-notes">add notes</a>.<br />
+                        Press <kbd>G</kbd> to <a href="#" id="empty-fetch-genius">fetch from Genius</a>.
+                    </p>
+                    <p style="margin-top: 2em;">
+                        Or click to <a href="${googleUrl}" target="_blank" rel="noopener">search these lyrics on Google</a>.
+                    </p>
+                </div>`;
             // Remove any column classes when showing empty state
             lyricsPanel.className = 'player-lyrics-panel';
+            
+            // Add click handlers for empty state links
+            setTimeout(() => {
+                const addLyricsLink = document.getElementById('empty-add-lyrics');
+                const addNotesLink = document.getElementById('empty-add-notes');
+                const fetchLink = document.getElementById('empty-fetch-genius');
+                
+                if (addLyricsLink) {
+                    addLyricsLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.editLyrics();
+                    });
+                }
+                
+                if (addNotesLink) {
+                    addNotesLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.editNotes();
+                    });
+                }
+                
+                if (fetchLink) {
+                    fetchLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.fetchLyricsFromGenius();
+                    });
+                }
+            }, 0);
+            
             return;
         }
 
