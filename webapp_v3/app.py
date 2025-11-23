@@ -773,6 +773,9 @@ def sync_playlists(collection_id):
         # Track all current track IDs from playlists
         current_track_ids_in_playlists = set()
         
+        # Track updated playlist metadata for collection update
+        updated_playlists = []
+        
         # Sync each playlist
         for playlist_info in linked_playlists:
             playlist_id = playlist_info.get('playlist_id')
@@ -781,6 +784,25 @@ def sync_playlists(collection_id):
                 continue
                 
             try:
+                # Fetch updated playlist metadata (including artwork)
+                playlist_metadata = spotify_service.get_playlist_metadata(playlist_id)
+                
+                if not playlist_metadata:
+                    logger.warning(f"Could not fetch metadata for playlist {playlist_id}")
+                    continue
+                
+                # Use Spotify's playlist image directly
+                spotify_image_url = playlist_metadata.get('image_url', '')
+                
+                # Log artwork URL changes
+                old_image_url = playlist_info.get('image_url', '')
+                if old_image_url != spotify_image_url:
+                    logger.info(f"🎨 Artwork changed for playlist {playlist_id}")
+                    logger.info(f"   OLD: {old_image_url}")
+                    logger.info(f"   NEW: {spotify_image_url}")
+                else:
+                    logger.info(f"🎨 Artwork unchanged for playlist {playlist_id}: {spotify_image_url}")
+                
                 # Fetch current tracks from Spotify
                 tracks_data = spotify_service.get_playlist_tracks(playlist_id)
                 
@@ -799,6 +821,18 @@ def sync_playlists(collection_id):
                         current_track_ids_in_playlists.add(spotify_track_id)
                 
                 logger.info(f"Current track IDs set now has {len(current_track_ids_in_playlists)} tracks")
+                
+                # Store updated playlist info with Spotify's playlist artwork
+                updated_playlists.append({
+                    'playlist_id': playlist_id,
+                    'playlist_name': playlist_metadata['playlist_name'],
+                    'playlist_owner': playlist_metadata['playlist_owner'],
+                    'playlist_url': playlist_metadata['playlist_url'],
+                    'image_url': spotify_image_url,
+                    'track_count': len(tracks_data),
+                    'linked_at': playlist_info.get('linked_at'),  # Preserve original link time
+                    'last_synced_at': datetime.utcnow()
+                })
                 
                 # Batch import/update songs
                 result = songs_service.batch_create_or_update_songs(
@@ -875,17 +909,26 @@ def sync_playlists(collection_id):
         
         logger.info(f"Playlist sync complete for collection {collection_id}: {added_count} added, {updated_count} updated, {orphaned_count} orphaned")
         
-        # Update collection metadata (song_count and updated_at)
+        # Update collection metadata (song_count, updated_at, and linked_playlists with fresh metadata)
         # Count all non-orphaned songs in the collection
         all_songs_query = db.collection('songs_v3').where('collection_id', '==', collection_id)
         all_songs = list(all_songs_query.stream())
         non_orphaned_count = sum(1 for song in all_songs if not song.to_dict().get('is_orphaned'))
         
         collection_ref = db.collection('collections_v3').document(collection_id)
-        collection_ref.update({
+        update_data = {
             'song_count': non_orphaned_count,
             'updated_at': datetime.utcnow()
-        })
+        }
+        
+        # Update linked_playlists with fresh metadata (including artwork)
+        if updated_playlists:
+            update_data['linked_playlists'] = updated_playlists
+            logger.info(f"📝 Updating collection {collection_id} with {len(updated_playlists)} playlists")
+            for playlist in updated_playlists:
+                logger.info(f"   - {playlist['playlist_name']}: artwork = {playlist['image_url'][:80]}...")
+        
+        collection_ref.update(update_data)
         
         logger.info(f"Updated collection {collection_id} song_count to {non_orphaned_count}")
         

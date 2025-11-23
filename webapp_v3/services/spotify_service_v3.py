@@ -53,6 +53,11 @@ class SpotifyServiceV3:
             if playlist.get('images'):
                 images = sorted(playlist['images'], key=lambda x: x.get('height', 0) or 0, reverse=True)
                 image_url = images[0]['url'] if images else None
+                
+                # Log all available images
+                logger.info(f"Playlist {playlist_id} has {len(playlist['images'])} images:")
+                for img in playlist['images']:
+                    logger.info(f"  - {img.get('width')}x{img.get('height')}: {img.get('url', '')[:100]}")
 
             return {
                 'playlist_id': playlist_id,

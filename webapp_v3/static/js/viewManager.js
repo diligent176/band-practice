@@ -554,11 +554,16 @@ const ViewManager = {
                 if (data.orphaned > 0) messages.push(`${data.orphaned} orphaned`);
                 
                 BPP.showToast(`Synced: ${messages.join(', ')}`, 'success');
-                
-                // Reload songs by reopening the collection
-                await this.openCollection(collection.id);
             } else {
                 BPP.showToast('Playlists are up to date', 'success');
+            }
+            
+            // Always reload songs to refresh order (even if no adds/removes)
+            await this.openCollection(collection.id);
+            
+            // Also refresh collections list to update artwork/metadata in home view
+            if (BPP.collectionsManager) {
+                await BPP.collectionsManager.loadCollections();
             }
         } catch (error) {
             console.error('Failed to sync playlists:', error);
