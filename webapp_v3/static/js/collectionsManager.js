@@ -1145,41 +1145,92 @@ const CollectionsManager = {
         this.refreshCollectionElements();
         if (this.collectionElements.length === 0) return;
 
-        const cols = this.getGridColumns();
+        // Ensure valid index
+        if (this.selectedCollectionIndex < 0 || this.selectedCollectionIndex >= this.collectionElements.length) {
+            this.selectedCollectionIndex = 0;
+        }
+
+        const currentCard = this.collectionElements[this.selectedCollectionIndex];
+        if (!currentCard) {
+            console.warn('No current card at index', this.selectedCollectionIndex);
+            this.selectedCollectionIndex = 0;
+            this.updateCollectionFocus();
+            return;
+        }
+        
+        // Get the grid container (owned-collections, shared-collections, or public-collections)
+        const currentContainer = currentCard.parentElement;
+        
+        if (!currentContainer) {
+            console.warn('No container found');
+            return;
+        }
+        
+        // Get cards in the same section only
+        const cardsInSection = Array.from(currentContainer.querySelectorAll('.collection-card'));
+        const indexInSection = cardsInSection.indexOf(currentCard);
+        
+        if (indexInSection === -1) {
+            console.warn('Current card not found in section');
+            return;
+        }
+        
+        const cols = this.getGridColumnsForContainer(currentContainer);
 
         switch(e.key) {
             case 'ArrowRight':
-                const currentRow = Math.floor(this.selectedCollectionIndex / cols);
-                const currentCol = this.selectedCollectionIndex % cols;
-                const isLastInRow = currentCol === cols - 1 || this.selectedCollectionIndex === this.collectionElements.length - 1;
+                const currentCol = indexInSection % cols;
+                const isLastInRow = currentCol === cols - 1 || indexInSection === cardsInSection.length - 1;
                 if (!isLastInRow) {
-                    this.selectedCollectionIndex = Math.min(this.selectedCollectionIndex + 1, this.collectionElements.length - 1);
+                    const newIndexInSection = indexInSection + 1;
+                    const newCard = cardsInSection[newIndexInSection];
+                    this.selectedCollectionIndex = this.collectionElements.indexOf(newCard);
                 }
                 break;
 
             case 'ArrowLeft':
-                const col = this.selectedCollectionIndex % cols;
+                const col = indexInSection % cols;
                 const isFirstInRow = col === 0;
                 if (!isFirstInRow) {
-                    this.selectedCollectionIndex = Math.max(this.selectedCollectionIndex - 1, 0);
+                    const newIndexInSection = indexInSection - 1;
+                    const newCard = cardsInSection[newIndexInSection];
+                    this.selectedCollectionIndex = this.collectionElements.indexOf(newCard);
                 }
                 break;
 
             case 'ArrowDown':
-                const newIndexDown = this.selectedCollectionIndex + cols;
-                if (newIndexDown < this.collectionElements.length) {
-                    this.selectedCollectionIndex = newIndexDown;
+                const newIndexDown = indexInSection + cols;
+                if (newIndexDown < cardsInSection.length) {
+                    const newCard = cardsInSection[newIndexDown];
+                    this.selectedCollectionIndex = this.collectionElements.indexOf(newCard);
                 } else {
-                    this.selectedCollectionIndex = this.collectionElements.length - 1;
+                    // Try to jump to next section
+                    const nextSection = this.getNextSection(currentContainer);
+                    if (nextSection) {
+                        const firstCardInNext = nextSection.querySelector('.collection-card');
+                        if (firstCardInNext) {
+                            this.selectedCollectionIndex = this.collectionElements.indexOf(firstCardInNext);
+                        }
+                    }
                 }
                 break;
 
             case 'ArrowUp':
-                const newIndexUp = this.selectedCollectionIndex - cols;
+                const newIndexUp = indexInSection - cols;
                 if (newIndexUp >= 0) {
-                    this.selectedCollectionIndex = newIndexUp;
+                    const newCard = cardsInSection[newIndexUp];
+                    this.selectedCollectionIndex = this.collectionElements.indexOf(newCard);
                 } else {
-                    this.selectedCollectionIndex = 0;
+                    // Try to jump to previous section
+                    const prevSection = this.getPreviousSection(currentContainer);
+                    if (prevSection) {
+                        const cardsInPrev = Array.from(prevSection.querySelectorAll('.collection-card'));
+                        if (cardsInPrev.length > 0) {
+                            // Go to last card in previous section
+                            const lastCard = cardsInPrev[cardsInPrev.length - 1];
+                            this.selectedCollectionIndex = this.collectionElements.indexOf(lastCard);
+                        }
+                    }
                 }
                 break;
 
@@ -1203,10 +1254,44 @@ const CollectionsManager = {
 
         const firstCard = this.collectionElements[0];
         const container = firstCard.parentElement;
+        return this.getGridColumnsForContainer(container);
+    },
+    
+    /**
+     * Get number of grid columns for a specific container
+     */
+    getGridColumnsForContainer(container) {
         const gridCols = getComputedStyle(container).gridTemplateColumns;
         const colCount = gridCols.split(' ').length;
-
         return Math.max(1, colCount);
+    },
+    
+    /**
+     * Get next section container
+     */
+    getNextSection(currentContainer) {
+        const sections = ['owned-collections', 'shared-collections', 'public-collections'];
+        const currentId = currentContainer.id;
+        const currentIndex = sections.indexOf(currentId);
+        
+        if (currentIndex >= 0 && currentIndex < sections.length - 1) {
+            return document.getElementById(sections[currentIndex + 1]);
+        }
+        return null;
+    },
+    
+    /**
+     * Get previous section container
+     */
+    getPreviousSection(currentContainer) {
+        const sections = ['owned-collections', 'shared-collections', 'public-collections'];
+        const currentId = currentContainer.id;
+        const currentIndex = sections.indexOf(currentId);
+        
+        if (currentIndex > 0) {
+            return document.getElementById(sections[currentIndex - 1]);
+        }
+        return null;
     },
 
     /**
