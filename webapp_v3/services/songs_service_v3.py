@@ -113,6 +113,9 @@ class SongsService:
                         # Playlist tracking (V2 pattern)
                         'source_playlist_ids': [playlist_id],
                         'playlist_positions': {playlist_id: position},
+                        
+                        # Orphaned status
+                        'is_orphaned': False,
 
                         # Metadata
                         'created_at': datetime.utcnow(),
@@ -238,6 +241,9 @@ class SongsService:
                     # Playlist tracking (V2 pattern)
                     'source_playlist_ids': [playlist_id],
                     'playlist_positions': {playlist_id: position},
+                    
+                    # Orphaned status
+                    'is_orphaned': False,
                     
                     # Metadata
                     'created_at': datetime.utcnow(),

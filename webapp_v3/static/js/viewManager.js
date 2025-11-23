@@ -19,7 +19,8 @@ const ViewManager = {
         filteredSongs: [],
         selectedSongIndex: -1,
         sortMode: localStorage.getItem('v3_songsSortMode') || 'playlist',
-        collectionAccessLevel: 'none' // 'owner', 'collaborator', 'viewer', 'none'
+        collectionAccessLevel: 'none', // 'owner', 'collaborator', 'viewer', 'none'
+        lyricsPollingInterval: null // For checking background fetch progress
     },
 
     init() {
@@ -122,6 +123,8 @@ const ViewManager = {
             if (searchInput) {
                 searchInput.value = '';
             }
+            // Stop lyrics polling when leaving songs view
+            this.stopLyricsPolling();
         }
 
         // Hide all views
@@ -178,11 +181,85 @@ const ViewManager = {
 
             // Filter and render
             this.filterSongs();
+            
+            // Start polling for lyrics updates if any songs are pending
+            this.startLyricsPolling();
 
         } catch (error) {
             console.error('Error loading collection:', error);
             BPP.showToast('Failed to load songs', 'error');
             this.showView('collections');
+        }
+    },
+    
+    /**
+     * Start polling for lyrics updates (lightweight - only when needed)
+     */
+    startLyricsPolling() {
+        // Stop any existing polling
+        this.stopLyricsPolling();
+        
+        // Check if any songs are waiting for lyrics
+        const hasPendingLyrics = this.state.allSongs.some(song => !song.lyrics_fetched);
+        
+        if (!hasPendingLyrics) {
+            console.log('✅ All songs have lyrics, no polling needed');
+            return;
+        }
+        
+        console.log('🔄 Starting lyrics polling (songs pending fetch)');
+        
+        // Poll every 5 seconds
+        this.state.lyricsPollingInterval = setInterval(async () => {
+            try {
+                // Only poll if we're still in songs view for this collection
+                if (this.currentView !== 'songs' || !this.state.currentCollection) {
+                    this.stopLyricsPolling();
+                    return;
+                }
+                
+                // Fetch updated song list
+                const response = await BPP.apiCall(`/api/v3/collections/${this.state.currentCollection.id}/songs`);
+                const updatedSongs = response.songs || [];
+                
+                // Check if any lyrics statuses changed
+                let hasChanges = false;
+                for (const updatedSong of updatedSongs) {
+                    const oldSong = this.state.allSongs.find(s => s.id === updatedSong.id);
+                    if (oldSong && oldSong.lyrics_fetched !== updatedSong.lyrics_fetched) {
+                        hasChanges = true;
+                        break;
+                    }
+                }
+                
+                if (hasChanges) {
+                    console.log('✅ Lyrics updates detected, refreshing view');
+                    this.state.allSongs = updatedSongs;
+                    this.filterSongs(); // Re-render
+                }
+                
+                // Stop polling if all lyrics are fetched
+                const stillPending = updatedSongs.some(song => !song.lyrics_fetched);
+                if (!stillPending) {
+                    console.log('✅ All lyrics fetched, stopping polling');
+                    this.stopLyricsPolling();
+                }
+                
+            } catch (error) {
+                console.error('Error polling for lyrics updates:', error);
+                // Don't stop polling on error, just log it
+            }
+        }, 5000); // Poll every 5 seconds
+    },
+    
+    /**
+     * Stop lyrics polling
+     */
+    stopLyricsPolling() {
+        if (this.state.lyricsPollingInterval) {
+            clearInterval(this.state.lyricsPollingInterval);
+            this.state.lyricsPollingInterval = null;
+            console.log('⏹️ Stopped lyrics polling');
         }
     },
 
@@ -294,6 +371,7 @@ const ViewManager = {
         const selected = index === this.state.selectedSongIndex ? 'selected' : '';
         const hasArtwork = song.album_art_url && song.album_art_url.trim() !== '';
         const hasLyrics = song.lyrics_fetched ? 'has-lyrics' : 'no-lyrics';
+        const isOrphaned = song.is_orphaned === true ? 'is-orphaned' : '';
 
         // Get playlist name badge (only for first song of playlist)
         let playlistBadge = '';
@@ -317,14 +395,22 @@ const ViewManager = {
             }
         }
 
+        // Orphaned indicator (trash icon overlay) - only show if explicitly true
+        const orphanedIndicator = song.is_orphaned === true ? `
+            <div class="orphaned-indicator" title="Song removed from playlist">
+                <i class="fa-solid fa-trash"></i>
+            </div>
+        ` : '';
+
         return `
-            <div class="song-item ${selected} ${hasLyrics}" data-index="${index}" data-song-id="${song.id}">
+            <div class="song-item ${selected} ${hasLyrics} ${isOrphaned}" data-index="${index}" data-song-id="${song.id}">
                 <div class="song-art-container">
                     ${hasArtwork
                         ? `<img src="${this.escapeHtml(song.album_art_url)}" alt="Album art" class="song-art" loading="lazy">`
                         : `<div class="song-art-placeholder"><i class="fa-solid fa-music"></i></div>`
                     }
                     ${!song.lyrics_fetched ? '<div class="lyrics-status"><i class="fa-solid fa-hourglass-half"></i></div>' : ''}
+                    ${orphanedIndicator}
                     ${playlistBadge}
                 </div>
                 <div class="song-info">
@@ -360,6 +446,44 @@ const ViewManager = {
         // Update UI
         this.updateSortIndicator();
         this.filterSongs();
+    },
+
+    /**
+     * Sync playlists in current collection - check for new/removed songs
+     */
+    async syncPlaylist() {
+        if (!this.state.currentCollection) {
+            BPP.showToast('No collection selected', 'error');
+            return;
+        }
+
+        const collection = this.state.currentCollection;
+        console.log('🔄 Syncing playlists for collection:', collection.name);
+
+        try {
+            BPP.showToast('Syncing playlists...', 'info');
+
+            const response = await BPP.apiCall(`/api/v3/collections/${collection.id}/sync-playlists`, {
+                method: 'POST'
+            });
+
+            if (response.added || response.removed || response.orphaned) {
+                const messages = [];
+                if (response.added > 0) messages.push(`${response.added} new song(s)`);
+                if (response.removed > 0) messages.push(`${response.removed} removed`);
+                if (response.orphaned > 0) messages.push(`${response.orphaned} orphaned`);
+                
+                BPP.showToast(`Synced: ${messages.join(', ')}`, 'success');
+                
+                // Reload songs by reopening the collection
+                await this.openCollection(collection.id);
+            } else {
+                BPP.showToast('Playlists are up to date', 'success');
+            }
+        } catch (error) {
+            console.error('Failed to sync playlists:', error);
+            BPP.showToast('Failed to sync playlists', 'error');
+        }
     },
 
     updateSortIndicator() {
@@ -566,6 +690,9 @@ const ViewManager = {
         } else if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
             e.preventDefault();
             this.toggleSortMode();
+        } else if (e.key === 'y' || e.key === 'Y') {
+            e.preventDefault();
+            this.syncPlaylist();
         } else if (!isTyping && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {
             // Any alphanumeric key focuses search (only if not already typing)
             document.getElementById('song-search').focus();

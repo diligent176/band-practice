@@ -6,6 +6,7 @@ Clean architecture, PWA support, Spotify Web Playback SDK integration
 import logging
 import os
 from pathlib import Path
+from datetime import datetime
 
 from dotenv import load_dotenv
 
@@ -727,6 +728,201 @@ def reorder_playlists(collection_id):
 
     except Exception as e:
         logger.error(f"Error reordering playlists: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/v3/collections/<collection_id>/sync-playlists', methods=['POST'])
+@require_auth
+def sync_playlists(collection_id):
+    """
+    Sync all playlists in collection - add new songs, mark removed songs as orphaned.
+    Never overwrites custom lyrics or BPM.
+    """
+    try:
+        user_id = request.user_id
+        
+        # Verify user has access to collection
+        collections_service = CollectionsService()
+        collection = collections_service.get_collection(collection_id, user_id)
+
+        if not collection:
+            return jsonify({'error': 'Collection not found'}), 404
+
+        # Get access level
+        access_level = collections_service.check_user_access_level(collection_id, user_id)
+        
+        if access_level not in ['owner', 'collaborator']:
+            return jsonify({'error': 'You must be owner or collaborator to sync playlists'}), 403
+
+        # Get linked playlists
+        linked_playlists = collection.get('linked_playlists', [])
+        
+        if not linked_playlists:
+            return jsonify({'message': 'No playlists to sync', 'added': 0, 'removed': 0, 'orphaned': 0}), 200
+
+        # Initialize Spotify client
+        from services.spotify_service_v3 import SpotifyServiceV3
+        from services.songs_service_v3 import SongsService
+        
+        spotify_service = SpotifyServiceV3()
+        songs_service = SongsService()
+        
+        added_count = 0
+        updated_count = 0
+        
+        # Track all current track IDs from playlists
+        current_track_ids_in_playlists = set()
+        
+        # Sync each playlist
+        for playlist_info in linked_playlists:
+            playlist_id = playlist_info.get('playlist_id')
+            
+            if not playlist_id:
+                continue
+                
+            try:
+                # Fetch current tracks from Spotify
+                tracks_data = spotify_service.get_playlist_tracks(playlist_id)
+                
+                logger.info(f"Fetched {len(tracks_data)} tracks from playlist {playlist_id}")
+                
+                # Transform to expected format with position
+                tracks_with_position = []
+                for idx, track_data in enumerate(tracks_data):
+                    tracks_with_position.append({
+                        'track': track_data,
+                        'position': idx
+                    })
+                    # Add to current tracks set
+                    spotify_track_id = track_data.get('spotify_track_id')
+                    if spotify_track_id:
+                        current_track_ids_in_playlists.add(spotify_track_id)
+                
+                logger.info(f"Current track IDs set now has {len(current_track_ids_in_playlists)} tracks")
+                
+                # Batch import/update songs
+                result = songs_service.batch_create_or_update_songs(
+                    collection_id=collection_id,
+                    playlist_id=playlist_id,
+                    tracks_data=tracks_with_position,
+                    user_id=user_id
+                )
+                
+                added_count += result.get('created', 0)
+                updated_count += result.get('updated', 0)
+                
+                logger.info(f"Synced playlist {playlist_id}: {result}")
+                
+            except Exception as e:
+                logger.error(f"Error syncing playlist {playlist_id}: {e}")
+                continue
+        
+        # Find orphaned songs (songs in collection but not in any playlist anymore)
+        from firebase_admin import firestore
+        db = firestore.client()
+        
+        logger.info(f"Starting orphan check. Current track IDs set has {len(current_track_ids_in_playlists)} tracks")
+        
+        # Get all songs in this collection
+        collection_songs_query = db.collection('songs_v3').where('collection_id', '==', collection_id)
+        collection_songs = list(collection_songs_query.stream())
+        
+        logger.info(f"Found {len(collection_songs)} total songs in collection")
+        
+        orphaned_count = 0
+        batch = db.batch()
+        batch_count = 0
+        
+        for song_doc in collection_songs:
+            song_data = song_doc.to_dict()
+            spotify_track_id = song_data.get('spotify_track_id')
+            song_ref = db.collection('songs_v3').document(song_doc.id)
+            
+            if spotify_track_id:
+                # Check if this song is still in any playlist
+                is_in_playlists = spotify_track_id in current_track_ids_in_playlists
+                logger.debug(f"Song {song_data.get('title')} - Track ID {spotify_track_id} - In playlists: {is_in_playlists}")
+                
+                if not is_in_playlists:
+                    # Mark as orphaned (only if not already marked)
+                    if not song_data.get('is_orphaned'):
+                        batch.update(song_ref, {
+                            'is_orphaned': True,
+                            'orphaned_at': datetime.utcnow()
+                        })
+                        orphaned_count += 1
+                        batch_count += 1
+                        logger.info(f"Marking as orphaned: {song_data.get('title')}")
+                else:
+                    # Unmark if it was orphaned but is now back in a playlist
+                    if song_data.get('is_orphaned'):
+                        batch.update(song_ref, {
+                            'is_orphaned': False,
+                            'orphaned_at': None
+                        })
+                        batch_count += 1
+                        logger.info(f"Unmarking orphan: {song_data.get('title')}")
+                
+                # Commit batch every 500 operations
+                if batch_count >= 500:
+                    batch.commit()
+                    batch = db.batch()
+                    batch_count = 0
+        
+        # Commit remaining operations
+        if batch_count > 0:
+            batch.commit()
+        
+        logger.info(f"Playlist sync complete for collection {collection_id}: {added_count} added, {updated_count} updated, {orphaned_count} orphaned")
+        
+        # Update collection metadata (song_count and updated_at)
+        # Count all non-orphaned songs in the collection
+        all_songs_query = db.collection('songs_v3').where('collection_id', '==', collection_id)
+        all_songs = list(all_songs_query.stream())
+        non_orphaned_count = sum(1 for song in all_songs if not song.to_dict().get('is_orphaned'))
+        
+        collection_ref = db.collection('collections_v3').document(collection_id)
+        collection_ref.update({
+            'song_count': non_orphaned_count,
+            'updated_at': datetime.utcnow()
+        })
+        
+        logger.info(f"Updated collection {collection_id} song_count to {non_orphaned_count}")
+        
+        # Start background lyrics and BPM fetching if new songs were added
+        if added_count > 0:
+            import threading
+            from services.lyrics_service_v3 import LyricsServiceV3
+            
+            def fetch_lyrics_and_bpm_background():
+                try:
+                    lyrics_service = LyricsServiceV3()
+                    
+                    logger.info(f"Starting background lyrics fetch for collection {collection_id} after sync")
+                    lyrics_service.batch_fetch_lyrics_for_collection(collection_id)
+                    logger.info(f"Completed background lyrics fetch for collection {collection_id}")
+                    
+                    logger.info(f"Starting background BPM fetch for collection {collection_id}")
+                    lyrics_service.batch_fetch_bpm_for_collection(collection_id)
+                    logger.info(f"Completed background BPM fetch for collection {collection_id}")
+                    
+                except Exception as e:
+                    logger.error(f"Error in background lyrics/BPM fetch after sync: {e}")
+            
+            # Start background thread
+            background_thread = threading.Thread(target=fetch_lyrics_and_bpm_background, daemon=True)
+            background_thread.start()
+            logger.info("Background lyrics and BPM fetching started after sync")
+        
+        return jsonify({
+            'message': 'Playlists synced successfully',
+            'added': added_count,
+            'updated': updated_count,
+            'orphaned': orphaned_count
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error syncing playlists: {e}")
         return jsonify({'error': str(e)}), 500
 
 # Songs endpoints
