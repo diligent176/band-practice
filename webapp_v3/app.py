@@ -1036,14 +1036,14 @@ def song(song_id):
 @app.route('/api/v3/songs/<song_id>/fetch-lyrics', methods=['POST'])
 @require_auth
 def fetch_song_lyrics(song_id):
-    """Manually trigger lyrics fetch for a song (collection owner only)"""
+    """Manually trigger lyrics fetch for a song (owner or collaborator)"""
     try:
         user_id = request.user_id
         
         # Get force_customized flag from query params
         force_customized = request.args.get('force_customized', 'false').lower() == 'true'
         
-        # Get song to verify collection ownership
+        # Get song to verify collection access
         from firebase_admin import firestore
         from services.lyrics_service_v3 import LyricsServiceV3
         from services.collections_service_v3 import CollectionsService
@@ -1058,15 +1058,18 @@ def fetch_song_lyrics(song_id):
         song_data = song_doc.to_dict()
         collection_id = song_data.get('collection_id')
         
-        # Verify user owns the collection
+        # Verify user has access to the collection
         collections_service = CollectionsService()
         collection = collections_service.get_collection(collection_id, user_id)
         
         if not collection:
             return jsonify({'error': 'Collection not found'}), 404
-            
-        if collection['owner_uid'] != user_id:
-            return jsonify({'error': 'Only collection owner can refresh lyrics'}), 403
+        
+        # Check if user is owner or collaborator
+        access_level = collections_service.check_user_access_level(collection_id, user_id)
+        
+        if access_level not in ['owner', 'collaborator']:
+            return jsonify({'error': 'Only collection owner or collaborator can refresh lyrics'}), 403
         
         # Fetch lyrics with appropriate flags
         lyrics_service = LyricsServiceV3()

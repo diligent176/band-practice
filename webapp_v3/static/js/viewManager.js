@@ -516,15 +516,42 @@ const ViewManager = {
         try {
             BPP.showToast('Syncing playlists...', 'info');
 
-            const response = await BPP.apiCall(`/api/v3/collections/${collection.id}/sync-playlists`, {
-                method: 'POST'
+            // Make API call without automatic error handling
+            const idToken = window.currentUser ? await window.currentUser.getIdToken() : null;
+            const response = await fetch(`/api/v3/collections/${collection.id}/sync-playlists`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {})
+                }
             });
 
-            if (response.added || response.removed || response.orphaned) {
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorData;
+                try {
+                    errorData = JSON.parse(errorText);
+                } catch {
+                    errorData = { error: errorText };
+                }
+                
+                // Check if it's a permissions error
+                if (response.status === 403 || errorData.error?.includes('owner or collaborator')) {
+                    BPP.showToast('Only collection owner or collaborator can sync playlists', 'warning');
+                    return;
+                }
+                
+                // Other errors
+                throw new Error(errorData.error || 'Failed to sync playlists');
+            }
+
+            const data = await response.json();
+
+            if (data.added || data.removed || data.orphaned) {
                 const messages = [];
-                if (response.added > 0) messages.push(`${response.added} new song(s)`);
-                if (response.removed > 0) messages.push(`${response.removed} removed`);
-                if (response.orphaned > 0) messages.push(`${response.orphaned} orphaned`);
+                if (data.added > 0) messages.push(`${data.added} new song(s)`);
+                if (data.removed > 0) messages.push(`${data.removed} removed`);
+                if (data.orphaned > 0) messages.push(`${data.orphaned} orphaned`);
                 
                 BPP.showToast(`Synced: ${messages.join(', ')}`, 'success');
                 
@@ -535,7 +562,7 @@ const ViewManager = {
             }
         } catch (error) {
             console.error('Failed to sync playlists:', error);
-            BPP.showToast('Failed to sync playlists', 'error');
+            BPP.showToast(error.message || 'Failed to sync playlists', 'error');
         }
     },
 
