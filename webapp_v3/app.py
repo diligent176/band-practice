@@ -926,10 +926,10 @@ def sync_playlists(collection_id):
         return jsonify({'error': str(e)}), 500
 
 # Songs endpoints
-@app.route('/api/v3/songs/<song_id>', methods=['GET', 'PUT'])
+@app.route('/api/v3/songs/<song_id>', methods=['GET', 'PUT', 'DELETE'])
 @require_auth
 def song(song_id):
-    """Get or update a song"""
+    """Get, update, or delete a song"""
     try:
         user_id = request.user_id
         from firebase_admin import firestore
@@ -956,6 +956,35 @@ def song(song_id):
             # Return song data
             song_data['id'] = song_id
             return jsonify(song_data)
+
+        elif request.method == 'DELETE':
+            # Check if user is owner (only owners can delete)
+            access_level = collections_service.check_user_access_level(collection_id, user_id)
+            
+            if access_level != 'owner':
+                return jsonify({'error': 'Only collection owner can delete songs'}), 403
+            
+            # Verify song is orphaned before allowing deletion
+            if not song_data.get('is_orphaned'):
+                return jsonify({'error': 'Can only delete orphaned songs (removed from all playlists)'}), 400
+            
+            # Delete the song
+            song_ref.delete()
+            
+            # Update collection song count
+            all_songs_query = db.collection('songs_v3').where('collection_id', '==', collection_id)
+            all_songs = list(all_songs_query.stream())
+            non_orphaned_count = sum(1 for s in all_songs if not s.to_dict().get('is_orphaned'))
+            
+            collection_ref = db.collection('collections_v3').document(collection_id)
+            collection_ref.update({
+                'song_count': non_orphaned_count,
+                'updated_at': datetime.utcnow()
+            })
+            
+            logger.info(f"User {user_id} deleted orphaned song {song_id} from collection {collection_id}")
+            
+            return jsonify({'message': 'Song deleted successfully'}), 200
 
         elif request.method == 'PUT':
             # Check if user has edit permissions (owner or collaborator)

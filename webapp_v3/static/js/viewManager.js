@@ -355,9 +355,18 @@ const ViewManager = {
 
         container.innerHTML = html;
 
-        // Add click handlers
+        // Add click handlers for song items
         container.querySelectorAll('.song-item').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                // Check if click was on orphaned indicator
+                if (e.target.closest('.orphaned-indicator')) {
+                    e.stopPropagation();
+                    const songId = item.dataset.songId;
+                    const index = parseInt(item.dataset.index);
+                    this.handleOrphanedClick(songId, index);
+                    return;
+                }
+                
                 const index = parseInt(item.dataset.index);
                 this.openSong(index);
             });
@@ -365,6 +374,50 @@ const ViewManager = {
 
         // Reset selection
         this.state.selectedSongIndex = -1;
+    },
+    
+    /**
+     * Handle click on orphaned song trash icon
+     */
+    async handleOrphanedClick(songId, index) {
+        // Check if user is owner
+        if (this.state.collectionAccessLevel !== 'owner') {
+            BPP.showToast('Only collection owner can delete orphaned songs', 'error');
+            return;
+        }
+        
+        const song = this.state.filteredSongs[index];
+        if (!song) return;
+        
+        // Show confirmation dialog
+        document.getElementById('delete-song-id').value = songId;
+        document.getElementById('delete-song-title').textContent = song.title;
+        
+        // Set up confirm button handler
+        const confirmBtn = document.getElementById('confirm-delete-song-btn');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        
+        newConfirmBtn.addEventListener('click', async () => {
+            BPP.hideDialog('delete-song-dialog');
+            
+            try {
+                await BPP.apiCall(`/api/v3/songs/${songId}`, {
+                    method: 'DELETE'
+                });
+                
+                BPP.showToast('Song deleted', 'success');
+                
+                // Reload collection to refresh UI
+                await this.openCollection(this.state.currentCollection.id);
+                
+            } catch (error) {
+                console.error('Error deleting orphaned song:', error);
+                BPP.showToast('Failed to delete song', 'error');
+            }
+        });
+        
+        BPP.showDialog('delete-song-dialog');
     },
 
     renderSongItem(song, index, isFirstOfPlaylist) {

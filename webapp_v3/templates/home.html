@@ -613,6 +613,31 @@
         </div>
     </div>
 
+    <!-- Delete Orphaned Song Dialog -->
+    <div id="delete-song-dialog" class="dialog-overlay hidden">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 class="dialog-title">Delete Song</h3>
+                <button class="dialog-close" onclick="BPP.hideDialog('delete-song-dialog')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <input type="hidden" id="delete-song-id">
+                <p class="text-secondary">
+                    Delete "<span id="delete-song-title" class="text-primary"></span>" from this collection?
+                </p>
+                <p class="text-sm text-muted">
+                    This song has been removed from all playlists and will be permanently deleted.
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" onclick="BPP.hideDialog('delete-song-dialog')">Cancel</button>
+                <button id="confirm-delete-song-btn" class="btn btn-primary" style="background: rgba(197, 48, 48, 0.7);">Delete Song</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Manage Linked Playlists Dialog -->
     <div id="link-playlist-dialog" class="dialog-overlay hidden">
         <div class="dialog dialog-large">
@@ -1046,6 +1071,7 @@ END: Final chorus is acapella"></textarea>
         BPP.addEscapeHandler('edit-collection-dialog');
         BPP.addEscapeHandler('delete-collection-dialog');
         BPP.addEscapeHandler('fetch-lyrics-dialog');
+        BPP.addEscapeHandler('delete-song-dialog');
         BPP.addEscapeHandler('link-playlist-dialog');
         BPP.addEscapeHandler('request-access-dialog');
 
