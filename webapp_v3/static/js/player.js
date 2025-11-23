@@ -232,7 +232,9 @@ const PlayerManager = {
             const title = encodeURIComponent(this.currentSong.title || '');
             const artist = encodeURIComponent(this.currentSong.artist || '');
             const googleUrl = `https://www.google.com/search?q=Lyrics+for+${title}+by+${artist}`;
-            lyricsPanel.innerHTML = `<div class="empty-state" style="text-align: center;"><p>No lyrics available.<br /><br />Press L to add/edit lyrics or G to fetch from Genius.<br /><br />Or <a href="${googleUrl}" target="_blank" rel="noopener">search lyrics on Google</a></p></div>`;
+            lyricsPanel.innerHTML = `<div class="empty-state" style="text-align: center;"><p>No lyrics available.<br /><br />Press <kbd>L</kbd> to add lyrics.<br />Press <kbd>G</kbd> to fetch from Genius.<br />Or click to <a href="${googleUrl}" target="_blank" rel="noopener">search these lyrics on Google</a></p></div>`;
+            // Remove any column classes when showing empty state
+            lyricsPanel.className = 'player-lyrics-panel';
             return;
         }
 
@@ -863,6 +865,8 @@ const PlayerManager = {
         // Update UI immediately for instant feedback (optimistic update)
         this.currentSong.lyrics = newLyrics;
         this.currentSong.custom_lyrics = true;
+        // Clear lyrics_numbered immediately so renderLyrics uses the new lyrics
+        this.currentSong.lyrics_numbered = null;
         this.renderLyrics();
 
         // Clean up keyboard listener
@@ -882,11 +886,9 @@ const PlayerManager = {
                 body: JSON.stringify({ lyrics: newLyrics, custom_lyrics: true })
             });
 
-            // Update with numbered lyrics from server
-            if (response.lyrics_numbered) {
-                this.currentSong.lyrics_numbered = response.lyrics_numbered;
-                this.renderLyrics(); // Re-render with numbered lyrics
-            }
+            // Update with numbered lyrics from server (will be null if lyrics were empty)
+            this.currentSong.lyrics_numbered = response.lyrics_numbered || null;
+            this.renderLyrics(); // Re-render with numbered lyrics from server
         } catch (error) {
             console.error('Failed to save lyrics:', error);
             // Revert optimistic update on error
