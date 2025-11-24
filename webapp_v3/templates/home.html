@@ -943,17 +943,18 @@ END: Final chorus is acapella"></textarea>
                 </button>
             </div>
             <div class="dialog-body">
-                <div class="text-center text-sm text-muted mb-md" style="line-height: 1.8;">
-                    <div>Tap <kbd>.</kbd> to train the tempo</div>
-                    <div><kbd>↑</kbd> <kbd>↓</kbd> to adjust ±0.1 • <kbd>Ctrl</kbd> + <kbd>↑</kbd> <kbd>↓</kbd> to adjust ±1.0</div>
+                <div class="text-center text-sm text-muted" style="margin-bottom: 20px;">
+                    <div style="margin-bottom: 4px;">Tap <kbd>.</kbd> to train the tempo</div>
+                    <div style="margin-bottom: 4px;"><kbd>↑</kbd> <kbd>↓</kbd> to adjust ±0.1</div>
+                    <div><kbd>Ctrl</kbd> <kbd>↑</kbd> <kbd>↓</kbd> to adjust ±1.0</div>
                 </div>
-                <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 16px;">
                     <div id="bpm-metronome-preview" class="bpm-metronome-preview">
-                        <i class="fa-solid fa-drum"></i>
+                        <i class="fa-solid fa-bars-staggered"></i>
                     </div>
                     <div id="bpm-value-display" class="bpm-display-large" style="margin: 0;">--.-</div>
                 </div>
-                <div id="bpm-tap-count" class="text-center text-sm text-secondary mt-sm">Ready to tap</div>
+                <div id="bpm-tap-count" class="text-center text-sm text-secondary">Ready to tap</div>
             </div>
             <div class="dialog-footer">
                 <button id="bpm-reset-btn" class="btn btn-secondary" onclick="PlayerManager.resetBpmDialog()">

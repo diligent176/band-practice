@@ -1470,7 +1470,7 @@ const PlayerManager = {
         if (!bpmBlock) return;
 
         // Calculate beat duration (60 seconds / BPM = seconds per beat)
-        // Double it for on/off cycle
+        // Pulse on backbeat (half-time) - every other beat, like snare on 2 and 4
         const beatDuration = 60 / bpm;
         const animationDuration = beatDuration * 2;
 
@@ -1750,11 +1750,11 @@ const PlayerManager = {
         const previewElement = document.getElementById('bpm-metronome-preview');
         if (!previewElement) return;
 
-        // Calculate animation duration (same as main metronome)
+        // Calculate animation duration (backbeat - every other beat)
         const beatDuration = 60 / this.detectedBpm;
         const animationDuration = beatDuration * 2;
 
-        previewElement.style.animationDuration = `${animationDuration}s`;
+        previewElement.style.setProperty('--metronome-duration', `${animationDuration}s`);
         previewElement.classList.add('animating');
     },
 

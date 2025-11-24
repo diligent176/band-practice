@@ -187,32 +187,20 @@
   text-align: center;
 }
 
-/* Pulsing animation for metronome */
+/* Pulsing animation for metronome - bright flash that fades over beat duration */
 .bpm-indicator-block.animating {
   animation-name: bpm-block-pulse;
-  animation-timing-function: steps(1, jump-none);
+  animation-timing-function: ease-out;
   animation-iteration-count: infinite;
   animation-fill-mode: both;
-  will-change: background, border-color;
+  will-change: background, border-color, box-shadow;
 }
 
 @keyframes bpm-block-pulse {
   0% {
-    background: rgba(45, 122, 74, 0.3);
-    border-color: rgba(45, 122, 74, 0.6);
-    box-shadow: 0 0 12px rgba(45, 122, 74, 0.4);
-  }
-
-  50% {
-    background: rgba(45, 122, 74, 0.3);
-    border-color: rgba(45, 122, 74, 0.6);
-    box-shadow: 0 0 12px rgba(45, 122, 74, 0.4);
-  }
-
-  51% {
-    background: rgba(45, 122, 74, 0.12);
-    border-color: rgba(45, 122, 74, 0.25);
-    box-shadow: none;
+    background: rgba(45, 122, 74, 0.6);
+    border-color: rgba(45, 122, 74, 1);
+    box-shadow: 0 0 20px rgba(45, 122, 74, 0.8), 0 0 30px rgba(45, 122, 74, 0.4);
   }
 
   100% {
@@ -222,11 +210,11 @@
   }
 }
 
-/* Mobile: Metronome flashes entire top nav for better drummer visibility */
+/* Mobile: Metronome pulses entire top nav for better drummer visibility */
 @media (max-width: 650px) {
   .player-top-nav.metronome-flash {
     animation-name: mobile-metronome-flash;
-    animation-timing-function: steps(1, jump-none);
+    animation-timing-function: ease-out;
     animation-iteration-count: infinite;
     animation-fill-mode: both;
     will-change: background, border-color;
@@ -234,18 +222,8 @@
 
   @keyframes mobile-metronome-flash {
     0% {
-      background: rgba(45, 122, 74, 0.25);
-      border-bottom-color: rgba(45, 122, 74, 0.7);
-    }
-
-    50% {
-      background: rgba(45, 122, 74, 0.25);
-      border-bottom-color: rgba(45, 122, 74, 0.7);
-    }
-
-    51% {
-      background: var(--bg-secondary);
-      border-bottom-color: var(--border-color);
+      background: rgba(45, 122, 74, 0.4);
+      border-bottom-color: rgba(45, 122, 74, 1);
     }
 
     100% {
@@ -718,54 +696,35 @@
 
 /* BPM Metronome Preview in Dialog */
 .bpm-metronome-preview {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  background: rgba(45, 122, 74, 0.15);
-  border: 2px solid rgba(45, 122, 74, 0.3);
+  background: rgba(45, 122, 74, 0.1);
+  border: 2px solid rgba(45, 122, 74, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  color: rgba(45, 122, 74, 0.8);
-  transition: all 0.1s ease;
+  font-size: 36px;
+  color: rgba(45, 122, 74, 0.9);
 }
 
 .bpm-metronome-preview.animating {
-  animation-name: bpm-preview-pulse;
-  animation-timing-function: steps(1, jump-none);
+  animation-name: tick-tock;
+  animation-duration: var(--metronome-duration, 1s);
+  animation-timing-function: steps(2, jump-none);
   animation-iteration-count: infinite;
-  animation-fill-mode: both;
-  will-change: background, border-color, transform;
 }
 
-@keyframes bpm-preview-pulse {
-  0% {
-    background: rgba(45, 122, 74, 0.4);
-    border-color: rgba(45, 122, 74, 0.7);
-    box-shadow: 0 0 16px rgba(45, 122, 74, 0.5);
-    transform: scale(1.05);
+@keyframes tick-tock {
+
+  0%,
+  49% {
+    transform: scaleX(-1);
   }
 
-  50% {
-    background: rgba(45, 122, 74, 0.4);
-    border-color: rgba(45, 122, 74, 0.7);
-    box-shadow: 0 0 16px rgba(45, 122, 74, 0.5);
-    transform: scale(1.05);
-  }
-
-  51% {
-    background: rgba(45, 122, 74, 0.15);
-    border-color: rgba(45, 122, 74, 0.3);
-    box-shadow: none;
-    transform: scale(1);
-  }
-
+  50%,
   100% {
-    background: rgba(45, 122, 74, 0.15);
-    border-color: rgba(45, 122, 74, 0.3);
-    box-shadow: none;
-    transform: scale(1);
+    transform: scaleX(1);
   }
 }
 
