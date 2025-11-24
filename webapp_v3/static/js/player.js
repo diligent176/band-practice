@@ -872,6 +872,13 @@ const PlayerManager = {
                 this.insertSectionHeader('Outro');
                 return;
             }
+
+            // ALT+S = Insert ♫ Solo ♫
+            if (e.altKey && e.key === 's') {
+                e.preventDefault();
+                this.insertSectionHeader('♫ Solo ♫');
+                return;
+            }
         };
 
         // Attach listener
