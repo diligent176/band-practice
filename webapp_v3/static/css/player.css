@@ -221,6 +221,39 @@
   }
 }
 
+/* Mobile: Metronome flashes entire top nav for better drummer visibility */
+@media (max-width: 650px) {
+  .player-top-nav.metronome-flash {
+    animation-name: mobile-metronome-flash;
+    animation-timing-function: steps(1, jump-none);
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+    will-change: background, border-color;
+  }
+
+  @keyframes mobile-metronome-flash {
+    0% {
+      background: rgba(45, 122, 74, 0.25);
+      border-bottom-color: rgba(45, 122, 74, 0.7);
+    }
+
+    50% {
+      background: rgba(45, 122, 74, 0.25);
+      border-bottom-color: rgba(45, 122, 74, 0.7);
+    }
+
+    51% {
+      background: var(--bg-secondary);
+      border-bottom-color: var(--border-color);
+    }
+
+    100% {
+      background: var(--bg-secondary);
+      border-bottom-color: var(--border-color);
+    }
+  }
+}
+
 /* Disabled state */
 .bpm-indicator-block.disabled {
   opacity: 0.4;
@@ -1376,16 +1409,14 @@
 
   /* Reduce all player control button sizes */
   .btn-player {
-    width: 26px !important;
-    height: 26px !important;
-    font-size: 11px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   /* Make play button slightly larger for better tap target */
   .btn-play-large {
-    width: 26px !important;
-    height: 26px !important;
-    font-size: 13px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   /* Make BPM indicator more compact */
@@ -1408,7 +1439,6 @@
   /* Full-width progress bar at bottom of nav */
   .player-progress-container {
     position: absolute;
-    /* bottom: 0; */
     top: 32px;
     left: 0;
     right: 0;
@@ -1460,11 +1490,11 @@
   }
 
   .player-view-options .btn-icon {
-    width: 20px;
-    height: 20px;
+    width: 32px;
+    height: 32px;
     font-size: 9px;
     padding: 0;
-    min-width: 20px;
+    min-width: 32px;
   }
 
   /* Hide help card on mobile (keyboard shortcuts not relevant) */
@@ -1519,9 +1549,9 @@
 
   /* Reduce all player control button sizes - INCLUDING play button */
   .btn-player {
-    width: 20px !important;
-    height: 20px !important;
-    font-size: 9px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 10px !important;
   }
 
   /* Keep album art visible - just adjust spacing */

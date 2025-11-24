@@ -1397,6 +1397,13 @@ const PlayerManager = {
         // Set animation duration and start
         bpmBlock.style.animationDuration = `${animationDuration}s`;
         bpmBlock.classList.add('animating');
+        
+        // On mobile, flash the entire player header for better visibility
+        const playerHeader = document.querySelector('.player-top-nav');
+        if (playerHeader) {
+            playerHeader.style.animationDuration = `${animationDuration}s`;
+            playerHeader.classList.add('metronome-flash');
+        }
 
         console.log(`🥁 BPM metronome started: ${bpm.toFixed(1)} BPM (${animationDuration.toFixed(2)}s cycle)`);
     },
@@ -1408,6 +1415,12 @@ const PlayerManager = {
         const bpmBlock = document.getElementById('bpm-indicator-block');
         if (bpmBlock) {
             bpmBlock.classList.remove('animating');
+        }
+        
+        // Stop mobile header flash
+        const playerHeader = document.querySelector('.player-top-nav');
+        if (playerHeader) {
+            playerHeader.classList.remove('metronome-flash');
         }
     },
 
