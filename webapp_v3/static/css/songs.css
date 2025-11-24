@@ -49,7 +49,7 @@
 .songs-header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  /* gap: 8px; */
   flex: 1;
   min-width: 0;
 }
@@ -58,6 +58,7 @@
 #songs-back-btn {
   position: absolute;
   left: 8px;
+  font-size: 1em;
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
@@ -430,6 +431,10 @@
     display: none;
   }
 
+  .song-count {
+    display: none;
+  }
+
   /* Hide search filter on mobile */
   .search-bar {
     display: none;
@@ -437,18 +442,24 @@
 
   /* Tighten up back button positioning */
   #songs-back-btn {
-    left: 0px;
-    padding-left: 0px;
+    left: 2px;
+    padding-left: 2px;
   }
 
   .songs-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    /* gap: 8px; */
   }
 
   .songs-header-left {
-    gap: 8px;
+    /* gap: 1px; */
+    margin-left: 0px;
+  }
+
+  .collection-info {
+    margin-left: -16px;
+    /* Reduce gap - bring closer to back button */
   }
 
   .songs-header-right {

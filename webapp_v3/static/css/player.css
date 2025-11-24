@@ -58,6 +58,7 @@
 .player-back-btn {
   position: absolute;
   left: 8px;
+  font-size: 1em;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
@@ -403,10 +404,10 @@
    ============================================================================ */
 
 .player-main {
-  margin-top: 42px;
+  margin-top: 22px;
   /* Height of top nav */
   display: flex;
-  height: calc(100vh - 42px);
+  height: calc(100vh - 22px);
   overflow: hidden;
 }
 
@@ -823,8 +824,8 @@
   }
 
   .player-main {
-    margin-top: 46px !important;
-    height: calc(100vh - 46px) !important;
+    margin-top: 0px !important;
+    height: calc(100vh) !important;
     width: 100%;
   }
 
@@ -1366,9 +1367,6 @@
   .note-callout {
     display: none !important;
   }
-}
-
-@media (max-width: 768px) {
 
   /* Hide artist name on small screens */
   .player-artist {
@@ -1379,6 +1377,10 @@
   .player-song-title::after {
     content: none;
   }
+
+}
+
+@media (max-width: 768px) {
 
   /* Reduce margins and padding */
   .player-album-art-container {
@@ -1397,8 +1399,8 @@
   }
 
   .player-back-btn {
-    left: 0px;
-    padding-left: 0px;
+    left: 2px;
+    padding-left: 2px;
   }
 
   /* Hide prev/next buttons on small screens (swipe gestures work) */
@@ -1492,7 +1494,7 @@
   .player-view-options .btn-icon {
     width: 32px;
     height: 32px;
-    font-size: 9px;
+    font-size: 1em;
     padding: 0;
     min-width: 32px;
   }
@@ -1592,28 +1594,80 @@
    ============================================================================ */
 
 @media print {
-  @page { margin: 0.25in; size: letter portrait; }
+  @page {
+    margin: 0.25in;
+    size: letter portrait;
+  }
 
   /* Hide UI chrome */
-  .player-top-nav, .player-notes-panel, .mobile-nav-buttons,
-  .spotify-connect-prompt, .note-callout, #player-help-card { display: none !important; }
+  .player-top-nav,
+  .player-notes-panel,
+  .mobile-nav-buttons,
+  .spotify-connect-prompt,
+  .note-callout,
+  #player-help-card {
+    display: none !important;
+  }
 
-  body { background: white; color: black; margin: 0; padding: 0; }
-  #player-view { display: block !important; height: auto; overflow: visible; }
-  .player-main { margin: 0 !important; padding: 0 !important; height: auto !important; display: block; overflow: visible; }
+  body {
+    background: white;
+    color: black;
+    margin: 0;
+    padding: 0;
+  }
+
+  #player-view {
+    display: block !important;
+    height: auto;
+    overflow: visible;
+  }
+
+  .player-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    display: block;
+    overflow: visible;
+  }
 
   /* Header: Title - Artist [Album Art] spanning full width */
   .print-header {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     margin: 0 0 4px 0 !important;
     column-span: all !important;
     -webkit-column-span: all !important;
     -moz-column-span: all !important;
   }
-  .print-header-text { display: flex; align-items: baseline; gap: 8px; flex: 1; }
-  .print-title { font-size: 16pt; font-weight: 700; color: #000; margin: 0; }
-  .print-artist { font-size: 13pt; color: #444; margin: 0; }
-  .print-album-art { width: 48px; height: 48px; border-radius: 4px; object-fit: cover; }
+
+  .print-header-text {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .print-title {
+    font-size: 16pt;
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+  }
+
+  .print-artist {
+    font-size: 13pt;
+    color: #444;
+    margin: 0;
+  }
+
+  .print-album-art {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    object-fit: cover;
+  }
 
   /* Divider spanning full width */
   .print-divider {
@@ -1625,8 +1679,11 @@
   }
 
   /* Two-column lyrics */
-  .player-lyrics-panel, #player-lyrics-panel,
-  .lyrics-columns-1, .lyrics-columns-2, .lyrics-columns-3,
+  .player-lyrics-panel,
+  #player-lyrics-panel,
+  .lyrics-columns-1,
+  .lyrics-columns-2,
+  .lyrics-columns-3,
   .player-lyrics-panel.lyrics-columns-1,
   .player-lyrics-panel.lyrics-columns-2,
   .player-lyrics-panel.lyrics-columns-3 {
@@ -1646,9 +1703,42 @@
   }
 
   /* Compact lyrics */
-  .lyric-line { font-size: 12pt; line-height: 1.3; color: #000 !important; margin: 0; padding: 1px 0; break-inside: avoid; background: none; border: none; }
-  .line-number { color: #888; font-size: 9pt; margin-right: 10px; min-width: 20px; }
-  .lyric-line.section-header { font-size: 11pt; font-weight: 700; color: #000 !important; margin: 6px 0 2px 0; padding: 3px 8px; background: #e8e8e8; border-left: 3px solid #555; }
-  .lyric-line.has-note::before, .lyric-line.highlighted { display: none; background: none; border: none; }
-  .player-lyrics-panel::before { display: none !important; }
+  .lyric-line {
+    font-size: 12pt;
+    line-height: 1.3;
+    color: #000 !important;
+    margin: 0;
+    padding: 1px 0;
+    break-inside: avoid;
+    background: none;
+    border: none;
+  }
+
+  .line-number {
+    color: #888;
+    font-size: 9pt;
+    margin-right: 10px;
+    min-width: 20px;
+  }
+
+  .lyric-line.section-header {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #000 !important;
+    margin: 6px 0 2px 0;
+    padding: 3px 8px;
+    background: #e8e8e8;
+    border-left: 3px solid #555;
+  }
+
+  .lyric-line.has-note::before,
+  .lyric-line.highlighted {
+    display: none;
+    background: none;
+    border: none;
+  }
+
+  .player-lyrics-panel::before {
+    display: none !important;
+  }
 }
