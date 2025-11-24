@@ -1375,6 +1375,79 @@ const PlayerManager = {
     },
 
     /**
+     * Print lyrics with album art, title, and artist (Quick Printout)
+     * Opens browser print dialog which can save as PDF
+     */
+    printLyrics() {
+        if (!this.currentSong) {
+            BPP.showToast('No song loaded', 'error');
+            return;
+        }
+
+        // Create a temporary print header with song metadata
+        const lyricsPanel = document.querySelector('.player-lyrics-panel');
+        if (!lyricsPanel) {
+            BPP.showToast('Lyrics panel not found', 'error');
+            return;
+        }
+
+        // Check if print header already exists
+        let printHeader = lyricsPanel.querySelector('.print-header');
+        let printDivider = lyricsPanel.querySelector('.print-divider');
+
+        if (!printHeader) {
+            // Create compact header: Title - Artist [Album Art on right]
+            printHeader = document.createElement('div');
+            printHeader.className = 'print-header';
+
+            // Text container for title and artist (on left)
+            const textContainer = document.createElement('div');
+            textContainer.className = 'print-header-text';
+
+            const title = document.createElement('span');
+            title.className = 'print-title';
+            title.textContent = this.currentSong.title || 'Untitled';
+
+            const artist = document.createElement('span');
+            artist.className = 'print-artist';
+            artist.textContent = '- ' + (this.currentSong.artist || 'Unknown Artist');
+
+            textContainer.appendChild(title);
+            textContainer.appendChild(artist);
+            printHeader.appendChild(textContainer);
+
+            // Album art image on far right (48x48)
+            const albumArt = this.currentSong.album_art_url || this.currentSong.albumArt || this.currentSong.album_art || '/static/favicon.svg';
+            const artImg = document.createElement('img');
+            artImg.className = 'print-album-art';
+            artImg.src = albumArt;
+            artImg.alt = 'Album Art';
+            printHeader.appendChild(artImg);
+
+            // Insert at beginning of lyrics panel
+            lyricsPanel.insertBefore(printHeader, lyricsPanel.firstChild);
+
+            // Add horizontal divider
+            printDivider = document.createElement('hr');
+            printDivider.className = 'print-divider';
+            lyricsPanel.insertBefore(printDivider, printHeader.nextSibling);
+        }
+
+        // Trigger browser print dialog
+        window.print();
+
+        // Clean up: Remove print elements after a delay
+        setTimeout(() => {
+            if (printHeader && printHeader.parentNode) {
+                printHeader.remove();
+            }
+            if (printDivider && printDivider.parentNode) {
+                printDivider.remove();
+            }
+        }, 100);
+    },
+
+    /**
      * Start BPM metronome animation (CSS-based for smooth performance)
      */
     startBpmFlasher() {

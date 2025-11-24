@@ -840,6 +840,7 @@ const ViewManager = {
             'arrowleft': () => PlayerManager.skipBackward(5),
             'arrowright': () => PlayerManager.skipForward(5),
             'c': () => PlayerManager.toggleColumns(),
+            'shift+p': () => PlayerManager.printLyrics(),
             'l': () => {
                 // Check edit permissions before allowing lyrics edit
                 if (PlayerManager.canEdit === false) {
