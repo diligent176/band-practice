@@ -22,12 +22,18 @@ const ViewManager = {
         collectionAccessLevel: 'none', // 'owner', 'collaborator', 'viewer', 'none'
         lyricsPollingInterval: null // For checking background fetch progress
     },
+    
+    // Grid navigator for songs
+    songsGridNav: null,
 
     init() {
         // Cache view elements
         this.views.collections = document.getElementById('collections-view');
         this.views.songs = document.getElementById('songs-view');
         this.views.player = document.getElementById('player-view');
+        
+        // Initialize grid navigator for songs
+        this.songsGridNav = new GridNavigator('#songs-list', '.song-item');
 
         // Set up event listeners
         this.setupEventListeners();
@@ -283,13 +289,6 @@ const ViewManager = {
         // Render
         this.renderSongs();
 
-        // Auto-select first song when filtering
-        if (this.state.filteredSongs.length > 0) {
-            this.updateSelection(0);
-        } else {
-            this.state.selectedSongIndex = -1;
-        }
-
         // Update count
         this.updateSongCount();
     },
@@ -371,9 +370,13 @@ const ViewManager = {
                 this.openSong(index);
             });
         });
-
-        // Reset selection
-        this.state.selectedSongIndex = -1;
+        
+        // Reset grid navigation to first item after rendering
+        setTimeout(() => {
+            if (this.songsGridNav.getItems().length > 0) {
+                this.songsGridNav.reset();
+            }
+        }, 50);
     },
     
     /**
@@ -604,80 +607,6 @@ const ViewManager = {
         }
     },
 
-    updateSelection(index) {
-        // Remove previous selection
-        document.querySelectorAll('.song-item.selected').forEach(el => {
-            el.classList.remove('selected');
-        });
-
-        // Add new selection
-        if (index >= 0 && index < this.state.filteredSongs.length) {
-            const item = document.querySelector(`.song-item[data-index="${index}"]`);
-            if (item) {
-                item.classList.add('selected');
-                item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            }
-        }
-
-        this.state.selectedSongIndex = index;
-    },
-
-    navigateList(direction) {
-        if (this.state.filteredSongs.length === 0) return;
-
-        let newIndex = this.state.selectedSongIndex;
-
-        // Get grid info for spatial navigation
-        const songsGrid = document.getElementById('songs-list');
-        const allSongItems = Array.from(songsGrid.querySelectorAll('.song-item'));
-
-        if (allSongItems.length === 0) return;
-
-        // Calculate columns dynamically
-        const gridWidth = songsGrid.offsetWidth;
-        const songWidth = allSongItems[0].offsetWidth;
-        const gap = 10; // From CSS
-        const cols = Math.floor((gridWidth + gap) / (songWidth + gap));
-
-        // Current position in grid
-        const currentRow = Math.floor(this.state.selectedSongIndex / cols);
-        const currentCol = this.state.selectedSongIndex % cols;
-
-        if (direction === 'left') {
-            newIndex = Math.max(this.state.selectedSongIndex - 1, 0);
-        } else if (direction === 'right') {
-            newIndex = Math.min(this.state.selectedSongIndex + 1, this.state.filteredSongs.length - 1);
-        } else if (direction === 'up') {
-            // Move up one row, same column
-            const targetRow = currentRow - 1;
-            if (targetRow >= 0) {
-                newIndex = Math.min(targetRow * cols + currentCol, this.state.filteredSongs.length - 1);
-            }
-        } else if (direction === 'down') {
-            // Move down one row, same column
-            const targetRow = currentRow + 1;
-            const targetIndex = targetRow * cols + currentCol;
-            if (targetIndex < this.state.filteredSongs.length) {
-                newIndex = targetIndex;
-            }
-        } else if (direction === 'pageup') {
-            // Move up ~3 rows
-            const targetRow = Math.max(currentRow - 3, 0);
-            newIndex = Math.min(targetRow * cols + currentCol, this.state.filteredSongs.length - 1);
-        } else if (direction === 'pagedown') {
-            // Move down ~3 rows
-            const maxRow = Math.floor((this.state.filteredSongs.length - 1) / cols);
-            const targetRow = Math.min(currentRow + 3, maxRow);
-            newIndex = Math.min(targetRow * cols + currentCol, this.state.filteredSongs.length - 1);
-        } else if (direction === 'home') {
-            newIndex = 0;
-        } else if (direction === 'end') {
-            newIndex = this.state.filteredSongs.length - 1;
-        }
-
-        this.updateSelection(newIndex);
-    },
-
     setupKeyboardForView(viewName) {
         // Remove old keyboard handler
         if (this.currentKeyboardHandler) {
@@ -728,30 +657,19 @@ const ViewManager = {
             return;
         }
 
-        // Arrow keys work even in search input (for navigation)
-        if (e.key === 'ArrowDown') {
+        // Arrow keys for navigation
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             e.preventDefault();
-            this.navigateList('down');
-            return;
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            this.navigateList('up');
-            return;
-        } else if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            this.navigateList('left');
-            return;
-        } else if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            this.navigateList('right');
+            this.songsGridNav.navigate(e.key);
             return;
         }
 
-        // Enter - open selected song (works in search too)
+        // Enter - open selected song
         if (e.key === 'Enter') {
             e.preventDefault();
-            if (this.state.selectedSongIndex >= 0) {
-                this.openSong(this.state.selectedSongIndex);
+            const selected = this.songsGridNav.getSelected();
+            if (selected) {
+                selected.click();
             }
             return;
         }
@@ -759,23 +677,17 @@ const ViewManager = {
         // Don't handle other keys if typing (except in search)
         if (isTyping && !isSearchInput) return;
 
-        // Page Up/Down, Home/End
-        if (e.key === 'PageDown') {
+        // Home/End navigation
+        if (e.key === 'Home') {
             e.preventDefault();
-            this.navigateList('pagedown');
-        } else if (e.key === 'PageUp') {
-            e.preventDefault();
-            this.navigateList('pageup');
-        } else if (e.key === 'Home') {
-            e.preventDefault();
-            this.navigateList('home');
+            this.songsGridNav.navigate('Home');
         } else if (e.key === 'End') {
             e.preventDefault();
-            this.navigateList('end');
+            this.songsGridNav.navigate('End');
         } else if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
             e.preventDefault();
             this.toggleSortMode();
-        } else if (e.key === 'y' || e.key === 'Y') {
+        } else if (e.ctrlKey && e.key === 'r') {
             e.preventDefault();
             this.syncPlaylist();
         } else if (!isTyping && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {

@@ -4,9 +4,8 @@
  */
 
 const CollectionsManager = {
-    // Keyboard navigation state
-    selectedCollectionIndex: -1,
-    collectionElements: [],
+    // Grid navigator for keyboard navigation
+    gridNav: null,
 
     // Help card state
     helpCardVisible: false,
@@ -15,6 +14,7 @@ const CollectionsManager = {
      * Initialize collections manager
      */
     init() {
+        this.gridNav = new GridNavigator('#collections-view', '.collection-card');
         this.setupEventListeners();
         console.log('✅ CollectionsManager initialized');
     },
@@ -172,6 +172,13 @@ const CollectionsManager = {
 
             // Load public collections
             await this.loadPublicCollections();
+            
+            // Select first collection after all rendered
+            setTimeout(() => {
+                if (this.gridNav.getItems().length > 0) {
+                    this.gridNav.reset();
+                }
+            }, 100);
 
         } catch (error) {
             console.error('Error loading collections:', error);
@@ -1067,32 +1074,28 @@ const CollectionsManager = {
                 case 'e':
                 case 'E':
                     e.preventDefault();
-                    if (this.selectedCollectionIndex >= 0 && this.selectedCollectionIndex < this.collectionElements.length) {
-                        const selectedCard = this.collectionElements[this.selectedCollectionIndex];
+                    const selectedCard = this.gridNav.getSelected();
+                    if (selectedCard) {
                         const editBtn = selectedCard.querySelector('.collection-edit-btn');
-                        if (editBtn) {
-                            editBtn.click();
-                        }
+                        if (editBtn) editBtn.click();
                     }
                     break;
 
                 case 'p':
                 case 'P':
                     e.preventDefault();
-                    if (this.selectedCollectionIndex >= 0 && this.selectedCollectionIndex < this.collectionElements.length) {
-                        const selectedCard = this.collectionElements[this.selectedCollectionIndex];
-                        const playlistBtn = selectedCard.querySelector('.collection-link-playlist-btn');
-                        if (playlistBtn) {
-                            playlistBtn.click();
-                        }
+                    const selectedForPlaylist = this.gridNav.getSelected();
+                    if (selectedForPlaylist) {
+                        const playlistBtn = selectedForPlaylist.querySelector('.collection-link-playlist-btn');
+                        if (playlistBtn) playlistBtn.click();
                     }
                     break;
 
                 case 'Delete':
                     e.preventDefault();
-                    if (this.selectedCollectionIndex >= 0 && this.selectedCollectionIndex < this.collectionElements.length) {
-                        const selectedCard = this.collectionElements[this.selectedCollectionIndex];
-                        const deleteBtn = selectedCard.querySelector('.collection-delete-btn');
+                    const selectedForDelete = this.gridNav.getSelected();
+                    if (selectedForDelete) {
+                        const deleteBtn = selectedForDelete.querySelector('.collection-delete-btn');
                         if (deleteBtn) {
                             deleteBtn.click();
                         } else {
@@ -1107,14 +1110,14 @@ const CollectionsManager = {
                 case 'ArrowUp':
                 case 'Home':
                 case 'End':
-                    this.handleArrowKey(e);
+                    e.preventDefault();
+                    this.gridNav.navigate(e.key);
                     break;
 
                 case 'Enter':
                     e.preventDefault();
-                    if (this.selectedCollectionIndex >= 0 && this.selectedCollectionIndex < this.collectionElements.length) {
-                        this.collectionElements[this.selectedCollectionIndex].click();
-                    }
+                    const selectedForOpen = this.gridNav.getSelected();
+                    if (selectedForOpen) selectedForOpen.click();
                     break;
 
                 case 'Escape':
@@ -1126,194 +1129,6 @@ const CollectionsManager = {
                     break;
             }
         });
-
-        // Initialize first collection as selected
-        setTimeout(() => {
-            this.refreshCollectionElements();
-            if (this.collectionElements.length > 0) {
-                this.selectedCollectionIndex = 0;
-                this.updateCollectionFocus();
-            }
-        }, 500); // Wait for collections to load
-    },
-
-    /**
-     * Handle arrow key navigation
-     */
-    handleArrowKey(e) {
-        e.preventDefault();
-        this.refreshCollectionElements();
-        if (this.collectionElements.length === 0) return;
-
-        // Ensure valid index
-        if (this.selectedCollectionIndex < 0 || this.selectedCollectionIndex >= this.collectionElements.length) {
-            this.selectedCollectionIndex = 0;
-        }
-
-        const currentCard = this.collectionElements[this.selectedCollectionIndex];
-        if (!currentCard) {
-            console.warn('No current card at index', this.selectedCollectionIndex);
-            this.selectedCollectionIndex = 0;
-            this.updateCollectionFocus();
-            return;
-        }
-        
-        // Get the grid container (owned-collections, shared-collections, or public-collections)
-        const currentContainer = currentCard.parentElement;
-        
-        if (!currentContainer) {
-            console.warn('No container found');
-            return;
-        }
-        
-        // Get cards in the same section only
-        const cardsInSection = Array.from(currentContainer.querySelectorAll('.collection-card'));
-        const indexInSection = cardsInSection.indexOf(currentCard);
-        
-        if (indexInSection === -1) {
-            console.warn('Current card not found in section');
-            return;
-        }
-        
-        const cols = this.getGridColumnsForContainer(currentContainer);
-
-        switch(e.key) {
-            case 'ArrowRight':
-                const currentCol = indexInSection % cols;
-                const isLastInRow = currentCol === cols - 1 || indexInSection === cardsInSection.length - 1;
-                if (!isLastInRow) {
-                    const newIndexInSection = indexInSection + 1;
-                    const newCard = cardsInSection[newIndexInSection];
-                    this.selectedCollectionIndex = this.collectionElements.indexOf(newCard);
-                }
-                break;
-
-            case 'ArrowLeft':
-                const col = indexInSection % cols;
-                const isFirstInRow = col === 0;
-                if (!isFirstInRow) {
-                    const newIndexInSection = indexInSection - 1;
-                    const newCard = cardsInSection[newIndexInSection];
-                    this.selectedCollectionIndex = this.collectionElements.indexOf(newCard);
-                }
-                break;
-
-            case 'ArrowDown':
-                const newIndexDown = indexInSection + cols;
-                if (newIndexDown < cardsInSection.length) {
-                    const newCard = cardsInSection[newIndexDown];
-                    this.selectedCollectionIndex = this.collectionElements.indexOf(newCard);
-                } else {
-                    // Try to jump to next section
-                    const nextSection = this.getNextSection(currentContainer);
-                    if (nextSection) {
-                        const firstCardInNext = nextSection.querySelector('.collection-card');
-                        if (firstCardInNext) {
-                            this.selectedCollectionIndex = this.collectionElements.indexOf(firstCardInNext);
-                        }
-                    }
-                }
-                break;
-
-            case 'ArrowUp':
-                const newIndexUp = indexInSection - cols;
-                if (newIndexUp >= 0) {
-                    const newCard = cardsInSection[newIndexUp];
-                    this.selectedCollectionIndex = this.collectionElements.indexOf(newCard);
-                } else {
-                    // Try to jump to previous section
-                    const prevSection = this.getPreviousSection(currentContainer);
-                    if (prevSection) {
-                        const cardsInPrev = Array.from(prevSection.querySelectorAll('.collection-card'));
-                        if (cardsInPrev.length > 0) {
-                            // Go to last card in previous section
-                            const lastCard = cardsInPrev[cardsInPrev.length - 1];
-                            this.selectedCollectionIndex = this.collectionElements.indexOf(lastCard);
-                        }
-                    }
-                }
-                break;
-
-            case 'Home':
-                this.selectedCollectionIndex = 0;
-                break;
-
-            case 'End':
-                this.selectedCollectionIndex = this.collectionElements.length - 1;
-                break;
-        }
-
-        this.updateCollectionFocus();
-    },
-
-    /**
-     * Get number of grid columns
-     */
-    getGridColumns() {
-        if (this.collectionElements.length === 0) return 1;
-
-        const firstCard = this.collectionElements[0];
-        const container = firstCard.parentElement;
-        return this.getGridColumnsForContainer(container);
-    },
-    
-    /**
-     * Get number of grid columns for a specific container
-     */
-    getGridColumnsForContainer(container) {
-        const gridCols = getComputedStyle(container).gridTemplateColumns;
-        const colCount = gridCols.split(' ').length;
-        return Math.max(1, colCount);
-    },
-    
-    /**
-     * Get next section container
-     */
-    getNextSection(currentContainer) {
-        const sections = ['owned-collections', 'shared-collections', 'public-collections'];
-        const currentId = currentContainer.id;
-        const currentIndex = sections.indexOf(currentId);
-        
-        if (currentIndex >= 0 && currentIndex < sections.length - 1) {
-            return document.getElementById(sections[currentIndex + 1]);
-        }
-        return null;
-    },
-    
-    /**
-     * Get previous section container
-     */
-    getPreviousSection(currentContainer) {
-        const sections = ['owned-collections', 'shared-collections', 'public-collections'];
-        const currentId = currentContainer.id;
-        const currentIndex = sections.indexOf(currentId);
-        
-        if (currentIndex > 0) {
-            return document.getElementById(sections[currentIndex - 1]);
-        }
-        return null;
-    },
-
-    /**
-     * Refresh collection elements array
-     */
-    refreshCollectionElements() {
-        this.collectionElements = Array.from(document.querySelectorAll('.collection-card'));
-    },
-
-    /**
-     * Update visual focus for selected collection
-     */
-    updateCollectionFocus() {
-        // Remove previous focus
-        this.collectionElements.forEach(el => el.classList.remove('keyboard-selected'));
-
-        // Add focus to selected
-        if (this.selectedCollectionIndex >= 0 && this.selectedCollectionIndex < this.collectionElements.length) {
-            const selected = this.collectionElements[this.selectedCollectionIndex];
-            selected.classList.add('keyboard-selected');
-            selected.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
     },
 
     /**
