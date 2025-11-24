@@ -1658,7 +1658,7 @@
 
   .print-artist {
     font-size: 13pt;
-    color: #444;
+    color: #000;
     margin: 0;
   }
 
@@ -1671,7 +1671,7 @@
 
   /* Divider spanning full width */
   .print-divider {
-    border-top: 2px solid #333;
+    border-top: 2px solid #000;
     margin: 4px 0 6px 0 !important;
     column-span: all !important;
     -webkit-column-span: all !important;
@@ -1694,9 +1694,9 @@
     column-gap: 24px !important;
     -webkit-column-gap: 24px !important;
     -moz-column-gap: 24px !important;
-    column-rule: 1px solid #ccc !important;
-    -webkit-column-rule: 1px solid #ccc !important;
-    -moz-column-rule: 1px solid #ccc !important;
+    column-rule: 2px solid #000 !important;
+    -webkit-column-rule: 2px solid #000 !important;
+    -moz-column-rule: 2px solid #000 !important;
     padding: 0 !important;
     margin: 0 !important;
     background: white !important;
@@ -1715,10 +1715,11 @@
   }
 
   .line-number {
-    color: #888;
+    color: #000;
     font-size: 9pt;
     margin-right: 10px;
     min-width: 20px;
+    font-weight: 600;
   }
 
   .lyric-line.section-header {
@@ -1727,8 +1728,8 @@
     color: #000 !important;
     margin: 6px 0 2px 0;
     padding: 3px 8px;
-    background: #e8e8e8;
-    border-left: 3px solid #555;
+    background: #d0d0d0;
+    border-left: 3px solid #000;
   }
 
   .lyric-line.has-note::before,
