@@ -173,6 +173,9 @@ const CollectionsManager = {
             // Load public collections
             await this.loadPublicCollections();
             
+            // Mark view as loaded to prevent layout shift
+            document.getElementById('collections-view').classList.add('loaded');
+            
             // Select first collection after all rendered
             setTimeout(() => {
                 if (this.gridNav.getItems().length > 0) {
@@ -231,9 +234,9 @@ const CollectionsManager = {
             <div class="collection-card card card-clickable" data-collection-id="${collection.id}">
                 <div class="collection-artwork-container">
                     ${hasArtwork
-                        ? `<img src="${this.escapeHtml(artworkUrl)}" alt="${this.escapeHtml(collection.name)} artwork" class="collection-artwork" loading="lazy">`
+                        ? `<img src="${this.escapeHtml(artworkUrl)}" alt="${this.escapeHtml(collection.name)} artwork" class="collection-artwork" loading="lazy" width="640" height="640">`
                         : `<div class="collection-artwork-placeholder">
-                            <img src="/static/favicon.svg" alt="Guitar" style="width: 80%; height: 80%; opacity: 0.6;">
+                            <img src="/static/favicon.svg" alt="Guitar" style="width: 80%; height: 80%; opacity: 0.6;" width="512" height="512">
                            </div>`
                     }
                 </div>
@@ -401,9 +404,9 @@ const CollectionsManager = {
             <div class="collection-card card card-clickable" data-collection-id="${collection.id}">
                 <div class="collection-artwork-container">
                     ${hasArtwork
-                        ? `<img src="${this.escapeHtml(artworkUrl)}" alt="${this.escapeHtml(collection.name)} artwork" class="collection-artwork" loading="lazy">`
+                        ? `<img src="${this.escapeHtml(artworkUrl)}" alt="${this.escapeHtml(collection.name)} artwork" class="collection-artwork" loading="lazy" width="640" height="640">`
                         : `<div class="collection-artwork-placeholder">
-                            <img src="/static/favicon.svg" alt="Guitar" style="width: 80%; height: 80%; opacity: 0.6;">
+                            <img src="/static/favicon.svg" alt="Guitar" style="width: 80%; height: 80%; opacity: 0.6;" width="512" height="512">
                            </div>`
                     }
                 </div>

@@ -115,6 +115,8 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent layout shift from font loading */
+  font-display: swap;
 }
 
 body {
@@ -123,6 +125,25 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  /* Reduce layout shift during page load */
+  min-height: 100vh;
+}
+
+/* Prevent layout shift for dynamic content areas */
+#collections-view,
+#songs-view,
+#player-view {
+  min-height: 100vh;
+  contain: layout;
+  /* Start hidden to prevent layout shift during initial load */
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#collections-view.loaded,
+#songs-view.loaded,
+#player-view.loaded {
+  opacity: 1;
 }
 
 /* Hide scrollbars but keep functionality (all browsers) */
@@ -272,8 +293,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.85);
+  /* backdrop-filter removed for performance */
   display: flex;
   align-items: center;
   justify-content: center;

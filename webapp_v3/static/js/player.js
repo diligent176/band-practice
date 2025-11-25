@@ -178,6 +178,9 @@ const PlayerManager = {
 
         // Reset play button to show play icon (not pause)
         this.updatePlayButton(false);
+        
+        // Mark view as loaded to prevent layout shift
+        document.getElementById('player-view').classList.add('loaded');
     },
 
     /**
@@ -796,6 +799,11 @@ const PlayerManager = {
         const lineNumbers = document.getElementById('lyrics-line-numbers');
         if (!editor || !notesDisplay || !lineNumbers) return;
 
+        // Disable global keyboard handler while editing
+        if (window.ViewManager) {
+            window.ViewManager.disableGlobalKeyboard();
+        }
+
         // Show dialog FIRST for instant feedback
         BPP.showDialog('edit-lyrics-dialog');
 
@@ -881,6 +889,9 @@ const PlayerManager = {
     /**
      * Update line numbers for lyrics editor (matches v2 behavior)
      * Only numbers lyric lines - skips [section headers] and blank lines
+     */
+    /**
+     * Update line numbers for lyrics editor
      */
     updateLyricsLineNumbers() {
         const editor = document.getElementById('lyrics-editor');
@@ -973,6 +984,11 @@ const PlayerManager = {
             this.lyricsEditorAbortController = null;
         }
 
+        // Re-enable global keyboard handler
+        if (window.ViewManager) {
+            window.ViewManager.enableGlobalKeyboard();
+        }
+
         BPP.hideDialog('edit-lyrics-dialog');
     },
 
@@ -993,9 +1009,14 @@ const PlayerManager = {
         this.renderLyrics();
 
         // Clean up keyboard listener
-        if (this.lyricsEditorKeyboardHandler) {
-            editor.removeEventListener('keydown', this.lyricsEditorKeyboardHandler);
-            this.lyricsEditorKeyboardHandler = null;
+        if (this.lyricsEditorAbortController) {
+            this.lyricsEditorAbortController.abort();
+            this.lyricsEditorAbortController = null;
+        }
+
+        // Re-enable global keyboard handler
+        if (window.ViewManager) {
+            window.ViewManager.enableGlobalKeyboard();
         }
 
         // Hide dialog immediately
@@ -1211,6 +1232,11 @@ const PlayerManager = {
         const lyricsDisplay = document.getElementById('notes-editor-lyrics-display');
         if (!editor || !lyricsDisplay) return;
 
+        // Disable global keyboard handler while editing
+        if (window.ViewManager) {
+            window.ViewManager.disableGlobalKeyboard();
+        }
+
         // Show dialog FIRST for instant feedback
         BPP.showDialog('edit-notes-dialog');
 
@@ -1334,6 +1360,11 @@ const PlayerManager = {
             this.notesEditorKeyboardHandler = null;
         }
 
+        // Re-enable global keyboard handler
+        if (window.ViewManager) {
+            window.ViewManager.enableGlobalKeyboard();
+        }
+
         BPP.hideDialog('edit-notes-dialog');
     },
 
@@ -1355,6 +1386,11 @@ const PlayerManager = {
         if (this.notesEditorKeyboardHandler) {
             editor.removeEventListener('keydown', this.notesEditorKeyboardHandler);
             this.notesEditorKeyboardHandler = null;
+        }
+
+        // Re-enable global keyboard handler
+        if (window.ViewManager) {
+            window.ViewManager.enableGlobalKeyboard();
         }
 
         // Hide dialog immediately

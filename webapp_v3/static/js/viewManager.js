@@ -193,6 +193,9 @@ const ViewManager = {
             // Filter and render
             this.filterSongs();
             
+            // Mark view as loaded to prevent layout shift
+            document.getElementById('songs-view').classList.add('loaded');
+            
             // Start polling for lyrics updates if any songs are pending
             this.startLyricsPolling();
 
@@ -631,6 +634,26 @@ const ViewManager = {
         } else if (viewName === 'player') {
             this.currentKeyboardHandler = (e) => this.handlePlayerKeyboard(e);
             document.addEventListener('keydown', this.currentKeyboardHandler);
+        }
+    },
+
+    /**
+     * Temporarily disable global keyboard handler (e.g., when editor dialog opens)
+     */
+    disableGlobalKeyboard() {
+        if (this.currentKeyboardHandler) {
+            document.removeEventListener('keydown', this.currentKeyboardHandler);
+            this.keyboardDisabled = true;
+        }
+    },
+
+    /**
+     * Re-enable global keyboard handler
+     */
+    enableGlobalKeyboard() {
+        if (this.currentKeyboardHandler && this.keyboardDisabled) {
+            document.addEventListener('keydown', this.currentKeyboardHandler);
+            this.keyboardDisabled = false;
         }
     },
 
