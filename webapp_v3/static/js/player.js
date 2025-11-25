@@ -701,70 +701,86 @@ const PlayerManager = {
         const lineNumbers = document.getElementById('lyrics-line-numbers');
         if (!editor || !notesDisplay || !lineNumbers) return;
 
+        // Show dialog FIRST for instant feedback
+        BPP.showDialog('edit-lyrics-dialog');
+
+        // Focus immediately (before heavy rendering)
+        editor.focus();
+
         // Populate lyrics editor with RAW lyrics (no numbers)
         editor.value = this.currentSong.lyrics || '';
+        
+        // Set cursor to position 0 immediately
+        editor.setSelectionRange(0, 0);
+        editor.scrollTop = 0;
 
-        // Update line numbers initially
-        this.updateLyricsLineNumbers();
+        // Apply saved split percentage immediately
+        this.applySavedSplit('lyrics');
 
-        // Update line numbers when user types
-        editor.addEventListener('input', () => this.updateLyricsLineNumbers());
+        // REMOVE old event listeners to prevent duplicates (critical performance fix)
+        const newEditor = editor.cloneNode(true);
+        editor.parentNode.replaceChild(newEditor, editor);
+        const editorFresh = document.getElementById('lyrics-editor');
+        
+        // Re-apply value and focus after cloning
+        editorFresh.value = this.currentSong.lyrics || '';
+        editorFresh.setSelectionRange(0, 0);
+        editorFresh.focus();
 
-        // Sync scroll
-        editor.addEventListener('scroll', () => {
-            lineNumbers.scrollTop = editor.scrollTop;
+        // Setup keyboard shortcuts AFTER cloning (so they attach to fresh element)
+        this.setupLyricsEditorKeyboard();
+
+        // Add event listeners to fresh element (no duplicates)
+        editorFresh.addEventListener('input', () => this.updateLyricsLineNumbers());
+        editorFresh.addEventListener('scroll', () => {
+            const nums = document.getElementById('lyrics-line-numbers');
+            if (nums) nums.scrollTop = editorFresh.scrollTop;
         });
 
-        // Render notes in right panel
-        const notes = this.currentSong.notes || [];
-        if (notes.length === 0) {
-            notesDisplay.innerHTML = '<div class="empty-state"><p>No notes for this song</p></div>';
-        } else {
-            let html = '';
-            notes.forEach(note => {
-                // Free-form notes (no line reference)
-                if (note.line_start === null || note.line_start === undefined) {
-                    html += `<div class="note-display free-form-note">
+        // Update line numbers asynchronously (don't block UI)
+        requestAnimationFrame(() => {
+            this.updateLyricsLineNumbers();
+        });
+
+        // Render notes in right panel asynchronously (don't block UI)
+        requestAnimationFrame(() => {
+            const notes = this.currentSong.notes || [];
+            if (notes.length === 0) {
+                notesDisplay.innerHTML = '<div class="empty-state"><p>No notes for this song</p></div>';
+            } else {
+                let html = '';
+                notes.forEach(note => {
+                    // Free-form notes (no line reference)
+                    if (note.line_start === null || note.line_start === undefined) {
+                        html += `<div class="note-display free-form-note">
                         <div class="note-content">${this.escapeHtml(note.content)}</div>
                     </div>`;
-                    return;
-                }
+                        return;
+                    }
 
-                // START/END tags
-                let lineRef = '';
-                if (note.tag === 'START') {
-                    lineRef = '<span class="note-line-ref start-tag">START</span>';
-                } else if (note.tag === 'END') {
-                    lineRef = '<span class="note-line-ref end-tag">END</span>';
-                } else {
-                    // Regular line-based notes
-                    const range = note.line_end && note.line_end !== note.line_start
-                        ? `${note.line_start}-${note.line_end}`
-                        : note.line_start;
-                    lineRef = `<span class="note-line-ref">Line ${range}</span>`;
-                }
+                    // START/END tags
+                    let lineRef = '';
+                    if (note.tag === 'START') {
+                        lineRef = '<span class="note-line-ref start-tag">START</span>';
+                    } else if (note.tag === 'END') {
+                        lineRef = '<span class="note-line-ref end-tag">END</span>';
+                    } else {
+                        // Regular line-based notes
+                        const range = note.line_end && note.line_end !== note.line_start
+                            ? `${note.line_start}-${note.line_end}`
+                            : note.line_start;
+                        lineRef = `<span class="note-line-ref">Line ${range}</span>`;
+                    }
 
-                html += `<div class="note-display">
+                    html += `<div class="note-display">
                     ${lineRef}
                     <div class="note-content">${this.escapeHtml(note.content)}</div>
                 </div>`;
-            });
+                });
 
-            notesDisplay.innerHTML = html;
-        }
-
-        // Show dialog and setup keyboard shortcuts
-        BPP.showDialog('edit-lyrics-dialog');
-        this.setupLyricsEditorKeyboard();
-
-        // Apply saved split percentage
-        this.applySavedSplit('lyrics');
-
-        // Focus the textarea at the beginning
-        setTimeout(() => {
-            editor.focus();
-            editor.setSelectionRange(0, 0);
-        }, 100);
+                notesDisplay.innerHTML = html;
+            }
+        });
     },
 
     /**
@@ -1132,6 +1148,12 @@ const PlayerManager = {
         const lyricsDisplay = document.getElementById('notes-editor-lyrics-display');
         if (!editor || !lyricsDisplay) return;
 
+        // Show dialog FIRST for instant feedback
+        BPP.showDialog('edit-notes-dialog');
+
+        // Focus immediately
+        editor.focus();
+
         // Populate notes editor with existing notes
         const notes = this.currentSong.notes || [];
         const text = notes.map(n => {
@@ -1155,51 +1177,49 @@ const PlayerManager = {
         }).join('\n');
 
         editor.value = text;
+        editor.setSelectionRange(0, 0);
+        editor.scrollTop = 0;
 
-        // Render numbered lyrics in left panel (reuse rendering logic)
-        const lyrics = this.currentSong.lyrics_numbered || this.currentSong.lyrics || '';
-
-        if (!lyrics || lyrics.trim() === '') {
-            lyricsDisplay.innerHTML = '<div class="empty-state"><p>No lyrics available</p></div>';
-        } else {
-            const lines = lyrics.split('\n');
-            let html = '';
-
-            lines.forEach(line => {
-                if (line.match(/^\[.*\]$/)) {
-                    // Section header - strip the brackets for display
-                    const headerText = line.slice(1, -1);
-                    html += `<div class="lyric-line section-header">${this.escapeHtml(headerText)}</div>`;
-                } else if (line.match(/^\s*\d+\s+/)) {
-                    // Numbered line
-                    const match = line.match(/^(\s*)(\d+)(\s+)(.+)/);
-                    if (match) {
-                        const lineNum = match[2].trim();
-                        const text = match[4];
-                        html += `<div class="lyric-line">
-                            <span class="line-number">${lineNum}</span>${this.escapeHtml(text)}
-                        </div>`;
-                    }
-                } else if (line.trim()) {
-                    // Non-empty line without number
-                    html += `<div class="lyric-line">${this.escapeHtml(line)}</div>`;
-                }
-            });
-
-            lyricsDisplay.innerHTML = html || '<div class="empty-state"><p>No lyrics available</p></div>';
-        }
-
-        // Show dialog and focus editor
-        BPP.showDialog('edit-notes-dialog');
-
-        // Setup keyboard shortcuts for this dialog
-        this.setupNotesEditorKeyboard();
-
-        // Apply saved split percentage
+        // Apply saved split percentage immediately
         this.applySavedSplit('notes');
 
-        // Focus the textarea
-        setTimeout(() => editor.focus(), 100);
+        // Setup keyboard shortcuts
+        this.setupNotesEditorKeyboard();
+
+        // Render numbered lyrics in left panel asynchronously (don't block UI)
+        requestAnimationFrame(() => {
+            const lyrics = this.currentSong.lyrics_numbered || this.currentSong.lyrics || '';
+
+            if (!lyrics || lyrics.trim() === '') {
+                lyricsDisplay.innerHTML = '<div class="empty-state"><p>No lyrics available</p></div>';
+            } else {
+                const lines = lyrics.split('\n');
+                let html = '';
+
+                lines.forEach(line => {
+                    if (line.match(/^\[.*\]$/)) {
+                        // Section header - strip the brackets for display
+                        const headerText = line.slice(1, -1);
+                        html += `<div class="lyric-line section-header">${this.escapeHtml(headerText)}</div>`;
+                    } else if (line.match(/^\s*\d+\s+/)) {
+                        // Numbered line
+                        const match = line.match(/^(\s*)(\d+)(\s+)(.+)/);
+                        if (match) {
+                            const lineNum = match[2].trim();
+                            const text = match[4];
+                            html += `<div class="lyric-line">
+                            <span class="line-number">${lineNum}</span>${this.escapeHtml(text)}
+                        </div>`;
+                        }
+                    } else if (line.trim()) {
+                        // Non-empty line without number
+                        html += `<div class="lyric-line">${this.escapeHtml(line)}</div>`;
+                    }
+                });
+
+                lyricsDisplay.innerHTML = html || '<div class="empty-state"><p>No lyrics available</p></div>';
+            }
+        });
     },
 
     /**
@@ -1811,6 +1831,8 @@ const PlayerManager = {
         if (window.SpotifyPlayer.isPlaying) {
             await window.SpotifyPlayer.pause();
             this.updatePlayButton(false);
+            // Stop state polling when paused to save CPU
+            window.SpotifyPlayer.stopStatePolling();
         }
     },
 
@@ -1839,16 +1861,22 @@ const PlayerManager = {
         if (window.SpotifyPlayer.isPlaying && window.SpotifyPlayer.currentTrackUri === this.currentSong.spotify_uri) {
             await window.SpotifyPlayer.pause();
             this.updatePlayButton(false);
+            // Stop polling when paused
+            window.SpotifyPlayer.stopStatePolling();
         }
         // If same track is paused, resume it
         else if (!window.SpotifyPlayer.isPlaying && window.SpotifyPlayer.currentTrackUri === this.currentSong.spotify_uri) {
             await window.SpotifyPlayer.resume();
             this.updatePlayButton(true);
+            // Restart polling when playing
+            window.SpotifyPlayer.startStatePolling();
         }
         // Different track or nothing loaded - start playing
         else {
             await window.SpotifyPlayer.play(this.currentSong.spotify_uri);
             this.updatePlayButton(true);
+            // Restart polling when playing
+            window.SpotifyPlayer.startStatePolling();
         }
     },
 

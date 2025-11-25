@@ -123,13 +123,18 @@ const ViewManager = {
             }
         }
 
-        // Clear song search filter when leaving songs view
+        // Clear song search filter and STOP POLLING when leaving songs view
         if (this.currentView === 'songs' && viewName !== 'songs') {
             const searchInput = document.getElementById('song-search');
             if (searchInput) {
                 searchInput.value = '';
             }
-            // Stop lyrics polling when leaving songs view
+            // CRITICAL: Stop lyrics polling when leaving songs view to prevent background API spam
+            this.stopLyricsPolling();
+        }
+
+        // CRITICAL: Stop lyrics polling when navigating away from songs view (safety net)
+        if (viewName !== 'songs') {
             this.stopLyricsPolling();
         }
 
@@ -205,17 +210,19 @@ const ViewManager = {
         // Stop any existing polling
         this.stopLyricsPolling();
         
-        // Check if any songs are waiting for lyrics
-        const hasPendingLyrics = this.state.allSongs.some(song => !song.lyrics_fetched);
+        // Check if any songs are waiting for lyrics (EXPLICITLY check for false, not just falsy)
+        // lyrics_fetched can be true, false, undefined, or null
+        // Only poll if EXPLICITLY false (meaning background fetch is in progress)
+        const hasPendingLyrics = this.state.allSongs.some(song => song.lyrics_fetched === false);
         
         if (!hasPendingLyrics) {
-            console.log('✅ All songs have lyrics, no polling needed');
+            console.log('✅ No songs pending lyrics fetch, polling not needed');
             return;
         }
         
-        console.log('🔄 Starting lyrics polling (songs pending fetch)');
+        console.log(`🔄 Starting lyrics polling (${this.state.allSongs.filter(s => s.lyrics_fetched === false).length} songs pending fetch)`);
         
-        // Poll every 5 seconds
+        // Poll every 15 seconds (reduced from 5s to minimize performance impact)
         this.state.lyricsPollingInterval = setInterval(async () => {
             try {
                 // Only poll if we're still in songs view for this collection
@@ -244,8 +251,8 @@ const ViewManager = {
                     this.filterSongs(); // Re-render
                 }
                 
-                // Stop polling if all lyrics are fetched
-                const stillPending = updatedSongs.some(song => !song.lyrics_fetched);
+                // Stop polling if all lyrics are fetched (EXPLICITLY check for false)
+                const stillPending = updatedSongs.some(song => song.lyrics_fetched === false);
                 if (!stillPending) {
                     console.log('✅ All lyrics fetched, stopping polling');
                     this.stopLyricsPolling();
@@ -255,7 +262,7 @@ const ViewManager = {
                 console.error('Error polling for lyrics updates:', error);
                 // Don't stop polling on error, just log it
             }
-        }, 5000); // Poll every 5 seconds
+        }, 15000); // Poll every 15 seconds (reduced from 5s for better performance)
     },
     
     /**
