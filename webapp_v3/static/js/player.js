@@ -1521,7 +1521,7 @@ const PlayerManager = {
         let printDivider = lyricsPanel.querySelector('.print-divider');
 
         if (!printHeader) {
-            // Create compact header: Title - Artist [Album Art on right]
+            // Create compact header: Title - Artist [Chords] [Album Art on right]
             printHeader = document.createElement('div');
             printHeader.className = 'print-header';
 
@@ -1540,6 +1540,22 @@ const PlayerManager = {
             textContainer.appendChild(title);
             textContainer.appendChild(artist);
             printHeader.appendChild(textContainer);
+
+            // Chords container (between text and album art)
+            if (this.currentSongChords && this.currentSongChords.length > 0) {
+                const chordsContainer = document.createElement('div');
+                chordsContainer.className = 'print-header-chords';
+                
+                this.currentSongChords.forEach(chord => {
+                    const chordImg = document.createElement('img');
+                    chordImg.src = chord.image;
+                    chordImg.alt = chord.name;
+                    chordImg.className = 'print-chord-diagram';
+                    chordsContainer.appendChild(chordImg);
+                });
+                
+                printHeader.appendChild(chordsContainer);
+            }
 
             // Album art image on far right (48x48)
             const albumArt = this.currentSong.album_art_url || this.currentSong.albumArt || this.currentSong.album_art || '/static/favicon.svg';

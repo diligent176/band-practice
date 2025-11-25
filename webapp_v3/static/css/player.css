@@ -1583,7 +1583,7 @@
     overflow: visible;
   }
 
-  /* Header: Title - Artist [Album Art] spanning full width */
+  /* Header: Title - Artist [Chords] [Album Art] spanning full width */
   .print-header {
     display: flex;
     align-items: center;
@@ -1599,7 +1599,8 @@
     display: flex;
     align-items: baseline;
     gap: 8px;
-    flex: 1;
+    min-width: 0;
+    /* Allow text to shrink */
   }
 
   .print-title {
@@ -1607,12 +1608,40 @@
     font-weight: 700;
     color: #000;
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    /* Title gets priority - least likely to truncate */
   }
 
   .print-artist {
     font-size: 13pt;
     color: #000;
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 2;
+    /* Artist truncates first */
+  }
+
+  /* Chords container - between text and album art */
+  .print-header-chords {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    align-items: center;
+    overflow: hidden;
+    flex-shrink: 1;
+    /* Chords truncate second */
+    max-width: 400px;
+  }
+
+  .print-chord-diagram {
+    height: 48px;
+    width: auto;
+    flex-shrink: 0;
   }
 
   .print-album-art {
@@ -1620,6 +1649,8 @@
     height: 48px;
     border-radius: 4px;
     object-fit: cover;
+    flex-shrink: 0;
+    /* Album art never shrinks */
   }
 
   /* Divider spanning full width */
