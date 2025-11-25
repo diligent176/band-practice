@@ -1,0 +1,760 @@
+{
+  "A": {
+    "fingers": [
+      0,
+      0,
+      2,
+      2,
+      2,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Am": {
+    "fingers": [
+      0,
+      0,
+      2,
+      2,
+      1,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "A7": {
+    "fingers": [
+      0,
+      0,
+      2,
+      0,
+      2,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Amaj7": {
+    "fingers": [
+      0,
+      0,
+      2,
+      1,
+      2,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Am7": {
+    "fingers": [
+      0,
+      0,
+      2,
+      0,
+      1,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Asus2": {
+    "fingers": [
+      0,
+      0,
+      2,
+      2,
+      0,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Asus4": {
+    "fingers": [
+      0,
+      0,
+      2,
+      2,
+      3,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "B": {
+    "fingers": [
+      2,
+      2,
+      4,
+      4,
+      4,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Bm": {
+    "fingers": [
+      2,
+      2,
+      4,
+      4,
+      3,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "B7": {
+    "fingers": [
+      2,
+      1,
+      2,
+      0,
+      2,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Bmaj7": {
+    "fingers": [
+      2,
+      2,
+      4,
+      3,
+      4,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Bm7": {
+    "fingers": [
+      2,
+      2,
+      4,
+      2,
+      3,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "C": {
+    "fingers": [
+      0,
+      3,
+      2,
+      0,
+      1,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Cm": {
+    "fingers": [
+      3,
+      3,
+      5,
+      5,
+      4,
+      3
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "C7": {
+    "fingers": [
+      0,
+      3,
+      2,
+      3,
+      1,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Cmaj7": {
+    "fingers": [
+      0,
+      3,
+      2,
+      0,
+      0,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Cm7": {
+    "fingers": [
+      3,
+      3,
+      5,
+      3,
+      4,
+      3
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "D": {
+    "fingers": [
+      0,
+      0,
+      0,
+      2,
+      3,
+      2
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Dm": {
+    "fingers": [
+      0,
+      0,
+      0,
+      2,
+      3,
+      1
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "D7": {
+    "fingers": [
+      0,
+      0,
+      0,
+      2,
+      1,
+      2
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Dmaj7": {
+    "fingers": [
+      0,
+      0,
+      0,
+      2,
+      2,
+      2
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Dm7": {
+    "fingers": [
+      0,
+      0,
+      0,
+      2,
+      1,
+      1
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Dsus2": {
+    "fingers": [
+      0,
+      0,
+      0,
+      2,
+      3,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Dsus4": {
+    "fingers": [
+      0,
+      0,
+      0,
+      2,
+      3,
+      3
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "E": {
+    "fingers": [
+      0,
+      2,
+      2,
+      1,
+      0,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Em": {
+    "fingers": [
+      0,
+      2,
+      2,
+      0,
+      0,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "E7": {
+    "fingers": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Emaj7": {
+    "fingers": [
+      0,
+      2,
+      1,
+      1,
+      0,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Em7": {
+    "fingers": [
+      0,
+      2,
+      0,
+      0,
+      0,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Esus4": {
+    "fingers": [
+      0,
+      2,
+      2,
+      2,
+      0,
+      0
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "F": {
+    "fingers": [
+      1,
+      3,
+      3,
+      2,
+      1,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Fm": {
+    "fingers": [
+      1,
+      3,
+      3,
+      1,
+      1,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "F7": {
+    "fingers": [
+      1,
+      3,
+      1,
+      2,
+      1,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Fmaj7": {
+    "fingers": [
+      1,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Fm7": {
+    "fingers": [
+      1,
+      3,
+      1,
+      1,
+      1,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "F#": {
+    "fingers": [
+      2,
+      4,
+      4,
+      3,
+      2,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "F#m": {
+    "fingers": [
+      2,
+      4,
+      4,
+      2,
+      2,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "F#7": {
+    "fingers": [
+      2,
+      4,
+      2,
+      3,
+      2,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "F#maj7": {
+    "fingers": [
+      2,
+      4,
+      3,
+      3,
+      2,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "F#m7": {
+    "fingers": [
+      2,
+      4,
+      2,
+      2,
+      2,
+      2
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "G": {
+    "fingers": [
+      3,
+      2,
+      0,
+      0,
+      0,
+      3
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Gm": {
+    "fingers": [
+      3,
+      5,
+      5,
+      3,
+      3,
+      3
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "G7": {
+    "fingers": [
+      3,
+      2,
+      0,
+      0,
+      0,
+      1
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Gmaj7": {
+    "fingers": [
+      3,
+      2,
+      0,
+      0,
+      0,
+      2
+    ],
+    "baseFret": 1,
+    "barres": []
+  },
+  "Gm7": {
+    "fingers": [
+      3,
+      5,
+      3,
+      3,
+      3,
+      3
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Ab": {
+    "fingers": [
+      4,
+      6,
+      6,
+      5,
+      4,
+      4
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Abm": {
+    "fingers": [
+      4,
+      6,
+      6,
+      4,
+      4,
+      4
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Ab7": {
+    "fingers": [
+      4,
+      6,
+      4,
+      5,
+      4,
+      4
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Bb": {
+    "fingers": [
+      1,
+      1,
+      3,
+      3,
+      3,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Bbm": {
+    "fingers": [
+      1,
+      1,
+      3,
+      3,
+      2,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Bb7": {
+    "fingers": [
+      1,
+      1,
+      3,
+      1,
+      3,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Bbmaj7": {
+    "fingers": [
+      1,
+      1,
+      3,
+      2,
+      3,
+      1
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "C#": {
+    "fingers": [
+      4,
+      4,
+      6,
+      6,
+      6,
+      4
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "C#m": {
+    "fingers": [
+      4,
+      4,
+      6,
+      6,
+      5,
+      4
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "C#7": {
+    "fingers": [
+      4,
+      4,
+      6,
+      4,
+      6,
+      4
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Eb": {
+    "fingers": [
+      6,
+      6,
+      8,
+      8,
+      8,
+      6
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Ebm": {
+    "fingers": [
+      6,
+      6,
+      8,
+      8,
+      7,
+      6
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  },
+  "Eb7": {
+    "fingers": [
+      6,
+      6,
+      8,
+      6,
+      8,
+      6
+    ],
+    "baseFret": 1,
+    "barres": [
+      1
+    ]
+  }
+}

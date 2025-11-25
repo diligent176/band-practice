@@ -57,9 +57,8 @@ cp .env.example .env
 # Edit .env with your API keys and allowed user emails
 
 # 3. Run the app
-.\run-local.bat  # Windows
-# OR
-./run-local.sh   # Linux/Mac (if available)
+cd webapp_v3
+python app.py
 
 # 4. Access at http://127.0.0.1:8080
 ```
@@ -336,67 +335,6 @@ Comprehensive guides in `.docs/`:
 ## 🛠️ Development Workflow
 
 ### Making Changes
-
-```bash
-# 1. Make code changes
-# 2. Test locally
-.\run-local.bat
-
-# 3. Commit and push
-git add .
-git commit -m "Add feature X"
-git push origin main
-
-# 4. GitHub Actions automatically:
-#    - Builds Docker image
-#    - Pushes to Artifact Registry
-#    - Deploys to Cloud Run
-#    - Takes ~3-5 minutes
-```
-
-### Terraform Changes
-
-```bash
-cd terraform
-terraform plan    # Review changes
-terraform apply   # Apply infrastructure changes
-
-# Then redeploy app:
-git push origin main
-```
-
-### Debugging Production
-
-```javascript
-// Browser console (production environment)
-localStorage.setItem("debugMode", "true");
-location.reload(); // Enables verbose logging
-
-// Check logs
-// GCP Console → Cloud Run → Logs
-```
-
-## 🔐 Security Features
-
-- **Firebase Auth on ALL API endpoints** - `@require_auth` decorator
-- **Email allowlist** - `ALLOWED_USERS` env var restricts access
-- **Secrets in Secret Manager** - Never in code or environment
-- **HTTPS enforced** - Cloud Run default
-- **Token validation** - Every request validated against Firebase
-- **Terraform-managed IAM** - Principle of least privilege
-- **No CORS issues** - Same-origin policy enforced
-
-## 📊 Refactoring Summary (v3)
-
-**Before:** 2,600+ lines of inline JavaScript in `home.html`
-
-**After:**
-
-- **home.html:** 941 lines (56% HTML/CSS, 5% initialization JS)
-- **Modular JS:** 4,768 lines across 7 well-organized files
-- **Zero stubs or TODOs** - All features fully implemented
-- **No code duplication** - DRY principle enforced
-- **Clean separation** - HTML for structure, CSS for style, JS for behavior
 
 **Benefits:**
 

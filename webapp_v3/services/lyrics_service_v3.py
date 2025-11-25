@@ -153,7 +153,7 @@ class LyricsServiceV3:
             return None
 
     def _add_line_numbers(self, lyrics: str) -> str:
-        """Add line numbers to lyrics (skip section headers)"""
+        """Add line numbers to lyrics (skip section headers and chord markers)"""
         lines = lyrics.split('\n')
         formatted_lines = []
         line_num = 1
@@ -163,6 +163,10 @@ class LyricsServiceV3:
             if re.match(r'^\[.*\]', line.strip()):
                 # Keep section headers as-is
                 formatted_lines.append(f'\n{line.strip()}')
+            # Check if line is a chord marker like {{ Bm F# D }}
+            elif re.match(r'^\s*\{\{.*\}\}\s*$', line.strip()):
+                # Keep chord markers as-is (no line number)
+                formatted_lines.append(line)
             elif line.strip():
                 formatted_lines.append(f'{line_num:3d}  {line}')
                 line_num += 1

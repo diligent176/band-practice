@@ -1479,12 +1479,6 @@
     /* Hide text on very small screens, just show icon + button */
   }
 
-  /* Improve touch targets for keyboard shortcuts */
-  .help-item {
-    padding: 8px;
-    min-height: 44px;
-  }
-
   /* Mobile-friendly grid layouts */
   .collections-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1699,6 +1693,76 @@
   }
 
   .player-lyrics-panel::before {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   CHORD DIAGRAMS (Floating on right edge)
+   ============================================================================ */
+
+.player-chord-diagrams {
+  position: fixed;
+  top: 80px;
+  /* Below player top nav + some padding */
+  right: 4px;
+  width: 120px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  z-index: var(--z-elevated);
+
+  /* Styling */
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 2px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+  /* Smooth scroll */
+  scroll-behavior: smooth;
+}
+
+.player-chord-diagrams::-webkit-scrollbar {
+  width: 4px;
+}
+
+.player-chord-diagrams::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.player-chord-diagrams::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+.player-chord-diagrams::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.chord-diagram {
+  margin-bottom: 2px;
+  text-align: center;
+  line-height: 0;
+}
+
+.chord-diagram:last-child {
+  margin-bottom: 0;
+}
+
+.chord-diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 2px;
+  background: white;
+  padding: 0;
+}
+
+/* Hide chords in print mode */
+@media print {
+  .player-chord-diagrams {
     display: none !important;
   }
 }

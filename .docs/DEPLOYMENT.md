@@ -11,6 +11,7 @@ Complete guide for deploying the Band Practice app to Google Cloud Platform from
 ## Deployment Philosophy
 
 **GitHub Actions does everything.** Manual steps are ONLY for:
+
 1. Initial GCP project creation + billing
 2. Terraform state bucket (required before Terraform can run)
 3. Service account creation for GitHub Actions
@@ -101,10 +102,10 @@ Go to: GitHub repo → **Settings** → **Secrets and variables** → **Actions*
 
 Add these **Variables**:
 
-| Name | Value |
-|------|-------|
-| `GCP_PROJECT_ID` | `YOUR-PROJECT-ID` |
-| `GCP_REGION` | `us-west1` |
+| Name                   | Value                                                                  |
+| ---------------------- | ---------------------------------------------------------------------- |
+| `GCP_PROJECT_ID`       | `YOUR-PROJECT-ID`                                                      |
+| `GCP_REGION`           | `us-west1`                                                             |
 | `SPOTIFY_REDIRECT_URI` | `https://YOUR-DOMAIN/api/spotify/callback` (update after first deploy) |
 
 #### b. Set GitHub Actions Secrets
@@ -113,19 +114,19 @@ Go to: GitHub repo → **Settings** → **Secrets and variables** → **Actions*
 
 Add these **Secrets**:
 
-| Name | Value | How to Get |
-|------|-------|------------|
-| `GCP_SA_KEY` | Entire JSON key from step 2 | Copy/paste the full JSON |
-| `SPOTIFY_CLIENT_ID` | Your client ID | https://developer.spotify.com/dashboard |
-| `SPOTIFY_CLIENT_SECRET` | Your client secret | https://developer.spotify.com/dashboard |
-| `GENIUS_ACCESS_TOKEN` | Your token | https://genius.com/api-clients |
-| `FIREBASE_API_KEY` | Your API key | See step 4 below |
-| `FIREBASE_AUTH_DOMAIN` | `YOUR-PROJECT-ID.firebaseapp.com` | See step 4 below |
-| `FIREBASE_PROJECT_ID` | `YOUR-PROJECT-ID` | Same as GCP project |
-| `ALLOWED_USERS` | `user1@gmail.com,user2@gmail.com` | Comma-separated emails |
-| `SECRET_KEY` | Random string | `python -c "import secrets; print(secrets.token_hex(32))"` |
-| `GETSONGBPM_API_KEY` | Your API key | https://getsongbpm.com/api (optional) |
-| `SCRAPER_API_KEY` | Your API key | https://www.scraperapi.com/signup (optional) |
+| Name                    | Value                             | How to Get                                                 |
+| ----------------------- | --------------------------------- | ---------------------------------------------------------- |
+| `GCP_SA_KEY`            | Entire JSON key from step 2       | Copy/paste the full JSON                                   |
+| `SPOTIFY_CLIENT_ID`     | Your client ID                    | https://developer.spotify.com/dashboard                    |
+| `SPOTIFY_CLIENT_SECRET` | Your client secret                | https://developer.spotify.com/dashboard                    |
+| `GENIUS_ACCESS_TOKEN`   | Your token                        | https://genius.com/api-clients                             |
+| `FIREBASE_API_KEY`      | Your API key                      | See step 4 below                                           |
+| `FIREBASE_AUTH_DOMAIN`  | `YOUR-PROJECT-ID.firebaseapp.com` | See step 4 below                                           |
+| `FIREBASE_PROJECT_ID`   | `YOUR-PROJECT-ID`                 | Same as GCP project                                        |
+| `ALLOWED_USERS`         | `user1@gmail.com,user2@gmail.com` | Comma-separated emails                                     |
+| `SECRET_KEY`            | Random string                     | `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `GETSONGBPM_API_KEY`    | Your API key                      | https://getsongbpm.com/api (optional)                      |
+| `SCRAPER_API_KEY`       | Your API key                      | https://www.scraperapi.com/signup (optional)               |
 
 See [API_SETUP.md](API_SETUP.md) for detailed instructions on getting API keys.
 
@@ -159,6 +160,7 @@ git push origin main
 ```
 
 **GitHub Actions will now:**
+
 1. ✅ Enable all required GCP APIs (run, firestore, cloudbuild, etc.)
 2. ✅ Create Firestore database (via Terraform)
 3. ✅ Run Terraform to create all infrastructure
@@ -221,6 +223,7 @@ git push origin main
 ```
 
 GitHub Actions automatically:
+
 - Builds new Docker image
 - Deploys to Cloud Run
 - Updates all secrets from GitHub
@@ -255,8 +258,6 @@ cp .env.example .env
 
 # Edit .env with your API keys (same values as GitHub secrets)
 
-# Run locally
-.\run-local.bat  # Windows
 ```
 
 Access at: http://127.0.0.1:8080
@@ -276,6 +277,7 @@ Or use GCP Console → Cloud Run → band-practice-pro → Logs
 ## Cost
 
 With GCP free tier:
+
 - Cloud Run: 2M requests/month FREE
 - Firestore: 50K reads, 20K writes/day FREE
 - Cloud Build: 120 build-minutes/day FREE
@@ -296,6 +298,7 @@ Everything except the initial bootstrapping:
 - ✅ Creating Firestore indexes
 
 **You only do manually:**
+
 - ❌ Create GCP project + enable billing (one-time, bootstrapping)
 - ❌ Create Terraform state bucket (one-time, required before Terraform can run)
 - ❌ Create service account for GitHub Actions (one-time, bootstrapping)

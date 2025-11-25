@@ -844,6 +844,7 @@ const ViewManager = {
             ' ': () => PlayerManager.togglePlayback(),
             'r': () => PlayerManager.restartTrack(),
             'm': () => PlayerManager.toggleMute(),
+            'h': () => PlayerManager.toggleChords(),
             'arrowleft': () => PlayerManager.skipBackward(5),
             'arrowright': () => PlayerManager.skipForward(5),
             'c': () => PlayerManager.toggleColumns(),

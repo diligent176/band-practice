@@ -11,6 +11,10 @@ const PlayerManager = {
     bpmInterval: null,
     helpCardVisible: false,
 
+    // Chord diagrams
+    currentSongChords: [],
+    chordsVisible: localStorage.getItem('v3_chordsVisible') !== 'false', // Default true
+
     // Note navigation (callout-based system)
     notes: [],
     currentNoteIndex: -1,
@@ -142,6 +146,9 @@ const PlayerManager = {
 
         // Render lyrics
         this.renderLyrics();
+
+        // Load and render chord diagrams
+        this.loadChords();
 
         // Render notes
         this.renderNotes();
@@ -283,6 +290,11 @@ const PlayerManager = {
         let html = '';
 
         lines.forEach(line => {
+            // Skip chord marker lines ({{ ... }})
+            if (line.match(/^\s*\{\{.*\}\}\s*$/)) {
+                return; // Don't render chord lines in lyrics
+            }
+            
             if (line.match(/^\[.*\]$/)) {
                 // Section header - lines that start and end with square brackets like [Verse 1], [Chorus], etc.
                 // Strip the brackets for display
@@ -320,6 +332,89 @@ const PlayerManager = {
 
         // Hide any visible callout from previous song
         this.hideNoteCallout();
+    },
+
+    /**
+     * Load chord diagrams for current song
+     */
+    async loadChords() {
+        if (!this.currentSong || !this.currentSong.id) {
+            this.currentSongChords = [];
+            this.renderChords();
+            return;
+        }
+
+        try {
+            const data = await BPP.apiCall(`/api/v3/songs/${this.currentSong.id}/chords`);
+            this.currentSongChords = data.chords || [];
+            console.log(`🎸 Loaded ${this.currentSongChords.length} chords`);
+            this.renderChords();
+        } catch (error) {
+            console.error('Error loading chords:', error);
+            this.currentSongChords = [];
+            this.renderChords();
+        }
+    },
+
+    /**
+     * Render chord diagrams in floating container
+     */
+    renderChords() {
+        // Find or create chord container
+        let container = document.getElementById('player-chord-diagrams');
+        
+        if (!container) {
+            // Create container if it doesn't exist
+            container = document.createElement('div');
+            container.id = 'player-chord-diagrams';
+            container.className = 'player-chord-diagrams';
+            
+            // Insert into player view
+            const playerView = document.getElementById('player-view');
+            if (playerView) {
+                playerView.appendChild(container);
+            }
+        }
+
+        // Clear container
+        container.innerHTML = '';
+
+        // Hide if no chords or user toggled off
+        if (!this.chordsVisible || this.currentSongChords.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        // Show container
+        container.style.display = 'block';
+
+        // Render each chord
+        this.currentSongChords.forEach(chord => {
+            if (!chord.image) return; // Skip chords without images
+
+            const chordDiv = document.createElement('div');
+            chordDiv.className = 'chord-diagram';
+            
+            const img = document.createElement('img');
+            img.src = chord.image;
+            img.alt = chord.name;
+            img.title = chord.name;
+            
+            chordDiv.appendChild(img);
+            container.appendChild(chordDiv);
+        });
+    },
+
+    /**
+     * Toggle chord diagram visibility
+     */
+    toggleChords() {
+        this.chordsVisible = !this.chordsVisible;
+        localStorage.setItem('v3_chordsVisible', this.chordsVisible);
+        this.renderChords();
+        
+        const status = this.chordsVisible ? 'shown' : 'hidden';
+        BPP.showToast(`Chords ${status}`, 'success');
     },
 
     /**
@@ -952,6 +1047,9 @@ const PlayerManager = {
             // Update with numbered lyrics from server (will be null if lyrics were empty)
             this.currentSong.lyrics_numbered = response.lyrics_numbered || null;
             this.renderLyrics(); // Re-render with numbered lyrics from server
+            
+            // Reload chords to show any new chord markers
+            this.loadChords();
         } catch (error) {
             console.error('Failed to save lyrics:', error);
             // Revert optimistic update on error

@@ -23,6 +23,7 @@ from services.user_service_v3 import UserService
 from services.collections_service_v3 import CollectionsService
 from services.playlist_service_v3 import PlaylistServiceV3
 from services.spotify_playback_service_v3 import SpotifyPlaybackService
+from services.chord_service_v3 import ChordServiceV3
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -1155,6 +1156,60 @@ def fetch_song_lyrics(song_id):
             
     except Exception as e:
         logger.error(f"Error fetching lyrics for song {song_id}: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v3/songs/<song_id>/chords', methods=['GET'])
+@require_auth
+def get_song_chords(song_id):
+    """Get chord diagrams for a song"""
+    try:
+        user_id = request.user_id
+        
+        # Get song and verify access
+        from firebase_admin import firestore
+        from services.collections_service_v3 import CollectionsService
+        
+        db = firestore.client()
+        song_ref = db.collection('songs_v3').document(song_id)
+        song_doc = song_ref.get()
+        
+        if not song_doc.exists:
+            return jsonify({'error': 'Song not found'}), 404
+            
+        song_data = song_doc.to_dict()
+        collection_id = song_data.get('collection_id')
+        
+        # Verify user has access to the collection
+        collections_service = CollectionsService()
+        collection = collections_service.get_collection(collection_id, user_id)
+        
+        if not collection:
+            return jsonify({'error': 'Collection not found or no access'}), 404
+        
+        # Check access level (any level can view chords)
+        access_level = collections_service.check_user_access_level(collection_id, user_id)
+        
+        if access_level not in ['owner', 'collaborator', 'viewer']:
+            return jsonify({'error': 'No access to this collection'}), 403
+        
+        # Extract chords from lyrics
+        lyrics = song_data.get('lyrics') or song_data.get('lyrics_numbered', '')
+        
+        logger.info(f"🎸 Chord request for song {song_id}, lyrics length: {len(lyrics) if lyrics else 0}")
+        
+        # Generate chord diagrams
+        chord_service = ChordServiceV3()
+        chord_data = chord_service.generate_chord_data(lyrics)
+        
+        if chord_data:
+            logger.info(f"🎸 Returning {len(chord_data)} chords for song {song_id}")
+            return jsonify({'chords': chord_data}), 200
+        else:
+            logger.info(f"🎸 No chords found for song {song_id}")
+            return jsonify({'chords': []}), 200
+            
+    except Exception as e:
+        logger.error(f"❌ Error getting chords for song {song_id}: {e}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
 # ============================================================================

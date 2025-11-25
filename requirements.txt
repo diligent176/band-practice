@@ -20,3 +20,6 @@ lyricsgenius==3.7.5
 beautifulsoup4==4.14.2
 python-dotenv==1.0.1
 requests==2.32.3
+
+# Chord diagram rendering (PIL only)
+Pillow==11.0.0
