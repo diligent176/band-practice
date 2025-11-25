@@ -86,29 +86,29 @@ class ChordServiceV3:
             PIL Image object
         """
         # Tight image dimensions - minimal padding
-        width, height = 160, 185
+        width, height = 94, 115
         img = Image.new('RGB', (width, height), color='white')
         draw = ImageDraw.Draw(img)
         
-        # Chord diagram area - maximized within image
-        grid_left = 25
-        grid_top = 28
-        grid_width = 110
-        grid_height = 145
+        # Chord diagram area - shorter frets for compactness
+        grid_left = 7
+        grid_top = 22
+        grid_width = 80
+        grid_height = 90  # Significantly reduced for compact size
         fret_spacing = grid_height / 5
         string_spacing = grid_width / 5
         
         # Load fonts
         try:
-            font_title = ImageFont.truetype("arialbd.ttf", 18)  # Bold
+            font_title = ImageFont.truetype("arialbd.ttf", 14)  # Bold, smaller
         except:
             try:
-                font_title = ImageFont.truetype("arial.ttf", 18)
+                font_title = ImageFont.truetype("arial.ttf", 14)
             except:
                 font_title = ImageFont.load_default()
         
         try:
-            font_label = ImageFont.truetype("arial.ttf", 10)
+            font_label = ImageFont.truetype("arial.ttf", 8)
         except:
             font_label = ImageFont.load_default()
         
@@ -152,18 +152,18 @@ class ChordServiceV3:
             x = grid_left + string_idx * string_spacing
             
             if fret == 0:
-                # Open string (O above nut)
-                draw.ellipse([x - 4, grid_top - 16, x + 4, grid_top - 8], outline='black', width=2)
+                # Open string (O above nut) - 1px from nut
+                draw.ellipse([x - 3, grid_top - 7, x + 3, grid_top - 1], outline='black', width=1)
             elif fret == -1:
-                # Muted string (X above nut)
-                draw.line([(x - 4, grid_top - 16), (x + 4, grid_top - 8)], fill='black', width=2)
-                draw.line([(x - 4, grid_top - 8), (x + 4, grid_top - 16)], fill='black', width=2)
+                # Muted string (X above nut) - 1px from nut
+                draw.line([(x - 3, grid_top - 7), (x + 3, grid_top - 1)], fill='black', width=1)
+                draw.line([(x - 3, grid_top - 1), (x + 3, grid_top - 7)], fill='black', width=1)
             else:
                 # Fretted note
                 # Skip if this is part of a barre already drawn (unless it's the only occurrence)
                 if fret not in fingering.get('barres', []) or fingers.count(fret) == 1:
                     y = grid_top + (fret - 0.5) * fret_spacing
-                    draw.ellipse([x - 7, y - 7, x + 7, y + 7], fill='black')
+                    draw.ellipse([x - 5, y - 5, x + 5, y + 5], fill='black')
         
         return img
 
