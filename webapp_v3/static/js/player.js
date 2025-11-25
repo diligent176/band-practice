@@ -799,8 +799,11 @@ const PlayerManager = {
         // Show dialog FIRST for instant feedback
         BPP.showDialog('edit-lyrics-dialog');
 
-        // Focus immediately (before heavy rendering)
-        editor.focus();
+        // Clean up previous listeners if they exist
+        if (this.lyricsEditorAbortController) {
+            this.lyricsEditorAbortController.abort();
+        }
+        this.lyricsEditorAbortController = new AbortController();
 
         // Populate lyrics editor with RAW lyrics (no numbers)
         editor.value = this.currentSong.lyrics || '';
@@ -808,31 +811,28 @@ const PlayerManager = {
         // Set cursor to position 0 immediately
         editor.setSelectionRange(0, 0);
         editor.scrollTop = 0;
+        editor.focus();
 
         // Apply saved split percentage immediately
         this.applySavedSplit('lyrics');
 
-        // REMOVE old event listeners to prevent duplicates (critical performance fix)
-        const newEditor = editor.cloneNode(true);
-        editor.parentNode.replaceChild(newEditor, editor);
-        const editorFresh = document.getElementById('lyrics-editor');
-        
-        // Re-apply value and focus after cloning
-        editorFresh.value = this.currentSong.lyrics || '';
-        editorFresh.setSelectionRange(0, 0);
-        editorFresh.focus();
-
-        // Setup keyboard shortcuts AFTER cloning (so they attach to fresh element)
+        // Setup keyboard shortcuts
         this.setupLyricsEditorKeyboard();
 
-        // Add event listeners to fresh element (no duplicates)
-        editorFresh.addEventListener('input', () => this.updateLyricsLineNumbers());
-        editorFresh.addEventListener('scroll', () => {
-            const nums = document.getElementById('lyrics-line-numbers');
-            if (nums) nums.scrollTop = editorFresh.scrollTop;
-        });
+        // Add scroll sync with RAF throttling (60fps max)
+        let scrollTicking = false;
+        editor.addEventListener('scroll', () => {
+            if (!scrollTicking) {
+                requestAnimationFrame(() => {
+                    const nums = document.getElementById('lyrics-line-numbers');
+                    if (nums) nums.scrollTop = editor.scrollTop;
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
+            }
+        }, { signal: this.lyricsEditorAbortController.signal });
 
-        // Update line numbers asynchronously (don't block UI)
+        // Calculate line numbers once on open (don't recalculate during typing)
         requestAnimationFrame(() => {
             this.updateLyricsLineNumbers();
         });
@@ -919,15 +919,13 @@ const PlayerManager = {
      */
     setupLyricsEditorKeyboard() {
         const editor = document.getElementById('lyrics-editor');
-        if (!editor) return;
+        if (!editor || !this.lyricsEditorAbortController) return;
 
-        // Remove existing listener if any
-        if (this.lyricsEditorKeyboardHandler) {
-            editor.removeEventListener('keydown', this.lyricsEditorKeyboardHandler);
-        }
+        // Use AbortController signal for automatic cleanup
+        const signal = this.lyricsEditorAbortController.signal;
 
-        // Create new handler
-        this.lyricsEditorKeyboardHandler = (e) => {
+        // Keyboard handler
+        editor.addEventListener('keydown', (e) => {
             // Ctrl+Enter or Cmd+Enter = Save
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
@@ -990,22 +988,17 @@ const PlayerManager = {
                 this.insertSectionHeader('♫ Solo ♫');
                 return;
             }
-        };
-
-        // Attach listener
-        editor.addEventListener('keydown', this.lyricsEditorKeyboardHandler);
+        }, { signal });
     },
 
     /**
      * Cancel lyrics editing
      */
     cancelLyricsEdit() {
-        const editor = document.getElementById('lyrics-editor');
-
-        // Clean up keyboard listener
-        if (this.lyricsEditorKeyboardHandler && editor) {
-            editor.removeEventListener('keydown', this.lyricsEditorKeyboardHandler);
-            this.lyricsEditorKeyboardHandler = null;
+        // Clean up all event listeners via AbortController
+        if (this.lyricsEditorAbortController) {
+            this.lyricsEditorAbortController.abort();
+            this.lyricsEditorAbortController = null;
         }
 
         BPP.hideDialog('edit-lyrics-dialog');

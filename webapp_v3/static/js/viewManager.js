@@ -260,9 +260,13 @@ const ViewManager = {
                 
             } catch (error) {
                 console.error('Error polling for lyrics updates:', error);
-                // Don't stop polling on error, just log it
+                // Stop polling on repeated errors to prevent resource waste
+                if (error.message && error.message.includes('401')) {
+                    console.log('⛔ Authentication error, stopping polling');
+                    this.stopLyricsPolling();
+                }
             }
-        }, 15000); // Poll every 15 seconds (reduced from 5s for better performance)
+        }, 20000); // Poll every 20 seconds for minimal performance impact
     },
     
     /**

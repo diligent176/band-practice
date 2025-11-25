@@ -193,20 +193,41 @@
   animation-timing-function: ease-out;
   animation-iteration-count: infinite;
   animation-fill-mode: both;
-  will-change: background, border-color, box-shadow;
+  will-change: opacity, background;
+  position: relative;
+}
+
+.bpm-indicator-block.animating::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: rgba(45, 122, 74, 0.8);
+  border-radius: 6px;
+  opacity: 0;
+  animation: bpm-glow inherit;
+  pointer-events: none;
+  z-index: -1;
 }
 
 @keyframes bpm-block-pulse {
   0% {
     background: rgba(45, 122, 74, 0.6);
     border-color: rgba(45, 122, 74, 1);
-    box-shadow: 0 0 20px rgba(45, 122, 74, 0.8), 0 0 30px rgba(45, 122, 74, 0.4);
   }
 
   100% {
     background: rgba(45, 122, 74, 0.12);
     border-color: rgba(45, 122, 74, 0.25);
-    box-shadow: none;
+  }
+}
+
+@keyframes bpm-glow {
+  0% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
   }
 }
 
