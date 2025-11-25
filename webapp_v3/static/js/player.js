@@ -924,8 +924,19 @@ const PlayerManager = {
         // Use AbortController signal for automatic cleanup
         const signal = this.lyricsEditorAbortController.signal;
 
-        // Keyboard handler
+        // Handler ONLY for specific shortcuts - all other keys ignored
         editor.addEventListener('keydown', (e) => {
+            // Only handle specific key combinations - exit immediately for anything else
+            const isShortcut = 
+                ((e.ctrlKey || e.metaKey) && e.key === 'Enter') || // Save
+                (e.key === 'Escape') ||                             // Cancel
+                (e.altKey && ['t', 'v', 'c', 'b', 'i', 'o', 's'].includes(e.key)); // Section headers
+            
+            if (!isShortcut) return; // Let arrow keys, letters, etc. pass through instantly
+
+            // Stop propagation so global handler doesn't see these shortcuts
+            e.stopPropagation();
+
             // Ctrl+Enter or Cmd+Enter = Save
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
@@ -940,54 +951,15 @@ const PlayerManager = {
                 return;
             }
 
-            // ALT+T = Tighten lyrics
-            if (e.altKey && e.key === 't') {
-                e.preventDefault();
-                this.tightenLyrics();
-                return;
-            }
-
-            // ALT+V = Insert [Verse]
-            if (e.altKey && e.key === 'v') {
-                e.preventDefault();
-                this.insertSectionHeader('Verse');
-                return;
-            }
-
-            // ALT+C = Insert [Chorus]
-            if (e.altKey && e.key === 'c') {
-                e.preventDefault();
-                this.insertSectionHeader('Chorus');
-                return;
-            }
-
-            // ALT+B = Insert [Bridge]
-            if (e.altKey && e.key === 'b') {
-                e.preventDefault();
-                this.insertSectionHeader('Bridge');
-                return;
-            }
-
-            // ALT+I = Insert [Intro]
-            if (e.altKey && e.key === 'i') {
-                e.preventDefault();
-                this.insertSectionHeader('Intro');
-                return;
-            }
-
-            // ALT+O = Insert [Outro]
-            if (e.altKey && e.key === 'o') {
-                e.preventDefault();
-                this.insertSectionHeader('Outro');
-                return;
-            }
-
-            // ALT+S = Insert ♫ Solo ♫
-            if (e.altKey && e.key === 's') {
-                e.preventDefault();
-                this.insertSectionHeader('♫ Solo ♫');
-                return;
-            }
+            // All ALT shortcuts - prevent default and insert header
+            e.preventDefault();
+            if (e.key === 't') this.tightenLyrics();
+            else if (e.key === 'v') this.insertSectionHeader('Verse');
+            else if (e.key === 'c') this.insertSectionHeader('Chorus');
+            else if (e.key === 'b') this.insertSectionHeader('Bridge');
+            else if (e.key === 'i') this.insertSectionHeader('Intro');
+            else if (e.key === 'o') this.insertSectionHeader('Outro');
+            else if (e.key === 's') this.insertSectionHeader('♫ Solo ♫');
         }, { signal });
     },
 
@@ -1325,20 +1297,24 @@ const PlayerManager = {
             editor.removeEventListener('keydown', this.notesEditorKeyboardHandler);
         }
 
-        // Create new handler
+        // Create new handler - ONLY for specific shortcuts
         this.notesEditorKeyboardHandler = (e) => {
-            // Ctrl+Enter or Cmd+Enter = Save
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                this.saveNotes();
-                return;
-            }
+            // Only handle Ctrl+Enter and ESC - exit immediately for anything else
+            const isShortcut = 
+                ((e.ctrlKey || e.metaKey) && e.key === 'Enter') || 
+                (e.key === 'Escape');
+            
+            if (!isShortcut) return; // Let all other keys pass through instantly
 
-            // ESC = Cancel
-            if (e.key === 'Escape') {
-                e.preventDefault();
+            // Stop propagation so global handler doesn't see these shortcuts
+            e.stopPropagation();
+            e.preventDefault();
+
+            // Handle the shortcut
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                this.saveNotes();
+            } else if (e.key === 'Escape') {
                 this.cancelNotesEdit();
-                return;
             }
         };
 
